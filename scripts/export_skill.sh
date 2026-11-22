@@ -7,19 +7,19 @@ script_dir=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 root=$(CDPATH= cd -- "${script_dir}/.." && pwd)
 version=''
 go_bin="${GO_BIN:-}"
-platforms='linux/amd64,linux/arm64,windows/amd64,darwin/amd64,darwin/arm64'
+platforms='linux/amd64'
 out_dir="${root}/dist"
 out_explicit=0
 skip_build=0
 
 usage() {
     cat <<'EOF'
-Usage: ./scripts/export_skill.sh --version VERSION [OPTIONS]
+Usage: ./scripts/export_skill.sh [OPTIONS]
 
 Options:
   --version VERSION   strict semver x.y.z[-prerelease][+build], optional v
   --go PATH           Go executable (otherwise GO_BIN, then PATH lookup)
-  --platforms LIST    comma-separated GOOS/GOARCH targets
+  --platforms LIST    comma-separated GOOS/GOARCH targets (default: linux/amd64)
   --out-dir DIR       destination directory (default: project-root/dist)
   --skip-build        use existing build/compare-figure and selected platform binaries
   -h, --help          show this help

@@ -10,11 +10,13 @@ Python模块和测试仅放dev/python，使用conda base（本机/home/lingnc/mi
 
 ## 状态与范围
 
-- 0.1.1当前修复：LuaLaTeX已实测可用；旧探针/编译将TEXMFVAR/TEXMFCACHE分离导致fontloader误判，Go与Python现统一为同一自有可写根，不改HOME。回退包装补齐LuaDraw.sty同套TikZ运行库（含arrows.meta/patterns/plotmarks/decorations），用户复杂3D Stealth箭头真实编译已通过。
-- 复杂测试包以用户直接上传附件为准：testdata/luadraw/luadraw-test-2d.lua（2225B，93706afa…e4dab）、3d.lua同前缀（2124B，af411326…58547）原字节，完整SHA/来源/覆盖见manifest。每份均测试LuaLaTeX和独立Lua回退四条路线，真实PDF/PNG已核验，3D生成3502行TikZ；不使用skills分支简单片段。测试区不打进运行Skill。
-- 当前验证：Python完整79项全通过、0跳过；补运行库后runtime9项再通过；Go回归与vet通过。已重建五平台v0.1.1包，只Linux amd64实跑；最新证据runs/luadraw-complex-validation。旧71/77/79项中宿主跳过的描述仅历史时点，不代表当前LuaLaTeX状态。
+- 用户固定打包要求（0.1.2当前）：默认只构建/打包Linux amd64一份程序，其他平台保留源码、需要时显式--platforms再构建；scripts/export_skill.sh及原生build默认均linux/amd64。已重新导出v0.1.2，manifest仅linux-amd64、258文件，ZIP恰一份程序；默认build与显式Windows交叉构建、移动/幂等导出及app vet已验证。不得恢复默认五平台包；按需平台包使用独立out-dir，旧平台缓存不混入默认包。最新验证runs/single-platform-validation。
 
-- 仓库整理：根SKILL.md带name/description/license/metadata.version frontmatter，可作为源码Skill直接使用；go/distribution读取该唯一说明源，导出仅更新版本元数据，不维护Go内嵌副本。根VERSION当前0.1.1；scripts/export_skill.sh从任意cwd构建指定平台并输出带版本目录/ZIP/SHA256，--skip-build显式复用指定平台；VERSION/manifest.version/Skill metadata.version一致。Python模块、algorithms、历史viewer、requirements及tests统一在dev/python；脱敏配置在examples/runner.json。根目录不再放Python，缓存统一build/（旧缓存仅归档，不删除数据）。
+- 0.1.1继承修复：LuaLaTeX已实测可用；旧探针/编译将TEXMFVAR/TEXMFCACHE分离导致fontloader误判，Go与Python现统一为同一自有可写根，不改HOME。回退包装补齐LuaDraw.sty同套TikZ运行库（含arrows.meta/patterns/plotmarks/decorations），用户复杂3D Stealth箭头真实编译已通过。
+- 复杂测试包以用户直接上传附件为准：testdata/luadraw/luadraw-test-2d.lua（2225B，93706afa…e4dab）、3d.lua同前缀（2124B，af411326…58547）原字节，完整SHA/来源/覆盖见manifest。每份均测试LuaLaTeX和独立Lua回退四条路线，真实PDF/PNG已核验，3D生成3502行TikZ；不使用skills分支简单片段。测试区不打进运行Skill。
+- 上轮验证：Python完整79项全通过、0跳过；补运行库后runtime9项再通过；Go回归与vet通过。已重建五平台v0.1.1包，只Linux amd64实跑；最新证据runs/luadraw-complex-validation。旧71/77/79项中宿主跳过的描述仅历史时点，不代表当前LuaLaTeX状态。
+
+- 仓库整理：根SKILL.md带name/description/license/metadata.version frontmatter，可作为源码Skill直接使用；go/distribution读取该唯一说明源，导出仅更新版本元数据，不维护Go内嵌副本。根VERSION当前0.1.2；scripts/export_skill.sh从任意cwd构建指定平台并输出带版本目录/ZIP/SHA256，--skip-build显式复用指定平台；VERSION/manifest.version/Skill metadata.version一致。Python模块、algorithms、历史viewer、requirements及tests统一在dev/python；脱敏配置在examples/runner.json。根目录不再放Python，缓存统一build/（旧缓存仅归档，不删除数据）。
 - 最新修复：Python历史小图平移失败已解决，levels_for不再以32格覆盖小于32px的画布，避免零面积格/NaN评分。原(1,8)平移和100%/逐像素对齐已锁定；相同裁剪质心应去重为1个起点，新增不同起点保留与24-96px网格边界测试。修复当时Python unittest79项：78通过、1直编跳过（现已消除），0失败；该项修复未改生产Go比较算法/回执。下方77项旧结果仅记录整理时点。
 - 整理验证：Go完整test/vet通过；迁移当时Python unittest77项：75通过、1当时小图平移失败（现已修复）、1宿主LuaLaTeX跳过。按主题分批本地Git提交，不推送。资源原样哈希固定，upstream vendor尾随空白不做格式化。
 

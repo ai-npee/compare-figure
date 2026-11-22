@@ -20,7 +20,7 @@ func buildCLI(ctx context.Context, args []string, out, errOut io.Writer) int {
 	fs.SetOutput(errOut)
 	resource := fs.String("resource-root", "", "source resource root")
 	target := fs.String("out", "", "platform binary directory")
-	platformList := fs.String("platforms", "linux/amd64,linux/arm64,windows/amd64,darwin/amd64,darwin/arm64", "comma-separated GOOS/GOARCH")
+	platformList := fs.String("platforms", "linux/amd64", "comma-separated GOOS/GOARCH; others built on request")
 	compiler := fs.String("go", "", "Go 1.25+ executable")
 	if e := fs.Parse(args); e != nil {
 		return writeError(out, e, 2)

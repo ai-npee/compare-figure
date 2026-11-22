@@ -6,7 +6,7 @@
 
 ## 仓库与Skill入口
 
-仓库自身可作为Skill：根目录 [SKILL.md](SKILL.md) 含标准YAML frontmatter（name、description、license、metadata.version），是仓库与安装包共用的唯一技能说明源。[VERSION](VERSION) 是默认发布版本，当前为0.1.1。
+仓库自身可作为Skill：根目录 [SKILL.md](SKILL.md) 含标准YAML frontmatter（name、description、license、metadata.version），是仓库与安装包共用的唯一技能说明源。[VERSION](VERSION) 是默认发布版本，当前为0.1.2。
 
 ```text
 SKILL.md / VERSION       Skill入口与发布版本
@@ -139,27 +139,28 @@ build/compare-figure compare --original reference.png --pdf candidate.pdf --out 
 ## 带版本号的Go-only Skill导出
 
 ```bash
-# 从VERSION读取版本，构建默认五平台并导出目录、ZIP和SHA256
+# 从VERSION读取版本，只构建Linux amd64并导出目录、ZIP和SHA256
 ./scripts/export_skill.sh
 
 # 显式版本及Go工具链（也可设置GO_BIN）
 ./scripts/export_skill.sh --version 0.2.0 --go /path/to/go
 
-# 只打一个平台，或复用已准备的全部二进制
-./scripts/export_skill.sh --version 0.2.0-rc.1 --platforms linux/amd64
-./scripts/export_skill.sh --version 0.2.0 --skip-build
+# 需要其他平台时从源码构建；单独目录避免与默认包混用
+./scripts/export_skill.sh --platforms windows/amd64 --out-dir dist/windows-amd64
+# 只复用默认Linux amd64的已准备二进制
+./scripts/export_skill.sh --skip-build
 ```
 
-脚本可以从任意当前工作目录调用，支持带空格路径。默认发布到 `dist/compare-figure-skill-v0.1.1/`、同名 `.zip` 和 `.zip.sha256`，用 `--out-dir` 改目录。版本采用SemVer，可带v前缀；不同版本分别保留，同版本可重复导出。`--skip-build`要求已经准备好build/compare-figure和build/platforms，不会自动编译。安装包中的VERSION、manifest.json.version与SKILL.md的metadata.version保持一致；发布时覆盖版本不会修改源码VERSION。
+脚本可以从任意当前工作目录调用，支持带空格路径。默认发布到 `dist/compare-figure-skill-v0.1.2/`、同名 `.zip` 和 `.zip.sha256`，用 `--out-dir` 改目录。版本采用SemVer，可带v前缀；不同版本分别保留，同版本可重复导出。`--skip-build`要求已经准备好build/compare-figure和build/platforms，不会自动编译。安装包中的VERSION、manifest.json.version与SKILL.md的metadata.version保持一致；发布时覆盖版本不会修改源码VERSION。
 
-底层也可以直接调用：
+底层也可以在Linux amd64宿主直接导出本机程序：
 
 ```bash
-build/compare-figure export-skill --version 0.1.1 \
-  --binaries-dir build/platforms --out dist/compare-figure-skill-v0.1.1
+build/compare-figure export-skill --version 0.1.2 \
+  --out dist/compare-figure-skill-v0.1.2
 ```
 
-也可省略binaries-dir只导出当前平台。导出包括校验过Go构建信息/平台的二进制、根SKILL.md、VERSION、原始提示词、固定LuaDraw运行库/官方手册、Lua辅助脚本与许可证。排除Python原型、开发测试、本地配置、密钥和运行数据。相同输入重复导出跳过未变化文件，生成相同SHA256清单；包可离开源码目录运行。
+默认发布只带 `bin/linux-amd64/compare-figure` 一个程序。其他平台保留源码和 `build --platforms GOOS/GOARCH`/脚本 `--platforms` 按需构建；显式 `--binaries-dir` 时按调用方准备的目录收集二进制。导出包括校验过Go构建信息/平台的二进制、根SKILL.md、VERSION、原始提示词、固定LuaDraw运行库/官方手册、Lua辅助脚本与许可证。排除Python原型、开发测试、本地配置、密钥和运行数据。相同输入重复导出跳过未变化文件，生成相同SHA256清单；包可离开源码目录运行。
 
 
 ## 复杂LuaDraw回归包

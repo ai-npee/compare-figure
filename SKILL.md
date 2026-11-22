@@ -3,12 +3,12 @@ name: compare-figure
 description: "Redraw and compare figures with LuaDraw, using either an automatic model runner or Agent-led CLI tools. Supports images, sizes.csv and Markdown context; default overlap is 17%."
 license: MIT
 metadata:
-  version: "0.1.1"
+  version: "0.1.2"
 ---
 
 # compare-figure: two work modes
 
-In an exported Skill, select bin/<host-os>-<host-arch>/compare-figure (Windows: compare-figure.exe); packaged targets are listed in manifest.json. In a source checkout, use build/compare-figure. If it is missing, build from the Skill root with Go 1.25+: `go -C go build -o ../build/compare-figure ./cmd/compare-figure`. Resolve the executable and resources relative to this SKILL.md, not the caller working directory. Use an absolute executable path when operating inside a book directory.
+In an exported Skill, select bin/<host-os>-<host-arch>/compare-figure (Windows: compare-figure.exe); packaged targets are listed in manifest.json. The default release contains only Linux amd64; for other hosts, build the needed target from the source checkout with `scripts/export_skill.sh --platforms GOOS/GOARCH --out-dir dist/GOOS-GOARCH`. In a source checkout, use build/compare-figure. If it is missing, build from the Skill root with Go 1.25+: `go -C go build -o ../build/compare-figure ./cmd/compare-figure`. Resolve the executable and resources relative to this SKILL.md, not the caller working directory. Use an absolute executable path when operating inside a book directory.
 The examples use compare-figure as shorthand for that full binary path. Installed execution is Go-only; Python and Go compilers are not needed. Lua/TeX/Poppler are detected external tools.
 
 ## Standalone inputs, physical size and Markdown context

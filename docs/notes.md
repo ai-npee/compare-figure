@@ -1,6 +1,12 @@
 # 开发记录
 
-## LuaLaTeX缓存修复与用户复杂LuaDraw测试（当前，0.1.1）
+## 默认单Linux amd64发布（当前，0.1.2）
+
+用户要求默认包只放常用Linux amd64程序，其他平台已有源码，需要时再构建。scripts/export_skill.sh和Go build命令默认目标均改为linux/amd64；保留显式--platforms及独立输出目录，跨平台构建按需触发。根VERSION/Skill metadata更新0.1.2，避免与原五平台0.1.1目录混用；旧版本产物保持历史归档。
+
+实际默认脚本导出仅bin/linux-amd64/compare-figure一份程序，manifest仅linux-amd64、258文件；仍复用每次构建隔离目录，现存五平台缓存不会混入新包。已实际检查Go build省略platforms只生成Linux amd64；显式windows/amd64仍成功交叉编译（未执行Windows程序）。导出移动/幂等回归及app vet通过，ZIP清单/全部文件SHA/版本一致性核验，证据runs/single-platform-validation。
+
+## LuaLaTeX缓存修复与用户复杂LuaDraw测试（前阶段，0.1.1）
 
 用户指出当前LuaLaTeX可用，并提供准确的复杂2D/3D压力测试附件。本轮以附件为准，不再使用skills分支内嵌简单片段；两份测试原字节保存在testdata/luadraw，manifest记录完整SHA、附件名和覆盖范围，不依赖机器附件目录。
 

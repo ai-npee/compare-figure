@@ -91,9 +91,9 @@ The Go document implementation uses `pdftotext -bbox`, `pdfinfo` and `pdftoppm` 
 
 ## Build and export
 
-The repository is itself a Skill: root SKILL.md contains standard YAML frontmatter and is the single canonical instruction source. The exporter reads it rather than embedding a duplicate in Go. Root VERSION supplies the default release (0.1.1). A release writes the same version into VERSION, manifest.json.version and SKILL.md metadata.version. `export-skill --version` overrides only the output metadata, not source files.
+The repository is itself a Skill: root SKILL.md contains standard YAML frontmatter and is the single canonical instruction source. The exporter reads it rather than embedding a duplicate in Go. Root VERSION supplies the default release (0.1.2). A release writes the same version into VERSION, manifest.json.version and SKILL.md metadata.version. `export-skill --version` overrides only the output metadata, not source files.
 
-From any working directory invoke the repository's `scripts/export_skill.sh` by path. With no version argument it reads VERSION, builds the default five targets, and emits `dist/compare-figure-skill-v0.1.1/`, `.zip` and `.zip.sha256`. `--version 0.2.0`, `--go /path/to/go` (or GO_BIN), `--platforms linux/amd64`, `--out-dir DIR` and `--skip-build` are supported. Platforms are isolated per invocation; old targets never leak into a limited release. Skip-build requires existing host and selected platform binaries under build/. Different versions are retained separately; same-version output is refreshed, while unknown destination files are rejected rather than removed or packaged.
+From any working directory invoke the repository's `scripts/export_skill.sh` by path. With no version argument it reads VERSION, builds only Linux amd64 by default, and emits `dist/compare-figure-skill-v0.1.2/`, `.zip` and `.zip.sha256`. `--version 0.2.0`, `--go /path/to/go` (or GO_BIN), `--platforms linux/amd64`, `--out-dir DIR` and `--skip-build` are supported. Platforms are isolated per invocation; old targets never leak into a limited release. Skip-build requires existing host and selected platform binaries under build/. Different versions are retained separately; same-version output is refreshed, while unknown destination files are rejected rather than removed or packaged.
 
 Python prototypes, research algorithms, old viewer and comparison tests live in dev/python/; they are development-only and excluded from releases. Example model configuration is examples/runner.json. Runtime prompts/vendor/Lua helper remain rooted at the project/installed Skill directory.
 
@@ -103,13 +103,15 @@ Go 1.25+ is a development requirement, not an installed Skill runtime dependency
 # In go/
 GOCACHE="$PWD/../build/go-cache" go build -o ../build/compare-figure ./cmd/compare-figure
 
-# In the project root: build the requested target matrix with CGO disabled
-build/compare-figure build --out build/platforms \
-  --platforms linux/amd64,linux/arm64,windows/amd64,darwin/amd64,darwin/arm64
+# Default target: Linux amd64 only
+build/compare-figure build --out build/platforms
 
-# Export all built targets, or omit --binaries-dir for the current native binary
-build/compare-figure export-skill --version 0.1.1 --binaries-dir build/platforms \
-  --out dist/compare-figure-skill-v0.1.1
+# Build another target from source only when needed
+build/compare-figure build --out build/windows --platforms windows/amd64
+
+# Export the current Linux amd64 executable; the release script isolates selected targets
+build/compare-figure export-skill --version 0.1.2 \
+  --out dist/compare-figure-skill-v0.1.2
 ```
 
 `build --go /path/to/go` and `COMPARE_FIGURE_GO` allow an explicit installed Go toolchain. The exporter validates each binary's Go build information, copies fixed resources, emits one Go-only `SKILL.md`, and records SHA-256 values in the manifest. Existing Python artifacts cause a clear destination error instead of retaining a second runtime in the export. It never exports model credentials or run data.
