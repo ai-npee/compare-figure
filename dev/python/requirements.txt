@@ -1,0 +1,5 @@
+# Upstream dependency scope; version bounds not calibrated yet.
+numpy
+Pillow
+# Source grep uses RE2, not Python's backtracking regular-expression engine.
+google-re2==1.1.20251105

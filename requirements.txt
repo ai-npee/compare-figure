@@ -1,3 +1,0 @@
-# Upstream dependency scope; version bounds not calibrated yet.
-numpy
-Pillow
