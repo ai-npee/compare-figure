@@ -11,7 +11,8 @@ Python模块和测试仅放dev/python，使用conda base（本机/home/lingnc/mi
 ## 状态与范围
 
 - 仓库整理：根SKILL.md带name/description/license/metadata.version frontmatter，可作为源码Skill直接使用；go/distribution读取该唯一说明源，导出仅更新版本元数据，不维护Go内嵌副本。根VERSION当前0.1.0；scripts/export_skill.sh从任意cwd构建指定平台并输出带版本目录/ZIP/SHA256，--skip-build显式复用指定平台；VERSION/manifest.version/Skill metadata.version一致。Python模块、algorithms、历史viewer、requirements及tests统一在dev/python；脱敏配置在examples/runner.json。根目录不再放Python，缓存统一build/（旧缓存仅归档，不删除数据）。
-- 整理验证：Go完整test/vet通过；迁移后的Python unittest77项：75通过、1既存小图平移失败、1宿主LuaLaTeX跳过，保留算法不掩盖历史失败。按主题分批本地Git提交，不推送。资源原样哈希固定，upstream vendor尾随空白不做格式化。
+- 最新修复：Python历史小图平移失败已解决，levels_for不再以32格覆盖小于32px的画布，避免零面积格/NaN评分。原(1,8)平移和100%/逐像素对齐已锁定；相同裁剪质心应去重为1个起点，新增不同起点保留与24-96px网格边界测试。完整Python unittest79项：78通过、1宿主LuaLaTeX直编跳过，0失败；生产Go算法/回执和Go-only版本不变。下方77项旧结果仅记录整理时点。
+- 整理验证：Go完整test/vet通过；迁移当时Python unittest77项：75通过、1当时小图平移失败（现已修复）、1宿主LuaLaTeX跳过。按主题分批本地Git提交，不推送。资源原样哈希固定，upstream vendor尾随空白不做格式化。
 
 - 最新边界：本程序是独立绘图/比较工具，不读取MinerU索引/content_list/layout/bbox，不要求DocVision工程或原PDF。正式Go已删除这类尺寸回退；历史Python原型/迁移记录只作旧版本追溯。尺寸仅explicit mm > 指定/图片旁sizes.csv（size.csv兼容）> aspect_only；CSV width/height分别保留，scale_px_per_pt只作来源、不重复缩放。返回完整尺寸文字回执和reference/candidate测量来源、页宽与normalization。
 - 回执严格采用原版compare_figure Soft-ink/Ink size/alignment/crop/overlay模板，Agent工具文字+图片，不自增画布/来源/normalization说明或JSON包；测量来源仅程序JSON字段。原版compare只报告；submit在MaxScaleDev配置正数时原本就会拦截超限（上游tools.go253-355已核对），本程序不额外增加尺寸强制规则，保留原SUBMITTED/REJECTED/8次best-effort。黄金测试逐字匹配用户14.74%/1.7%回执。

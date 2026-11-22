@@ -82,7 +82,9 @@ def levels_for(canvas, finest):
         levels.append(grid)
         grid *= 2
     if not levels:
-        return [32]
+        # A grid larger than the canvas creates duplicate integer edges and
+        # zero-area cells. Small figures use their requested final resolution.
+        return [final]
     if levels[-1] < final:
         levels.append(final)
     return levels

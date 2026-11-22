@@ -26,4 +26,4 @@ PYTHONPATH=dev/python:dev/python/algorithms:dev/python/tests python -m unittest 
 
 Python modules resolve project resources from the repository root: `prompts/`, `vendor/`, `scripts/`, `.deps/`, `build/`, `go/`, and `runs/` remain in their existing root locations. Test fixtures use isolated temporary directories.
 
-Install prototype dependencies with `python -m pip install -r dev/python/requirements.txt` in the development environment. The legacy `compare.py` alignment behavior is retained for historical comparison and may have known small-image translation failures; this relocation does not change its algorithm.
+Install prototype dependencies with `python -m pip install -r dev/python/requirements.txt` in the development environment. The former small-image translation failure in `compare.py` is fixed: pyramid levels never exceed their canonical canvas, avoiding zero-area grid cells and invalid scores. Regression tests verify the original exact translation, pixel-perfect alignment, grid boundaries and distinct/deduplicated starting anchors. This development-only fix does not modify the production Go scorer or its receipt.

@@ -179,4 +179,4 @@ conda run -n base env PYTHONPATH=dev/python:dev/python/algorithms:dev/python/tes
   python -m unittest discover -s dev/python/tests -v
 ```
 
-历史比较算法及旧分数保持，已有小图平移失败和校准接口边界见开发记录。旧生产迁移表在 [迁移说明](docs/migration.md)，原型JSON说明在 [原型接口](docs/tools.md)。项目采用 [MIT许可](LICENSE)，LuaDraw分发保留LPPL 1.3c+。
+Python历史比较器的小图平移失败已修复：小图金字塔网格不再超过画布尺寸，避免零面积单元污染评分；测试核验精确平移和逐像素对齐，正式Go评分器未改。历次验证与校准接口边界见开发记录。旧生产迁移表在 [迁移说明](docs/migration.md)，原型JSON说明在 [原型接口](docs/tools.md)。项目采用 [MIT许可](LICENSE)，LuaDraw分发保留LPPL 1.3c+。
