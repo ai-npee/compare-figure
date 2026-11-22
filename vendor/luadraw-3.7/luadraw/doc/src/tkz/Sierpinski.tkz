@@ -1,0 +1,492 @@
+\begin{tikzpicture}[line join=round]%
+\begin{scope}%
+\clip (-0.5,-0.5) rectangle (9.5,9.5);%
+\pgfsetfillcolor{rgb,1:red,0.2445;green,0.4959;blue,0.6888}%
+\draw[fill] (4.5,9) -- (4.3594,8.7188) -- (4.6406,8.7188)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.4021;green,0.9629;blue,0.7351}%
+\draw[fill] (4.3594,8.7188) -- (4.2188,8.4375) -- (4.5,8.4375)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3387;green,0.0175;blue,0.6135}%
+\draw[fill] (4.6406,8.7188) -- (4.5,8.4375) -- (4.7812,8.4375)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.0838;green,0.0585;blue,0.2429}%
+\draw[fill] (4.2188,8.4375) -- (4.0781,8.1562) -- (4.3594,8.1562)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.0794;green,0.8358;blue,0.2115}%
+\draw[fill] (4.0781,8.1562) -- (3.9375,7.875) -- (4.2188,7.875)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.1312;green,0.0193;blue,0.2584}%
+\draw[fill] (4.3594,8.1562) -- (4.2188,7.875) -- (4.5,7.875)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.6845;green,0.1944;blue,0.4609}%
+\draw[fill] (4.7812,8.4375) -- (4.6406,8.1562) -- (4.9219,8.1562)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5407;green,0.1116;blue,0.3574}%
+\draw[fill] (4.6406,8.1562) -- (4.5,7.875) -- (4.7812,7.875)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.2452;green,0.7015;blue,0.4502}%
+\draw[fill] (4.9219,8.1562) -- (4.7812,7.875) -- (5.0625,7.875)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5574;green,0.6497;blue,0.5534}%
+\draw[fill] (3.9375,7.875) -- (3.7969,7.5938) -- (4.0781,7.5938)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5021;green,0.8941;blue,0.0492}%
+\draw[fill] (3.7969,7.5938) -- (3.6562,7.3125) -- (3.9375,7.3125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.1909;green,0.2963;blue,0.0121}%
+\draw[fill] (4.0781,7.5938) -- (3.9375,7.3125) -- (4.2188,7.3125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.926;green,0.635;blue,0.0296}%
+\draw[fill] (3.6562,7.3125) -- (3.5156,7.0312) -- (3.7969,7.0312)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5395;green,0.7188;blue,0.0882}%
+\draw[fill] (3.5156,7.0312) -- (3.375,6.75) -- (3.6562,6.75)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7823;green,0.7982;blue,0.924}%
+\draw[fill] (3.7969,7.0312) -- (3.6562,6.75) -- (3.9375,6.75)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.9938;green,0.9294;blue,0.9433}%
+\draw[fill] (4.2188,7.3125) -- (4.0781,7.0312) -- (4.3594,7.0312)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.2522;green,0.6139;blue,0.1377}%
+\draw[fill] (4.0781,7.0312) -- (3.9375,6.75) -- (4.2188,6.75)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7131;green,0.1545;blue,0.2494}%
+\draw[fill] (4.3594,7.0312) -- (4.2188,6.75) -- (4.5,6.75)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.0704;green,0.3997;blue,0.9508}%
+\draw[fill] (5.0625,7.875) -- (4.9219,7.5938) -- (5.2031,7.5938)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5206;green,0.9572;blue,0.6005}%
+\draw[fill] (4.9219,7.5938) -- (4.7812,7.3125) -- (5.0625,7.3125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.074;green,0.4593;blue,0.4946}%
+\draw[fill] (5.2031,7.5938) -- (5.0625,7.3125) -- (5.3438,7.3125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.1232;green,0.6501;blue,0.7909}%
+\draw[fill] (4.7812,7.3125) -- (4.6406,7.0312) -- (4.9219,7.0312)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.1353;green,0.5761;blue,0.4259}%
+\draw[fill] (4.6406,7.0312) -- (4.5,6.75) -- (4.7812,6.75)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.165;green,0.1156;blue,0.1447}%
+\draw[fill] (4.9219,7.0312) -- (4.7812,6.75) -- (5.0625,6.75)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.2531;green,0.8979;blue,0.9428}%
+\draw[fill] (5.3438,7.3125) -- (5.2031,7.0312) -- (5.4844,7.0312)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.1771;green,0.8917;blue,0.8722}%
+\draw[fill] (5.2031,7.0312) -- (5.0625,6.75) -- (5.3438,6.75)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.1204;green,0.1439;blue,0.4861}%
+\draw[fill] (5.4844,7.0312) -- (5.3438,6.75) -- (5.625,6.75)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.2582;green,0.857;blue,0.6406}%
+\draw[fill] (3.375,6.75) -- (3.2344,6.4688) -- (3.5156,6.4688)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5075;green,0.9275;blue,0.0404}%
+\draw[fill] (3.2344,6.4688) -- (3.0938,6.1875) -- (3.375,6.1875)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.4583;green,0.4481;blue,0.9975}%
+\draw[fill] (3.5156,6.4688) -- (3.375,6.1875) -- (3.6562,6.1875)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.0588;green,0.5221;blue,0.4568}%
+\draw[fill] (3.0938,6.1875) -- (2.9531,5.9062) -- (3.2344,5.9062)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5535;green,0.6453;blue,0.1069}%
+\draw[fill] (2.9531,5.9062) -- (2.8125,5.625) -- (3.0938,5.625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3444;green,0.7807;blue,0.683}%
+\draw[fill] (3.2344,5.9062) -- (3.0938,5.625) -- (3.375,5.625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7703;green,0.9456;blue,0.7986}%
+\draw[fill] (3.6562,6.1875) -- (3.5156,5.9062) -- (3.7969,5.9062)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.915;green,0.1988;blue,0.6965}%
+\draw[fill] (3.5156,5.9062) -- (3.375,5.625) -- (3.6562,5.625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.8578;green,0.3759;blue,0.5882}%
+\draw[fill] (3.7969,5.9062) -- (3.6562,5.625) -- (3.9375,5.625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.73;green,0.4963;blue,0.7321}%
+\draw[fill] (2.8125,5.625) -- (2.6719,5.3438) -- (2.9531,5.3438)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.2161;green,0.7545;blue,0.5892}%
+\draw[fill] (2.6719,5.3438) -- (2.5312,5.0625) -- (2.8125,5.0625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.8568;green,0.262;blue,0.5166}%
+\draw[fill] (2.9531,5.3438) -- (2.8125,5.0625) -- (3.0938,5.0625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.8971;green,0.7204;blue,0.9647}%
+\draw[fill] (2.5312,5.0625) -- (2.3906,4.7812) -- (2.6719,4.7812)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.8947;green,0.7792;blue,0.4868}%
+\draw[fill] (2.3906,4.7812) -- (2.25,4.5) -- (2.5312,4.5)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3514;green,0.3327;blue,0.1322}%
+\draw[fill] (2.6719,4.7812) -- (2.5312,4.5) -- (2.8125,4.5)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.4584;green,0.6771;blue,0.9128}%
+\draw[fill] (3.0938,5.0625) -- (2.9531,4.7812) -- (3.2344,4.7812)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.1414;green,0.4473;blue,0.8585}%
+\draw[fill] (2.9531,4.7812) -- (2.8125,4.5) -- (3.0938,4.5)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.94;green,0.3623;blue,0.0573}%
+\draw[fill] (3.2344,4.7812) -- (3.0938,4.5) -- (3.375,4.5)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.6364;green,0.2201;blue,0.4331}%
+\draw[fill] (3.9375,5.625) -- (3.7969,5.3438) -- (4.0781,5.3438)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.2246;green,0.9501;blue,0.9295}%
+\draw[fill] (3.7969,5.3438) -- (3.6562,5.0625) -- (3.9375,5.0625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.9567;green,0.1662;blue,0.6839}%
+\draw[fill] (4.0781,5.3438) -- (3.9375,5.0625) -- (4.2188,5.0625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5459;green,0.023;blue,0.946}%
+\draw[fill] (3.6562,5.0625) -- (3.5156,4.7812) -- (3.7969,4.7812)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.0625;green,0.9201;blue,0.6663}%
+\draw[fill] (3.5156,4.7812) -- (3.375,4.5) -- (3.6562,4.5)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.0273;green,0.8148;blue,0.4455}%
+\draw[fill] (3.7969,4.7812) -- (3.6562,4.5) -- (3.9375,4.5)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5141;green,0.1662;blue,0.7782}%
+\draw[fill] (4.2188,5.0625) -- (4.0781,4.7812) -- (4.3594,4.7812)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.6463;green,0.6246;blue,0.4553}%
+\draw[fill] (4.0781,4.7812) -- (3.9375,4.5) -- (4.2188,4.5)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5591;green,0.766;blue,0.9026}%
+\draw[fill] (4.3594,4.7812) -- (4.2188,4.5) -- (4.5,4.5)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.4176;green,0.7059;blue,0.2649}%
+\draw[fill] (5.625,6.75) -- (5.4844,6.4688) -- (5.7656,6.4688)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.4749;green,0.3424;blue,0.485}%
+\draw[fill] (5.4844,6.4688) -- (5.3438,6.1875) -- (5.625,6.1875)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.908;green,0.567;blue,0.4352}%
+\draw[fill] (5.7656,6.4688) -- (5.625,6.1875) -- (5.9062,6.1875)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.8375;green,0.5237;blue,0.6014}%
+\draw[fill] (5.3438,6.1875) -- (5.2031,5.9062) -- (5.4844,5.9062)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5214;green,0.0696;blue,0.6244}%
+\draw[fill] (5.2031,5.9062) -- (5.0625,5.625) -- (5.3438,5.625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.4674;green,0.1321;blue,0.5445}%
+\draw[fill] (5.4844,5.9062) -- (5.3438,5.625) -- (5.625,5.625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.1337;green,0.1594;blue,0.3593}%
+\draw[fill] (5.9062,6.1875) -- (5.7656,5.9062) -- (6.0469,5.9062)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5792;green,0.6735;blue,0.5255}%
+\draw[fill] (5.7656,5.9062) -- (5.625,5.625) -- (5.9062,5.625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3574;green,0.3198;blue,0.15}%
+\draw[fill] (6.0469,5.9062) -- (5.9062,5.625) -- (6.1875,5.625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.8127;green,0.8789;blue,0.916}%
+\draw[fill] (5.0625,5.625) -- (4.9219,5.3438) -- (5.2031,5.3438)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7153;green,0.2965;blue,0.6219}%
+\draw[fill] (4.9219,5.3438) -- (4.7812,5.0625) -- (5.0625,5.0625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.9802;green,0.7714;blue,0.9643}%
+\draw[fill] (5.2031,5.3438) -- (5.0625,5.0625) -- (5.3438,5.0625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.4652;green,0.6794;blue,0.5312}%
+\draw[fill] (4.7812,5.0625) -- (4.6406,4.7812) -- (4.9219,4.7812)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.9004;green,0.5169;blue,0.0549}%
+\draw[fill] (4.6406,4.7812) -- (4.5,4.5) -- (4.7812,4.5)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5018;green,0.0383;blue,0.1246}%
+\draw[fill] (4.9219,4.7812) -- (4.7812,4.5) -- (5.0625,4.5)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.1262;green,0.5057;blue,0.2567}%
+\draw[fill] (5.3438,5.0625) -- (5.2031,4.7812) -- (5.4844,4.7812)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.6707;green,0.6393;blue,0.4161}%
+\draw[fill] (5.2031,4.7812) -- (5.0625,4.5) -- (5.3438,4.5)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.0299;green,0.2186;blue,0.0896}%
+\draw[fill] (5.4844,4.7812) -- (5.3438,4.5) -- (5.625,4.5)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5554;green,0.576;blue,0.4094}%
+\draw[fill] (6.1875,5.625) -- (6.0469,5.3438) -- (6.3281,5.3438)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7054;green,0.3886;blue,0.2883}%
+\draw[fill] (6.0469,5.3438) -- (5.9062,5.0625) -- (6.1875,5.0625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.6214;green,0.1039;blue,0.5848}%
+\draw[fill] (6.3281,5.3438) -- (6.1875,5.0625) -- (6.4688,5.0625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.2433;green,0.0842;blue,0.3562}%
+\draw[fill] (5.9062,5.0625) -- (5.7656,4.7812) -- (6.0469,4.7812)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.2076;green,0.5494;blue,0.0357}%
+\draw[fill] (5.7656,4.7812) -- (5.625,4.5) -- (5.9062,4.5)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7388;green,0.4498;blue,0.5525}%
+\draw[fill] (6.0469,4.7812) -- (5.9062,4.5) -- (6.1875,4.5)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7937;green,0.9516;blue,0.5908}%
+\draw[fill] (6.4688,5.0625) -- (6.3281,4.7812) -- (6.6094,4.7812)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.9183;green,0.0778;blue,0.0965}%
+\draw[fill] (6.3281,4.7812) -- (6.1875,4.5) -- (6.4688,4.5)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.175;green,0.7484;blue,0.7359}%
+\draw[fill] (6.6094,4.7812) -- (6.4688,4.5) -- (6.75,4.5)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5911;green,0.7783;blue,0.9544}%
+\draw[fill] (2.25,4.5) -- (2.1094,4.2188) -- (2.3906,4.2188)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.6807;green,0.3337;blue,0.5304}%
+\draw[fill] (2.1094,4.2188) -- (1.9688,3.9375) -- (2.25,3.9375)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.09;green,0.0391;blue,0.919}%
+\draw[fill] (2.3906,4.2188) -- (2.25,3.9375) -- (2.5312,3.9375)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3783;green,0.6605;blue,0.023}%
+\draw[fill] (1.9688,3.9375) -- (1.8281,3.6562) -- (2.1094,3.6562)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.9632;green,0.9038;blue,0.1071}%
+\draw[fill] (1.8281,3.6562) -- (1.6875,3.375) -- (1.9688,3.375)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3194;green,0.1114;blue,0.6565}%
+\draw[fill] (2.1094,3.6562) -- (1.9688,3.375) -- (2.25,3.375)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3551;green,0.8502;blue,0.1063}%
+\draw[fill] (2.5312,3.9375) -- (2.3906,3.6562) -- (2.6719,3.6562)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.9076;green,0.6439;blue,0.0579}%
+\draw[fill] (2.3906,3.6562) -- (2.25,3.375) -- (2.5312,3.375)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.4985;green,0.5622;blue,0.1356}%
+\draw[fill] (2.6719,3.6562) -- (2.5312,3.375) -- (2.8125,3.375)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.595;green,0.7372;blue,0.884}%
+\draw[fill] (1.6875,3.375) -- (1.5469,3.0938) -- (1.8281,3.0938)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3308;green,0.3282;blue,0.6624}%
+\draw[fill] (1.5469,3.0938) -- (1.4062,2.8125) -- (1.6875,2.8125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.2853;green,0.0089;blue,0.996}%
+\draw[fill] (1.8281,3.0938) -- (1.6875,2.8125) -- (1.9688,2.8125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.8156;green,0.0989;blue,0.0351}%
+\draw[fill] (1.4062,2.8125) -- (1.2656,2.5312) -- (1.5469,2.5312)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7347;green,0.4773;blue,0.6956}%
+\draw[fill] (1.2656,2.5312) -- (1.125,2.25) -- (1.4062,2.25)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7576;green,0.4404;blue,0.5994}%
+\draw[fill] (1.5469,2.5312) -- (1.4062,2.25) -- (1.6875,2.25)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.8647;green,0.7598;blue,0.7108}%
+\draw[fill] (1.9688,2.8125) -- (1.8281,2.5312) -- (2.1094,2.5312)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5212;green,0.1149;blue,0.5609}%
+\draw[fill] (1.8281,2.5312) -- (1.6875,2.25) -- (1.9688,2.25)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.6276;green,0.0225;blue,0.2048}%
+\draw[fill] (2.1094,2.5312) -- (1.9688,2.25) -- (2.25,2.25)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.6854;green,0.521;blue,0.7671}%
+\draw[fill] (2.8125,3.375) -- (2.6719,3.0938) -- (2.9531,3.0938)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.8211;green,0.116;blue,0.5042}%
+\draw[fill] (2.6719,3.0938) -- (2.5312,2.8125) -- (2.8125,2.8125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7051;green,0.4468;blue,0.8325}%
+\draw[fill] (2.9531,3.0938) -- (2.8125,2.8125) -- (3.0938,2.8125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3675;green,0.7321;blue,0.8414}%
+\draw[fill] (2.5312,2.8125) -- (2.3906,2.5312) -- (2.6719,2.5312)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3635;green,0.5477;blue,0.9403}%
+\draw[fill] (2.3906,2.5312) -- (2.25,2.25) -- (2.5312,2.25)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3987;green,0.2824;blue,0.4176}%
+\draw[fill] (2.6719,2.5312) -- (2.5312,2.25) -- (2.8125,2.25)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.0943;green,0.04;blue,0.858}%
+\draw[fill] (3.0938,2.8125) -- (2.9531,2.5312) -- (3.2344,2.5312)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.6937;green,0.9047;blue,0.6179}%
+\draw[fill] (2.9531,2.5312) -- (2.8125,2.25) -- (3.0938,2.25)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.4045;green,0.426;blue,0.7328}%
+\draw[fill] (3.2344,2.5312) -- (3.0938,2.25) -- (3.375,2.25)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.9655;green,0.0535;blue,0.7553}%
+\draw[fill] (1.125,2.25) -- (0.9844,1.9688) -- (1.2656,1.9688)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.1703;green,0.739;blue,0.2763}%
+\draw[fill] (0.9844,1.9688) -- (0.8438,1.6875) -- (1.125,1.6875)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.9374;green,0.5601;blue,0.3923}%
+\draw[fill] (1.2656,1.9688) -- (1.125,1.6875) -- (1.4062,1.6875)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.4416;green,0.2652;blue,0.8391}%
+\draw[fill] (0.8438,1.6875) -- (0.7031,1.4062) -- (0.9844,1.4062)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.2741;green,0.6327;blue,0.5712}%
+\draw[fill] (0.7031,1.4062) -- (0.5625,1.125) -- (0.8438,1.125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.1155;green,0.9962;blue,0.1189}%
+\draw[fill] (0.9844,1.4062) -- (0.8438,1.125) -- (1.125,1.125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.0558;green,0.3949;blue,0.4012}%
+\draw[fill] (1.4062,1.6875) -- (1.2656,1.4062) -- (1.5469,1.4062)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.4734;green,0.4892;blue,0.4412}%
+\draw[fill] (1.2656,1.4062) -- (1.125,1.125) -- (1.4062,1.125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3314;green,0.183;blue,0.346}%
+\draw[fill] (1.5469,1.4062) -- (1.4062,1.125) -- (1.6875,1.125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.9492;green,0.5875;blue,0.7719}%
+\draw[fill] (0.5625,1.125) -- (0.4219,0.8438) -- (0.7031,0.8438)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.682;green,0.553;blue,0.8255}%
+\draw[fill] (0.4219,0.8438) -- (0.2812,0.5625) -- (0.5625,0.5625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.4373;green,0.7233;blue,0.5644}%
+\draw[fill] (0.7031,0.8438) -- (0.5625,0.5625) -- (0.8438,0.5625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7136;green,0.6607;blue,0.1245}%
+\draw[fill] (0.2812,0.5625) -- (0.1406,0.2812) -- (0.4219,0.2812)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.1059;green,0.1023;blue,0.3897}%
+\draw[fill] (0.1406,0.2812) -- (0,0) -- (0.2812,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.945;green,0.3764;blue,0.0224}%
+\draw[fill] (0.4219,0.2812) -- (0.2812,0) -- (0.5625,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5162;green,0.4918;blue,0.0186}%
+\draw[fill] (0.8438,0.5625) -- (0.7031,0.2812) -- (0.9844,0.2812)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.635;green,0.5476;blue,0.4135}%
+\draw[fill] (0.7031,0.2812) -- (0.5625,0) -- (0.8438,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.0363;green,0.021;blue,0.9027}%
+\draw[fill] (0.9844,0.2812) -- (0.8438,0) -- (1.125,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.4775;green,0.3524;blue,0.0857}%
+\draw[fill] (1.6875,1.125) -- (1.5469,0.8438) -- (1.8281,0.8438)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.8235;green,0.3016;blue,0.6732}%
+\draw[fill] (1.5469,0.8438) -- (1.4062,0.5625) -- (1.6875,0.5625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5954;green,0.9836;blue,0.2262}%
+\draw[fill] (1.8281,0.8438) -- (1.6875,0.5625) -- (1.9688,0.5625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.4209;green,0.421;blue,0.9495}%
+\draw[fill] (1.4062,0.5625) -- (1.2656,0.2812) -- (1.5469,0.2812)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.9853;green,0.1346;blue,0.6102}%
+\draw[fill] (1.2656,0.2812) -- (1.125,0) -- (1.4062,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.1098;green,0.2405;blue,0.7124}%
+\draw[fill] (1.5469,0.2812) -- (1.4062,0) -- (1.6875,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.4995;green,0.1855;blue,0.0888}%
+\draw[fill] (1.9688,0.5625) -- (1.8281,0.2812) -- (2.1094,0.2812)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5219;green,0.7017;blue,0.5806}%
+\draw[fill] (1.8281,0.2812) -- (1.6875,0) -- (1.9688,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5405;green,0.3367;blue,0.1283}%
+\draw[fill] (2.1094,0.2812) -- (1.9688,0) -- (2.25,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.954;green,0.3729;blue,0.1492}%
+\draw[fill] (3.375,2.25) -- (3.2344,1.9688) -- (3.5156,1.9688)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.8567;green,0.8504;blue,0.5016}%
+\draw[fill] (3.2344,1.9688) -- (3.0938,1.6875) -- (3.375,1.6875)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.9424;green,0.6739;blue,0.8032}%
+\draw[fill] (3.5156,1.9688) -- (3.375,1.6875) -- (3.6562,1.6875)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.6157;green,0.2693;blue,0.7869}%
+\draw[fill] (3.0938,1.6875) -- (2.9531,1.4062) -- (3.2344,1.4062)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.8419;green,0.6901;blue,0.2078}%
+\draw[fill] (2.9531,1.4062) -- (2.8125,1.125) -- (3.0938,1.125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7914;green,0.6754;blue,0.3424}%
+\draw[fill] (3.2344,1.4062) -- (3.0938,1.125) -- (3.375,1.125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.4015;green,0.7852;blue,0.5829}%
+\draw[fill] (3.6562,1.6875) -- (3.5156,1.4062) -- (3.7969,1.4062)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.114;green,0.2847;blue,0.7684}%
+\draw[fill] (3.5156,1.4062) -- (3.375,1.125) -- (3.6562,1.125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.2028;green,0.8066;blue,0.47}%
+\draw[fill] (3.7969,1.4062) -- (3.6562,1.125) -- (3.9375,1.125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7834;green,0.347;blue,0.8067}%
+\draw[fill] (2.8125,1.125) -- (2.6719,0.8438) -- (2.9531,0.8438)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.9117;green,0.301;blue,0.1797}%
+\draw[fill] (2.6719,0.8438) -- (2.5312,0.5625) -- (2.8125,0.5625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.0609;green,0.1577;blue,0.0301}%
+\draw[fill] (2.9531,0.8438) -- (2.8125,0.5625) -- (3.0938,0.5625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5625;green,0.1001;blue,0.704}%
+\draw[fill] (2.5312,0.5625) -- (2.3906,0.2812) -- (2.6719,0.2812)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3658;green,0.7158;blue,0.9733}%
+\draw[fill] (2.3906,0.2812) -- (2.25,0) -- (2.5312,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.1526;green,0.5577;blue,0.6634}%
+\draw[fill] (2.6719,0.2812) -- (2.5312,0) -- (2.8125,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3605;green,0.3491;blue,0.3389}%
+\draw[fill] (3.0938,0.5625) -- (2.9531,0.2812) -- (3.2344,0.2812)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7029;green,0.7506;blue,0.1241}%
+\draw[fill] (2.9531,0.2812) -- (2.8125,0) -- (3.0938,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.2858;green,0.8646;blue,0.4088}%
+\draw[fill] (3.2344,0.2812) -- (3.0938,0) -- (3.375,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.0542;green,0.0673;blue,0.2154}%
+\draw[fill] (3.9375,1.125) -- (3.7969,0.8438) -- (4.0781,0.8438)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5243;green,0.8507;blue,0.5624}%
+\draw[fill] (3.7969,0.8438) -- (3.6562,0.5625) -- (3.9375,0.5625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.331;green,0.7624;blue,0.8634}%
+\draw[fill] (4.0781,0.8438) -- (3.9375,0.5625) -- (4.2188,0.5625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5107;green,0.8233;blue,0.0211}%
+\draw[fill] (3.6562,0.5625) -- (3.5156,0.2812) -- (3.7969,0.2812)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5408;green,0.3858;blue,0.1212}%
+\draw[fill] (3.5156,0.2812) -- (3.375,0) -- (3.6562,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.2448;green,0.7516;blue,0.837}%
+\draw[fill] (3.7969,0.2812) -- (3.6562,0) -- (3.9375,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.2181;green,0.9042;blue,0.3947}%
+\draw[fill] (4.2188,0.5625) -- (4.0781,0.2812) -- (4.3594,0.2812)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.8815;green,0.2647;blue,0.7438}%
+\draw[fill] (4.0781,0.2812) -- (3.9375,0) -- (4.2188,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.2204;green,0.9676;blue,0.4944}%
+\draw[fill] (4.3594,0.2812) -- (4.2188,0) -- (4.5,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3444;green,0.2534;blue,0.3589}%
+\draw[fill] (6.75,4.5) -- (6.6094,4.2188) -- (6.8906,4.2188)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7532;green,0.3076;blue,0.4263}%
+\draw[fill] (6.6094,4.2188) -- (6.4688,3.9375) -- (6.75,3.9375)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.9686;green,0.8319;blue,0.277}%
+\draw[fill] (6.8906,4.2188) -- (6.75,3.9375) -- (7.0312,3.9375)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.531;green,0.1629;blue,0.0394}%
+\draw[fill] (6.4688,3.9375) -- (6.3281,3.6562) -- (6.6094,3.6562)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3943;green,0.6735;blue,0.8627}%
+\draw[fill] (6.3281,3.6562) -- (6.1875,3.375) -- (6.4688,3.375)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.4154;green,0.2143;blue,0.2485}%
+\draw[fill] (6.6094,3.6562) -- (6.4688,3.375) -- (6.75,3.375)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5366;green,0.4591;blue,0.0001}%
+\draw[fill] (7.0312,3.9375) -- (6.8906,3.6562) -- (7.1719,3.6562)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3736;green,0.6772;blue,0.9043}%
+\draw[fill] (6.8906,3.6562) -- (6.75,3.375) -- (7.0312,3.375)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7684;green,0.5587;blue,0.169}%
+\draw[fill] (7.1719,3.6562) -- (7.0312,3.375) -- (7.3125,3.375)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5122;green,0.779;blue,0.1366}%
+\draw[fill] (6.1875,3.375) -- (6.0469,3.0938) -- (6.3281,3.0938)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.0065;green,0.1235;blue,0.39}%
+\draw[fill] (6.0469,3.0938) -- (5.9062,2.8125) -- (6.1875,2.8125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3655;green,0.8767;blue,0.6976}%
+\draw[fill] (6.3281,3.0938) -- (6.1875,2.8125) -- (6.4688,2.8125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7917;green,0.8453;blue,0.5295}%
+\draw[fill] (5.9062,2.8125) -- (5.7656,2.5312) -- (6.0469,2.5312)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.0687;green,0.3762;blue,0.6924}%
+\draw[fill] (5.7656,2.5312) -- (5.625,2.25) -- (5.9062,2.25)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.1081;green,0.7705;blue,0.3659}%
+\draw[fill] (6.0469,2.5312) -- (5.9062,2.25) -- (6.1875,2.25)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.9708;green,0.1859;blue,0.5802}%
+\draw[fill] (6.4688,2.8125) -- (6.3281,2.5312) -- (6.6094,2.5312)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.2193;green,0.7225;blue,0.0393}%
+\draw[fill] (6.3281,2.5312) -- (6.1875,2.25) -- (6.4688,2.25)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.2193;green,0.0962;blue,0.7165}%
+\draw[fill] (6.6094,2.5312) -- (6.4688,2.25) -- (6.75,2.25)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.1236;green,0.8645;blue,0.2752}%
+\draw[fill] (7.3125,3.375) -- (7.1719,3.0938) -- (7.4531,3.0938)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.2926;green,0.3767;blue,0.0542}%
+\draw[fill] (7.1719,3.0938) -- (7.0312,2.8125) -- (7.3125,2.8125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.4293;green,0.3832;blue,0.1776}%
+\draw[fill] (7.4531,3.0938) -- (7.3125,2.8125) -- (7.5938,2.8125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.8193;green,0.7487;blue,0.0543}%
+\draw[fill] (7.0312,2.8125) -- (6.8906,2.5312) -- (7.1719,2.5312)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5169;green,0.5404;blue,0.8996}%
+\draw[fill] (6.8906,2.5312) -- (6.75,2.25) -- (7.0312,2.25)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.0464;green,0.6092;blue,0.2758}%
+\draw[fill] (7.1719,2.5312) -- (7.0312,2.25) -- (7.3125,2.25)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7388;green,0.7173;blue,0.0464}%
+\draw[fill] (7.5938,2.8125) -- (7.4531,2.5312) -- (7.7344,2.5312)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.1047;green,0.6881;blue,0.2323}%
+\draw[fill] (7.4531,2.5312) -- (7.3125,2.25) -- (7.5938,2.25)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.6849;green,0.9074;blue,0.9548}%
+\draw[fill] (7.7344,2.5312) -- (7.5938,2.25) -- (7.875,2.25)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7242;green,0.1267;blue,0.051}%
+\draw[fill] (5.625,2.25) -- (5.4844,1.9688) -- (5.7656,1.9688)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.4407;green,0.2504;blue,0.9155}%
+\draw[fill] (5.4844,1.9688) -- (5.3438,1.6875) -- (5.625,1.6875)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7158;green,0.543;blue,0.2922}%
+\draw[fill] (5.7656,1.9688) -- (5.625,1.6875) -- (5.9062,1.6875)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.77;green,0.9723;blue,0.6754}%
+\draw[fill] (5.3438,1.6875) -- (5.2031,1.4062) -- (5.4844,1.4062)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.9477;green,0.7916;blue,0.4241}%
+\draw[fill] (5.2031,1.4062) -- (5.0625,1.125) -- (5.3438,1.125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.002;green,0.3085;blue,0.9646}%
+\draw[fill] (5.4844,1.4062) -- (5.3438,1.125) -- (5.625,1.125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.9016;green,0.3549;blue,0.5737}%
+\draw[fill] (5.9062,1.6875) -- (5.7656,1.4062) -- (6.0469,1.4062)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.1774;green,0.0937;blue,0.2911}%
+\draw[fill] (5.7656,1.4062) -- (5.625,1.125) -- (5.9062,1.125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.2238;green,0.1984;blue,0.9792}%
+\draw[fill] (6.0469,1.4062) -- (5.9062,1.125) -- (6.1875,1.125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.4561;green,0.8833;blue,0.8866}%
+\draw[fill] (5.0625,1.125) -- (4.9219,0.8438) -- (5.2031,0.8438)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.411;green,0.6075;blue,0.0133}%
+\draw[fill] (4.9219,0.8438) -- (4.7812,0.5625) -- (5.0625,0.5625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.462;green,0.0482;blue,0.2637}%
+\draw[fill] (5.2031,0.8438) -- (5.0625,0.5625) -- (5.3438,0.5625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3775;green,0.764;blue,0.8067}%
+\draw[fill] (4.7812,0.5625) -- (4.6406,0.2812) -- (4.9219,0.2812)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.6697;green,0.534;blue,0.779}%
+\draw[fill] (4.6406,0.2812) -- (4.5,0) -- (4.7812,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3451;green,0.4817;blue,0.5706}%
+\draw[fill] (4.9219,0.2812) -- (4.7812,0) -- (5.0625,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7693;green,0.4837;blue,0.8791}%
+\draw[fill] (5.3438,0.5625) -- (5.2031,0.2812) -- (5.4844,0.2812)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7338;green,0.3853;blue,0.234}%
+\draw[fill] (5.2031,0.2812) -- (5.0625,0) -- (5.3438,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3076;green,0.5627;blue,0.3277}%
+\draw[fill] (5.4844,0.2812) -- (5.3438,0) -- (5.625,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5986;green,0.7865;blue,0.5261}%
+\draw[fill] (6.1875,1.125) -- (6.0469,0.8438) -- (6.3281,0.8438)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5778;green,0.2426;blue,0.4094}%
+\draw[fill] (6.0469,0.8438) -- (5.9062,0.5625) -- (6.1875,0.5625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.4644;green,0.6536;blue,0.0169}%
+\draw[fill] (6.3281,0.8438) -- (6.1875,0.5625) -- (6.4688,0.5625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.4777;green,0.1156;blue,0.0651}%
+\draw[fill] (5.9062,0.5625) -- (5.7656,0.2812) -- (6.0469,0.2812)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7414;green,0.4931;blue,0.8291}%
+\draw[fill] (5.7656,0.2812) -- (5.625,0) -- (5.9062,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5481;green,0.1628;blue,0.3631}%
+\draw[fill] (6.0469,0.2812) -- (5.9062,0) -- (6.1875,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3271;green,0.5079;blue,0.8448}%
+\draw[fill] (6.4688,0.5625) -- (6.3281,0.2812) -- (6.6094,0.2812)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.8977;green,0.2772;blue,0.3284}%
+\draw[fill] (6.3281,0.2812) -- (6.1875,0) -- (6.4688,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7768;green,0.011;blue,0.7137}%
+\draw[fill] (6.6094,0.2812) -- (6.4688,0) -- (6.75,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.0107;green,0.3186;blue,0.2764}%
+\draw[fill] (7.875,2.25) -- (7.7344,1.9688) -- (8.0156,1.9688)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3384;green,0.9172;blue,0.0629}%
+\draw[fill] (7.7344,1.9688) -- (7.5938,1.6875) -- (7.875,1.6875)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.8645;green,0.495;blue,0.3055}%
+\draw[fill] (8.0156,1.9688) -- (7.875,1.6875) -- (8.1562,1.6875)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.2739;green,0.9593;blue,0.9592}%
+\draw[fill] (7.5938,1.6875) -- (7.4531,1.4062) -- (7.7344,1.4062)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.2908;green,0.437;blue,0.0747}%
+\draw[fill] (7.4531,1.4062) -- (7.3125,1.125) -- (7.5938,1.125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3559;green,0.1784;blue,0.5678}%
+\draw[fill] (7.7344,1.4062) -- (7.5938,1.125) -- (7.875,1.125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.185;green,0.7265;blue,0.7306}%
+\draw[fill] (8.1562,1.6875) -- (8.0156,1.4062) -- (8.2969,1.4062)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5481;green,0.0537;blue,0.2385}%
+\draw[fill] (8.0156,1.4062) -- (7.875,1.125) -- (8.1562,1.125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3929;green,0.9514;blue,0.5157}%
+\draw[fill] (8.2969,1.4062) -- (8.1562,1.125) -- (8.4375,1.125)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7213;green,0.7281;blue,0.5267}%
+\draw[fill] (7.3125,1.125) -- (7.1719,0.8438) -- (7.4531,0.8438)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.4349;green,0.7389;blue,0.8453}%
+\draw[fill] (7.1719,0.8438) -- (7.0312,0.5625) -- (7.3125,0.5625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7113;green,0.0773;blue,0.7624}%
+\draw[fill] (7.4531,0.8438) -- (7.3125,0.5625) -- (7.5938,0.5625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7742;green,0.9418;blue,0.2574}%
+\draw[fill] (7.0312,0.5625) -- (6.8906,0.2812) -- (7.1719,0.2812)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.0797;green,0.2157;blue,0.2168}%
+\draw[fill] (6.8906,0.2812) -- (6.75,0) -- (7.0312,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.0389;green,0.5065;blue,0.6538}%
+\draw[fill] (7.1719,0.2812) -- (7.0312,0) -- (7.3125,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.1136;green,0.8624;blue,0.8322}%
+\draw[fill] (7.5938,0.5625) -- (7.4531,0.2812) -- (7.7344,0.2812)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.6814;green,0.0475;blue,0.5587}%
+\draw[fill] (7.4531,0.2812) -- (7.3125,0) -- (7.5938,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.412;green,0.5956;blue,0.6124}%
+\draw[fill] (7.7344,0.2812) -- (7.5938,0) -- (7.875,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.6505;green,0.9884;blue,0.5638}%
+\draw[fill] (8.4375,1.125) -- (8.2969,0.8438) -- (8.5781,0.8438)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.1661;green,0.7097;blue,0.2919}%
+\draw[fill] (8.2969,0.8438) -- (8.1562,0.5625) -- (8.4375,0.5625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.6928;green,0.1446;blue,0.0308}%
+\draw[fill] (8.5781,0.8438) -- (8.4375,0.5625) -- (8.7188,0.5625)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.5381;green,0.8559;blue,0.108}%
+\draw[fill] (8.1562,0.5625) -- (8.0156,0.2812) -- (8.2969,0.2812)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.3005;green,0.6301;blue,0.0498}%
+\draw[fill] (8.0156,0.2812) -- (7.875,0) -- (8.1562,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.558;green,0.7098;blue,0.2655}%
+\draw[fill] (8.2969,0.2812) -- (8.1562,0) -- (8.4375,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.7747;green,0.7487;blue,0.772}%
+\draw[fill] (8.7188,0.5625) -- (8.5781,0.2812) -- (8.8594,0.2812)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.4285;green,0.8623;blue,0.6345}%
+\draw[fill] (8.5781,0.2812) -- (8.4375,0) -- (8.7188,0)--cycle;%
+\pgfsetfillcolor{rgb,1:red,0.2607;green,0.5437;blue,0.6819}%
+\draw[fill] (8.8594,0.2812) -- (8.7188,0) -- (9,0)--cycle;%
+\pgfsetfillcolor{black}%
+\end{scope}%
+\end{tikzpicture}%

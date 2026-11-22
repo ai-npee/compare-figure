@@ -1,0 +1,105 @@
+\subsection{Le module \emph{luadraw\_fields}}
+
+
+Ce module ne renvoie rien, il ajoute de nouvelles méthodes graphiques à la classe \emph{ld.graph} et de nouvelles fonctions dans l'espace de noms \emph{luadraw}. 
+
+
+\subsubsection{Champs 2D}
+
+Ce sont les méthodes qui ont été données à la fin du chapitre $1$ pour le dessin des champs de vecteurs et des champs de gradient. On y trouve:
+
+\begin{itemize}
+    \item La fonction \cmd{ld.field(f, x1, x2, y1, y2 \fac{, grid, length})} qui renvoie le champ de vecteurs (liste de segments). L'argument \argu{f} est une fonction \argu{f}$\colon(x,y)\mapsto f(x,y))\in\mathbf R^2$ ($f(x,y)$ est une liste de deux réels). Le champ est calculé sur le pave $[x_1;x_2]\times[y_1;y_2]$. L'argument \argu{grid} vaut par défaut $\{25,25\}$, c'est le nombre de subdivisions de l'intervalle $[x_1;x_2]$ et celui de l'intervalle $[y_1;y_2]$. L'argument \argu{length} permet d'imposer la longueur des vecteurs (tous les vecteurs ont la même longueur), par défaut une longueur est calculée en fonction des pas sur chacun des deux axes.
+    
+    \item La méthode \cmd{g:Dvectorfield(f, options)} fait le dessin du champ de vecteurs associé à la fonction \argu f. \writeoptions :
+        \begin{itemize}
+            \item \opt{view=<fenêtre par défaut>}, liste de la forme \opt{view=\{x1,x2,y1,y2\}} permettant de définir le pavé $[x_1;x_2]\times [y_1;y_2]$. Par défaut c'est la fenêtre choisie lors de la création du graphe.
+            \item \opt{grid=\{25,25\}}, liste de deux entiers qui permet de définir les subdivisions suivant les deux axes.
+            \item \opt{length=\nil}, permet d'imposer la longueur des vecteurs, par défaut une longueur est calculée en fonction des pas sur chacun des deux axes.
+            \item \opt{draw\_options=""}, chaîne contenant les options de dessin qui seront passées à TikZ.
+        \end{itemize}
+        
+    \item La méthode \cmd{g:Dgradientfield(f, options)} fait le dessin du champ de gradient associé à la fonction \textbf{numérique} \argu{f}$\colon(x,y)\mapsto f(x,y)\in \mathbf R$. L'argument \argu{options} est identique à celui de la méthode \cmd{Dvectorfield()}.
+\end{itemize}
+
+Un exemple de ces deux méthodes a déjà été donné page \pageref{fields}.
+
+\subsubsection{Champs 3D}
+
+Il s'agit de champs de vecteurs tangents à une surface 3D.
+
+La surface est définie par un paramétrage $p\colon(u,v) \mapsto p(u,v) \in \mathbb R^3$ avec $(u,v) \in [u_1;u_2]\times[v_1;v_2]$.
+
+Le champ est définie par une fonction $f\colon(u,v) \mapsto (f_1(u,v);f_2(u,v)) \in \mathbb R^2$ , avec $(u,v) \in [u_1;u_2]\times[v_1;v_2]$. 
+
+Les vecteurs sont calculés au centre de chaque maille et sont définis par la formule :
+\[ f_1(u,v) \dfrac{\partial p}{\partial u}(u,v)+f_2(u,v)\dfrac{\partial p}{\partial v}(u,v)\text{, puis ceux-ci sont normalisés.}\]
+
+\begin{itemize}
+    \item La fonction \cmd{ld.surfacefield(p, f, u1, u2, v1, v2 \fac{, grid, length, arrows})} renvoie le champ de vecteurs (liste de listes de points 3D). L'argument \argu{p} est le paramétrage de la surface, l'argument \argu{f} définit le champ de vecteurs, les calculs sont faits dans le domaine $[u_1;u_2]\times[v_1;v_2]$. L'argument \argu{grid} vaut par défaut $\{25,25\}$, c'est le nombre de subdivisions de l'intervalle $[u_1;u_2]$ et celui de l'intervalle $[v_1;v_2]$. L'argument \argu{length} permet d'imposer la longueur des vecteurs (tous les vecteurs ont la même longueur), par défaut une longueur est calculée en fonction des pas sur chacun des deux axes. L'argument \argu{arrows} est un booléen (\false par défaut), avec la valeur \true une flèche (basique) est ajoutée à l'extrémité de chaque vecteur, celles-ci est dessinée dans le plan tangent à la surface.
+    
+    \item La méthode \cmd{g:Dsurfacefield(p, f, options)} fait le dessin du champ de vecteurs associé à la fonction \argu{f}, et (éventuellement) celui de la surface associé à \argu{p}. \writeoptions :
+        \begin{itemize}
+            \item \opt{domain=\{u1,u2,v1,v2\}}, permet de définir le domaine $[u_1;u_2]\times [v_1;v_2]$. Par défaut ce sont les intervalles des abscisses et des ordonnées de la fenêtre 3D choisie lors de la création du graphe.
+            
+            \item \opt{grid=\{25,25\}}, liste de deux entiers qui permet de définir les subdivisions du domaine.
+            
+            \item \opt{length=\nil}, permet d'imposer la longueur des vecteurs, par défaut une longueur est calculée en fonction de la grille choisie.
+            
+            \item \opt{color=<couleur courante des lignes>}, couleur des vecteurs.
+            
+            \item \opt{width=<épaisseur courante des lignes>}, épaisseur de trait des vecteurs.
+            
+            \item \opt{arrows="auto"}, style de flèche pour les vecteurs, par défaut c'est une flèche dessinée dans le plan tangent à la surface. Avec par exemple \opt{arrows="-stealth"} les flèches seront dessinées par TikZ, mais dans le plan de l'écran. Avec \opt{arrows="-"} il n'y aura pas de flèches, seulement des segments.
+            
+            \item \opt{clip=\false}, permet de clipper ou non le dessin avec la fenêtre 3D courante.
+            
+            \item \opt{field\_options=""}, chaîne contenant les options de dessin des vecteurs qui seront passées à TikZ. En principe cette option ne devrait pas être utile.
+            
+            \item \opt{surface\_options=\nil}, avec la valeur \nil la surface est ni calculée, ni dessinée, il n'y aura que les vecteurs. Dans les autres cas, cette option doit être une table d'options pour la méthode \cmd{g:Dfacet()} qui dessinera la surface. Notons que si cette table contient l'option \opt{opacity=0} alors les facettes de la surface ne seront pas rendues.
+        \end{itemize}
+\end{itemize}
+
+\begin{demo}{La méthode \emph{g:Dsurfacefield()}}
+\begin{luadraw}{name=surface-quiver}
+local ld = luadraw
+local pt3d, cpx = ld.pt3d, ld.cpx
+local M, Z = pt3d.M, cpx.Z
+require 'luadraw_fields'
+local surface = function(x, y) return M(x, y, 0.15*x^2 - 0.15*y^2) end
+local field = function(x, y) return {math.sin(y), math.sin(x)} end
+local g = ld.graph3d:new{ window={-5.5, 6, -6, 4}, viewdir={65, 60}, margin=0, size={10, 10} }
+g:Dsurfacefield(surface, field, {
+    domain = {-4, 4, -4, 4},
+    color = "Navy",
+    width = 6,
+    surface_options = {mode=ld.mShadedOnly, usepalette={ld.palRainbow,"z"}, opacity=0.8}
+    })
+g:Dlabel("$z=0.15x^2-0.15y^2$,\\quad $f(x,y)=(\\sin y,\\sin x)$", Z(0,-4.5), {pos="S"})
+g:Show()
+\end{luadraw}
+\end{demo}
+
+Dans le second exemple, on utilise le calcul de la surface pour éliminer les facettes non visibles (et donc les vecteurs associés également) avec l'option \opt{backcull=true}, mais on ne dessine pas la surface, grâce à l'option \opt{opacity=0}, pour mettre à la place une version plus jolie de la sphère.
+
+\begin{demo}{Sur une sphère}
+\begin{luadraw}{name=surface-quiver2}
+local ld = luadraw
+local pt3d, cpx = ld.pt3d, ld.cpx
+local M, Ms, Z, sin, cos, pi = pt3d.M, pt3d.Ms, cpx.Z, math.sin, math.cos, math.pi
+require 'luadraw_fields'
+local surface = function(u,v) return Ms(4,u,v) end
+local field = function(u,v) return {cos(v)/(1-cos(u)), sin(v)/(1-cos(u))} end
+local g = ld.graph3d:new{ window={-5, 5.5, -5.5, 5}, viewdir={65, 60}, margin=0, size={10, 10} }
+g:Dsphere( M(0,0,0), 4, {color="orange", mode=ld.mBorder})
+g:Dsurfacefield(surface, field, {
+    domain = {pi, -pi, 0, pi},
+    grid = {37,20},
+    color = "Navy",
+    width = 6,
+    surface_options = {backcull=true, opacity=0}
+    })
+g:Dlabel("$f(u,v)= (\\frac{\\cos(v)}{1-\\cos(u)},\\frac{\\sin(v)}{1-\\cos(u)})$", Z(0,-4.5), {pos="S"})
+g:Show()
+\end{luadraw}
+\end{demo}

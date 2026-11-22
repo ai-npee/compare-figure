@@ -1,10 +1,14 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.gocache/
+.cache-go/
 .venv/
+.deps/
 .env
 .env.*
 config.yaml
+runner.local.json
 runs/
 build/
 dist/
@@ -15,4 +19,8 @@ dist/
 *.jpeg
 *.pdf
 *.pdf.sha256
+# Pinned upstream manuals are reference dependencies, not generated previews.
+!vendor/luadraw-3.7/luadraw/doc/*.pdf
+!vendor/luadraw-3.7/luadraw/doc/src/tkz/*.jpg
+!vendor/luadraw-3.7/luadraw/doc/src/tkz/*.png
 .DS_Store

@@ -1,0 +1,37 @@
+\begin{tikzpicture}[line join=round]%
+\begin{scope}%
+\clip (0,0) rectangle (10.0,10.0);%
+\draw[draw=none,black,line width=0.4,fill opacity=1,fill=teal!71.55!black] (5,8.8971) .. controls (6.2487,9.9786) and (7.25,9.1115) .. (7.25,6.9486) .. controls (7.25,4.7857) and (6.2487,2.1843) .. (5,1.1029) .. controls (3.7513,0.0214) and (2.75,0.8885) .. (2.75,3.0514) .. controls (2.75,5.2143) and (3.7513,7.8157) .. (5,8.8971);%
+\begin{scope}%
+\clip (3.7519,0.6765) -- (3.7519,0.6765) .. controls (2.7129,0.9765) and (2.4352,3.1409) .. (3.1279,5.5404) .. controls (3.8206,7.94) and (5.2091,9.6234) .. (6.2481,9.3235) -- (6.2481,9.3235) .. controls (3.8486,10.0161) and (1.3692,8.6476) .. (0.6765,6.2481) .. controls (-0.0161,3.8486) and (1.3524,1.3692) .. (3.7519,0.6765);%
+\fill[ball color=teal] (7.9459,1.5983) .. controls (9.8339,3.2333) and (10.0367,6.058) .. (8.4017,7.9459) .. controls (6.7667,9.8339) and (3.942,10.0367) .. (2.0541,8.4017) .. controls (0.1661,6.7667) and (-0.0367,3.942) .. (1.5983,2.0541) .. controls (3.2333,0.1661) and (6.058,-0.0367) .. (7.9459,1.5983);%
+\pgfsetdash{}{0pt}%
+\end{scope}%
+\draw[draw=none,fill=yellow!80!black] (3.125,3.3762) .. controls (3.125,5.1786) and (3.9594,7.3464) .. (5,8.2476) .. controls (6.0406,9.1488) and (6.875,8.4262) .. (6.875,6.6238);%
+\draw[draw=none,black,line width=0.4,fill opacity=1,fill=yellow!50!white!71.55!black] (6.875,6.6238) .. controls (6.875,4.8214) and (6.0406,2.6536) .. (5,1.7524) -- (5,1.7524) .. controls (3.9594,0.8512) and (3.125,1.5738) .. (3.125,3.3762)--cycle;%
+\draw[draw=none,black,line width=0.4,fill opacity=1,fill=yellow!75.79!black] (3.125,3.3762) .. controls (4.9274,2.8559) and (7.207,3.1613) .. (8.2476,4.0625) -- (8.2476,4.0625) .. controls (9.2882,4.9637) and (8.6774,6.1035) .. (6.875,6.6238)--cycle;%
+\begin{scope}%
+\clip (3.125,3.3762) .. controls (4.9274,2.8559) and (7.207,3.1613) .. (8.2476,4.0625) -- (8.2476,4.0625) .. controls (8.5784,4.349) and (8.75,4.6692) .. (8.75,5) -- (8.75,5) .. controls (8.75,2.9188) and (7.0813,1.25) .. (5,1.25) .. controls (4.6464,1.25) and (4.2997,1.299) .. (3.9599,1.3971) -- (3.9599,1.3971) .. controls (3.4357,1.5484) and (3.125,2.2849) .. (3.125,3.3762);%
+\fill[ball color=yellow] (7.455,2.1653) .. controls (9.0282,3.5278) and (9.1972,5.8817) .. (7.8347,7.455) .. controls (6.4722,9.0282) and (4.1183,9.1972) .. (2.545,7.8347) .. controls (0.9718,6.4722) and (0.8028,4.1183) .. (2.1653,2.545) .. controls (3.5278,0.9718) and (5.8817,0.8028) .. (7.455,2.1653);%
+\pgfsetdash{}{0pt}%
+\end{scope}%
+\draw[draw=none,fill=gray] (3.5,3.701) .. controls (3.5,5.1429) and (4.1675,6.8771) .. (5,7.5981) .. controls (5.8325,8.319) and (6.5,7.741) .. (6.5,6.299);%
+\draw[draw=none,fill=gray] (3.5,3.701) .. controls (4.9419,3.2847) and (6.7656,3.529) .. (7.5981,4.25) .. controls (8.4306,4.971) and (7.9419,5.8828) .. (6.5,6.299);%
+\draw[draw=none,black,line width=0.4,fill opacity=1,fill=gray!50!white!75.79!black] (7.5981,4.25) .. controls (8.4306,4.971) and (7.9419,5.8828) .. (6.5,6.299) -- (5,5)--cycle;%
+\draw[draw=none,black,line width=0.4,fill opacity=1,fill=gray!50!white!71.55!black] (6.5,6.299) .. controls (6.5,7.741) and (5.8325,8.319) .. (5,7.5981) -- (5,5)--cycle;%
+\begin{scope}%
+\clip (5,7.5981) .. controls (5.2976,7.8558) and (5.5844,7.9538) .. (5.8321,7.8823) -- (5.8321,7.8823) .. controls (7.1224,7.5098) and (8,6.3431) .. (8,5) -- (8,5) .. controls (8,4.7354) and (7.8627,4.4792) .. (7.5981,4.25) -- (7.5981,4.25) .. controls (7.5981,5.6919) and (6.4419,7.1818) .. (5,7.5981);%
+\fill[ball color=gray] (6.964,2.7322) .. controls (8.2226,3.8222) and (8.3578,5.7053) .. (7.2678,6.964) .. controls (6.1778,8.2226) and (4.2947,8.3578) .. (3.036,7.2678) .. controls (1.7774,6.1778) and (1.6422,4.2947) .. (2.7322,3.036) .. controls (3.8222,1.7774) and (5.7053,1.6422) .. (6.964,2.7322);%
+\pgfsetdash{}{0pt}%
+\end{scope}%
+\draw[draw=none,black,line width=0.4,fill opacity=1,fill=gray!89.13!black] (5,7.5981) .. controls (6.4419,7.1818) and (7.5981,5.6919) .. (7.5981,4.25) -- (5,5)--cycle;%
+\draw[draw=none,black,line width=0.4,fill opacity=1,fill=orange!50!white!89.13!black] (6.9486,4.4375) .. controls (6.9486,5.5189) and (6.0814,6.6364) .. (5,6.9486) -- (5,5)--cycle;%
+\draw[draw=none,black,line width=0.4,fill opacity=1,fill=orange!50!white!75.79!black] (3.875,4.0257) .. controls (4.9564,3.7135) and (6.3242,3.8968) .. (6.9486,4.4375) -- (5,5)--cycle;%
+\draw[draw=none,black,line width=0.4,fill opacity=1,fill=orange!50!white!71.55!black] (5,6.9486) .. controls (4.3756,6.4078) and (3.875,5.1072) .. (3.875,4.0257) -- (5,5)--cycle;%
+\begin{scope}%
+\clip (6.9486,4.4375) .. controls (6.3242,3.8968) and (4.9564,3.7135) .. (3.875,4.0257) -- (3.875,4.0257) .. controls (3.875,5.1072) and (4.3756,6.4078) .. (5,6.9486) -- (5,6.9486) .. controls (6.0814,6.6364) and (6.9486,5.5189) .. (6.9486,4.4375);%
+\fill[ball color=orange] (6.473,3.2992) .. controls (7.4169,4.1167) and (7.5183,5.529) .. (6.7008,6.473) .. controls (5.8833,7.4169) and (4.471,7.5183) .. (3.527,6.7008) .. controls (2.5831,5.8833) and (2.4817,4.471) .. (3.2992,3.527) .. controls (4.1167,2.5831) and (5.529,2.4817) .. (6.473,3.2992);%
+\pgfsetdash{}{0pt}%
+\end{scope}%
+\end{scope}%
+\end{tikzpicture}%

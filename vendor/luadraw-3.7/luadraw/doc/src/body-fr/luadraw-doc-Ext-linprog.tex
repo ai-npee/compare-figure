@@ -1,0 +1,239 @@
+\subsection{Le module \emph{luadraw\_linprog}}
+
+Ce module ne renvoie rien, il ajoute de nouvelles fonctions et méthodes graphiques aux classes \emph{ld.graph} et \emph{ld.graph3d}. L'objectif est la résolution et la représentation graphique de problèmes de programmations linéaires dans une fenêtre donnée.
+
+Ce module charge le module \emph{luadraw\_decorations}.
+
+\subsubsection{En 2D}
+
+Il s'agit de représenter des systèmes de contraintes de la forme $ax+by<c$ ou $ax+by>c$ dans une fenêtre donnée, la solution est alors une liste de nombres complexes représentant le polygone convexe solution (dans la région donnée). 
+
+À partir de cette solution on peut chercher à optimiser une fonctionnelle du type $(x,y)\mapsto \alpha x+\beta y$ sur ce polygone, c'est à dire déterminer son minimum et son maximum sur le polygone.
+
+\paragraph{Le calcul}
+
+La fonction \cmd{ld.linprogSolve(constraints, x1, x2, y1, y2, objectives)} fait les calculs\footnote{Il s'agit d'une résolution géométrique. La fenêtre de résolution est un polygone qui est découpé avec les différentes droites correspondant aux contraintes.} et renvoie une séquence constituée de deux choses: 
+    \begin{enumerate}
+        \item le polygone solution (liste de nombres complexes),
+        \item la liste des solutions pour chaque fonctionnelle.
+    \end{enumerate}
+    
+L'argument \argu{constraints} est la liste des contraintes, chaque contrainte est une chaîne de caractères de la forme \code{"a*x+b*y>c"} ou bien \code{"a*x+b*y<c"}, où $a$, $b$ et $c$ sont trois valeurs numériques, $x$ et $y$ sont deux lettres (le symbole de multiplication est obligatoire).
+
+Les arguments \argu{x1}, \argu{x2}, \argu{y1} et \argu{y2} définissant la fenêtre de résolution : $[x_1;x_2]\times [y_1;y_2]$.
+
+L'argument \argu{objectives} est la liste des fonctionnelles à optimiser (elle peut être vide), chaque fonctionnelle est une chaîne de la forme \code{"u*x+v*y"} avec $u$ et $v$ deux valeurs numériques. La solution d'une fonctionnelle est une table dont les champs sont:
+    \begin{itemize}
+        \item \opt{expr} : qui contient l'expression de la fonctionnelle,
+        \item \opt{min} : qui contient la valeur numérique du minimum,
+        \item \opt{mindot} : qui contient le point où le minimum est atteint (nombre complexe),
+        \item \opt{minline} : qui contient la droite passant par le point où le minimum est atteint,
+        \item \opt{max} : qui contient la valeur numérique du maximum,
+        \item \opt{maxdot} : qui contient le point où le maximum est atteint (nombre complexe),
+        \item \opt{maxline} : qui contient la droite passant par le point où le maximum est atteint,
+    \end{itemize}
+    
+\paragraph{Représentation graphique}
+
+Suivants les conventions, certaines personnes dessinent et peignent le polygone solution, puis ajoutent les droites solution de l'optimisation pour chaque fonctionnelle (si il y en a); d'autres préfèrent peindre pour chaque contrainte, le demi-plan contenant les points qui ne vérifient pas celle-ci, ainsi le polygone solution est la partie non peinte qui reste.
+
+\begin{itemize}
+    \item La méthode \cmd{g:DlinprogRegion(constraints \fac{, options, objectives, objectives\_options})} résout le système de contraintes contenu dans la liste \argu{constraints}, dessine le polygone solution, et les optimisations s'il y en a. L'argument \argu{options} est la table des options possibles pour cette représentation, celles-ci sont (avec valeur valeur par défaut) :
+    \begin{itemize}
+        \item \opt{view=<fenêtre 2D par défaut>}, liste de la forme $\{x_1,x_2,y_1,y_2\}$ représentant la fenêtre de résolution: $[x_1;x_2]\times[y_1;y_2]$.
+        
+        \item \opt{draw\_options=""}, chaîne contenant les options de dessin pour le polygone solution (chaîne transmise à \drawcmd).
+        
+        \item \opt{lines=\false}, avec la valeur \true la droite correspondant à chaque contrainte (d'équation $ax+by=c$) est dessinée avec un label au milieu de la droite et orienté dans le sens de la droite.
+        
+        \item \opt{color=<couleur courante>}, couleur pour le tracé des droites et de leur label (si \opt{lines=\true}).
+
+        \item \opt{width=<épaisseur courante>}, épaisseur de trait en dixième de point pour les droites (si \opt{lines=\true}).
+
+        \item \opt{style=<style courante>}, style de tracé des droites (si \opt{lines=\true}).
+        
+        \item \opt{dots=\false}, avec la valeur \true les sommets du polygone solution sont dessinés.
+        
+        \item \opt{mark\_options=""}, chaîne contenant les options de dessin pour sommets lorsque \opt{dots=true} (chaîne transmise à \drawcmd).
+        
+        \item \opt{outside=\false}, avec la valeur \true, c'est l'extérieur du polygone solution qui sera peint et non l'intérieur.
+        
+        \item \opt{out=\nil}, si on affecte à cette option \opt{out} une variable de type liste (table), alors après l'exécution de la méthode, cette table contiendra : la liste des sommets du polygone solution, suivi de la liste des solutions de chaque fonctionnelle.
+        
+        \item À ces options s'ajoutent celles du module \emph{luadraw\_decorations} pour les lignes polygonales.
+    \end{itemize}
+    
+    L'argument \argu{objectives} est la liste des fonctionnelles à optimiser et à dessiner (droites réalisant le minimal et/ou le maximum).
+    
+    L'argument \argu{objectives\_options} est la table des options possibles pour cette représentation, celle-ci sont (avec valeur valeur par défaut) :
+    \begin{itemize}
+        \item \opt{color=<couleur courante>}, couleur pour le tracé de la droite et de son label.
+
+        \item \opt{width=<épaisseur courante>}, épaisseur de trait en dixième de point.
+
+        \item \opt{style=<style courante>}, style de tracé de la droite.
+
+        \item \opt{sense="minmax"}, autre valeurs possibles: "min", ou "max". Cette option permet de sélectionner la droite solution que l'on souhaite dessiner (les deux par défaut).
+
+        \item \opt{dots=\false}, avec la valeur \true le ou les points solutions sont dessinés (là où l'optimisation est réalisée).
+
+        \item \opt{mark\_options=""}, chaîne contenant les options de dessin pour le ou les points solutions lorsque \opt{dots=true} (chaîne transmise à \drawcmd).
+        
+        \item Les options suivantes proviennent du module \emph{luadraw\_decorations} pour les droites:
+            \begin{itemize}
+                \item \opt{label=<auto>}, un label par défaut est affiché avec la droite (ou les droites), c'est l'expression de la fonctionnelle avec la valeur min ou max suivant les cas.
+
+                \item \opt{node\_options=<auto>}, chaîne contenant les options pour le label, par défaut il est de la couleur de la droite, sur fond blanc transparent.
+                
+                \item \opt{anchor=<auto>}, point d'ancrage du label, par défaut c'est le point où est réalisé l'extremum (on peut utiliser aussi \opt{anchor1d}).
+                
+                \item \opt{dir=<auto>}, sens d'écriture du label, par défaut c'est la direction de la droite.
+                
+                \item \opt{pos=<auto>}, position du label par rapport à son point d'ancrage, par défaut le label est placé de l'autre côté du polygone solution.
+            \end{itemize}
+    \end{itemize}
+    
+    \item La méthode \cmd{g:DlinprogHalfPlanes(constraint1, options1, constraint2, options2, \ldots)}, permet de dessiner pour chaque contrainte le demi-plan non solution, chaque contrainte est une chaîne de la forme \code{"a*x+b*y>c"} ou bien \code{"a*x+b*y<c"}, et est suivie de sa liste d'options, celles-ci sont:
+    \begin{itemize}
+        \item \opt{color=<couleur courante>}, couleur pour le tracé de la droite, son label et le remplissage du demi-plan.
+
+        \item \opt{width=<épaisseur courante>}, épaisseur de trait en dixième de point pour la droite.
+
+        \item \opt{style=<style courante>}, style de tracé de la droite.
+        
+        \item \opt{pattern="none"}, motif de remplissage du demi-plan (aucun par défaut). Pour un remplissage solide on utilise \opt{pattern="fill"}, sinon, tout autre motif de remplissage connu de TikZ.
+        
+        La valeur de ces quatre options pour une contrainte, s'applique également aux suivantes si elle n'est pas modifiée. Par contre les options suivantes sont propres à chaque contrainte, ce sont les options qui proviennent du module \emph{luadraw\_decorations} pour les droites:
+            \begin{itemize}
+                \item \opt{label=<auto>}, un label par défaut est affiché avec la droite.
+
+                \item \opt{node\_options=<auto>}, chaîne contenant les options pour le label, par défaut il est de la couleur de la droite, sur fond blanc transparent.
+                
+                \item \opt{anchor1d=0.5}, point d'ancrage du label, par défaut c'est le milieu de la droite (on peut utiliser aussi \opt{anchor}).
+                
+                \item \opt{dir=<auto>}, sens d'écriture du label, par défaut c'est la direction de la droite.
+                
+                \item \opt{pos=<auto>}, position du label par rapport à son point d'ancrage, par défaut le label est placé de l'autre côté du polygone solution.
+            \end{itemize}
+    \end{itemize}
+    
+    \item La méthode \cmd{g:DlinprogObjectiveLine(objective\_sol,objective\_options)} permet de dessiner une optimisation. L'argument \argu{objective} est la solution de optimisation d'une fonctionnelle, c'est à dire une table dont les champs sont:
+    \begin{itemize}
+        \item \opt{expr} : qui contient l'expression de la fonctionnelle,
+        \item \opt{min} : qui contient la valeur numérique du minimum,
+        \item \opt{mindot} : qui contient le point où le minimum est atteint (nombre complexe),
+        \item \opt{minline} : qui contient la droite passant par le point où le minimum est atteint,
+        \item \opt{max} : qui contient la valeur numérique du maximum,
+        \item \opt{maxdot} : qui contient le point où le maximum est atteint (nombre complexe),
+        \item \opt{maxline} : qui contient la droite passant par le point où le maximum est atteint,
+    \end{itemize}
+    L'argument \argu{objective\_options} est la table des options possibles pour cette représentation, celles-ci ont déjà été décrites un peu plus haut avec la méthode \cmd{g:DlinprogRegion()}
+\end{itemize}
+
+\paragraph{Exemples}
+
+\begin{demo}{La méthode \emph{g:DlinprogRegion()}}
+\begin{luadraw}{name=linear_prog1}
+local ld = luadraw
+local cpx = ld.cpx
+local Z = ld.cpx.Z
+local g = ld.graph:new{window={-3,6,-3,4.5}, size={10,10}}
+require 'luadraw_linprog'
+local system = \luastringO{$\begin{cases}x+y<2\\ x-y>2\\ x+y/3>-2\\ y>-2\end{cases}$}
+g:Daxes({0,1,1},{grid=true,gridcolor="LightGray",arrows="->",legend={"$x$","$y$"}})
+g:DlinprogRegion(
+    {'x+y<2','x-y>-2','x+y/3>-2','y>-2'}, -- contraintes
+    {draw_options="draw=none,fill=Pink, fill opacity=0.6",lines=true, color="blue", label=system, anchor=Z(0,-0.5),
+    node_options="inner sep=0,draw=none,fill=pink, fill opacity=0.8" }, -- options
+    {"-2*x+y"}, {color="red",dots=true, anchor1d=0.5} -- une fonctionnelle et ses options
+    )
+g:Show()
+\end{luadraw}
+\end{demo}
+
+\begin{demo}{La méthode \emph{g:DlinprogHalfPlanes()}}
+\begin{luadraw}{name=linear_prog2}
+local ld = luadraw
+local cpx = ld.cpx
+local Z = ld.cpx.Z
+local g = ld.graph:new{window={-3,6,-3,4.5}, size={10,10}}
+require 'luadraw_linprog'
+local C = {'x+y<2','x-y>-2','x+y/3>-2','y>-2'} -- contraintes
+local function mypattern(angle, distance)
+    angle = angle or 0
+    distance = distance or 0.25 -- distance in centimeter
+    return "{Lines[angle="..angle..",distance="..distance.."cm]}"
+end
+local polygon, optimization = ld.linprogSolve(C,-5,5,-5,5,{"-2*x+y"})
+g:Daxes({0,1,1},{grid=true,gridcolor="LightGray",arrows="->",legend={"$x$","$y$"}})
+g:Dpolyline(polygon, true, "draw=none,fill=Pink, fill opacity=0.6")
+g:DlinprogHalfPlanes(
+    C[1], {color="red", pattern=mypattern(-45)},
+    C[2], {color="blue", pattern=mypattern(45)},
+    C[3], {color="gray", pattern=mypattern(90), anchor1d=0.2},
+    C[4], {color="orange", pattern=mypattern(0)}
+    )
+for _, obj in ipairs(optimization) do
+    g:DlinprogObjectiveLine(obj, {color="ForestGreen", dots=true})
+end
+g:Show()
+\end{luadraw}
+\end{demo}
+
+\subsubsection{En 3D}
+
+Il s'agit de représenter des systèmes de contraintes de la forme $ax+by+cz<d$ ou $ax+by+cz>d$ dans une fenêtre 3D donnée, la solution est un polyèdre convexe.
+
+À partir de cette solution on peut chercher à optimiser une fonctionnelle du type $(x,y,z)\mapsto \alpha x+\beta y+\gamma z$ sur ce polyèdre, c'est à dire déterminer son minimum et son maximum sur le polyèdre.
+
+La fonction \cmd{ld.linprogSolve3d(constraints, x1, x2, y1, y2, z1, z2, objectives)} fait les calculs\footnote{Il s'agit d'une résolution géométrique. La fenêtre choisie est un polyèdre qui est découpé avec les différents plans correspondant aux contraintes.} et renvoie une séquence constituée de deux choses: 
+    \begin{enumerate}
+        \item le polyèdre solution (table avec deux champs: \emph{vertices} et \emph{facets}),
+        \item la liste des solutions pour chaque fonctionnelle.
+    \end{enumerate}
+    
+L'argument \argu{constraints} est la liste des contraintes, chaque contrainte est une chaîne de caractères de la forme \code{"a*x+b*y+c*z>d"} ou bien \code{"a*x+b*y+c*z<d"}, où $a$, $b$, $c$ et $d$ sont des valeurs numériques, $x$, $y$ et $z$ sont des lettres (le symbole de multiplication est obligatoire).
+
+Les arguments \argu{x1}, \argu{x2}, \argu{y1}, \argu{y2}, \argu{z1} et \argu{z2}  définissant la fenêtre de résolution : $[x_1;x_2]\times [y_1;y_2]\times [z_1;z_2]$.
+
+L'argument \argu{objectives} est la liste des fonctionnelles à optimiser (elle peut être vide), chaque fonctionnelle est une chaîne de la forme \code{"u*x+v*y+w*z"} avec $u$, $v$ et $w$ trois valeurs numériques. La solution d'une fonctionnelle est une table dont les champs sont:
+    \begin{itemize}
+        \item \opt{expr} : qui contient l'expression de la fonctionnelle,
+        \item \opt{min} : qui contient la valeur numérique du minimum,
+        \item \opt{mindot} : qui contient le point où le minimum est atteint (nombre complexe),
+        \item \opt{minplane} : qui contient le plan passant par le point où le minimum est atteint,
+        \item \opt{max} : qui contient la valeur numérique du maximum,
+        \item \opt{maxdot} : qui contient le point où le maximum est atteint (nombre complexe),
+        \item \opt{maxplane} : qui contient le plan passant par le point où le maximum est atteint,
+    \end{itemize}
+
+Le module ne propose pas de méthode graphique spécifique à la 3D. Voici sur un exemple comment utiliser la fonction \cmd{ld.linprogSolve3d()}. 
+
+\paragraph{Exemple:} Maximiser $5x+4y+3z$ avec: $\begin{cases}2x+3y+z<5\\4x+4y+2z<9\\3x+4y+2z<8\\x>0,\ y>0,\ z>0\end{cases}$
+
+\begin{demo}{La fonction  \emph{ld.linprogSolve3d()}}
+\begin{luadraw}{name=linear_prog3}
+local ld = luadraw
+local cpx = ld.cpx
+local pt3d = ld.pt3d
+local Z, M = cpx.Z, pt3d.M
+local O, I, J, K = pt3d.Origin, pt3d.vecI, pt3d.vecJ, pt3d.vecK
+local g = ld.graph3d:new{ window={-2,2,-3,3}, size={10,12,0},window3d={0,3,0,2,0,4.5}, 
+    viewdir={"central",-35,65,15,M(1.5,1,2.25)}}
+require 'luadraw_linprog'
+local C = {'2*x+3*y+z<5', '4*x+4*y+2*z<9', '3*x+4*y+2*z<8'}
+local poly, sol = ld.linprogSolve3d(C,0,5,0,5,0,5,{"5*x+4*y+3*z"})
+local P = sol[1].maxplane
+local A = sol[1].maxdot
+local max = sol[1].max
+g:Dboxaxes3d({grid=true,gridcolor="LightGray",fillcolor="lightgray", drawbox=true})
+g:Dscene3d(
+    g:addPlane(P, {color="blue", edge=true, opacity=0.3, scale=1}),
+    g:addPoly(poly, {color="Crimson",opacity=0.7, edge=true, edgecolor="Gold", edgewidth=8}),
+    g:addDots(A, {scale=0.75, color="white"})
+    )
+g:Dlabel3d("Max=$"..max.."$", A, {pos="N", dir={I,K}, node_options="text=white"})
+g:Dpolyline3d({ld.pz(A), A, ld.px(A)}, "white")
+g:Show()
+\end{luadraw}
+\end{demo}

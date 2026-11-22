@@ -1,0 +1,26 @@
+\begin{tikzpicture}[line join=round]%
+\begin{scope}%
+\clip (-0.5,-0.5) rectangle (9.5,6.62);%
+\draw[thick,-Stealth] (0,2.16) -- (9,2.16);%
+\draw[-] (1.8,2.06) -- (1.8,2.26) (5.4,2.06) -- (5.4,2.26);%
+\draw[-] (5.4,2.06) node[below] {$1$};%
+\draw[thick,-Stealth] (1.8,0) -- (1.8,6.12);%
+\draw[-] (1.9,2.16) -- (1.7,2.16) (1.9,5.76) -- (1.7,5.76);%
+\draw[-] (1.7,5.76) node[left] {$1$};%
+\draw[thick] (2.7,5.76) .. controls (3.5036,3.06) and (4.3071,0.36) .. (5.4,0.36) .. controls (6.4929,0.36) and (7.875,3.06) .. (7.2,3.96) .. controls (6.525,4.86) and (3.7929,3.96) .. (2.7,3.06) .. controls (1.6071,2.16) and (2.1536,1.26) .. (2.7,0.36);%
+\draw[red,semithick,Latex-Latex] (3.3709,3.4047) -- (4.4163,0.9153);%
+\draw[red,semithick,Latex-Latex] (6.6068,0.9101) -- (7.627,3.4099);%
+\draw[mark=*,mark size=1.4pt,mark options={red}] plot coordinates {(3.8936,2.16)} plot coordinates {(7.1169,2.16)};%
+\draw[blue,Latex-Latex] (4.5,0.36) -- (6.3,0.36);%
+\draw[blue,Latex-Latex] (7.0703,4.3328) -- (5.2703,4.3328);%
+\draw[blue,Latex-Latex] (7.3783,2.4118) -- (7.3783,4.2118);%
+\draw[blue,Latex-Latex] (2.069,2.8188) -- (2.069,1.0188);%
+\draw[mark=*,mark size=1.4pt,mark options={blue}] plot coordinates {(5.4,0.36)};%
+\draw[mark=*,mark size=1.4pt,mark options={blue}] plot coordinates {(6.1703,4.3328)};%
+\draw[mark=*,mark size=1.4pt,mark options={blue}] plot coordinates {(7.3783,3.3118)};%
+\draw[mark=*,mark size=1.4pt,mark options={blue}] plot coordinates {(2.069,1.9188)};%
+\draw[mark=*,mark size=1.4pt,mark options={circle,fill=white}] plot coordinates {(3.3937,3.5161)} plot coordinates {(3.3937,3.5161)};%
+\draw[mark=*,mark size=1.4pt] plot coordinates {(2.7,5.76)} plot coordinates {(5.4,0.36)} plot coordinates {(7.2,3.96)} plot coordinates {(2.7,3.06)} plot coordinates {(2.7,0.36)};%
+\draw[-] (2.7,5.76) node[right] {$A$} (5.4,0.36) node[below] {$B$} (7.2,3.96) node[left] {$C$} (2.7,3.06) node[above] {$D$} (2.7,0.36) node[below] {$E$} (3.3937,3.5161) node[right=0.1cm] {$I$};%
+\end{scope}%
+\end{tikzpicture}%

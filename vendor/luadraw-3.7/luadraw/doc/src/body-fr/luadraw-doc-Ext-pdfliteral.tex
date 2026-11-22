@@ -1,0 +1,137 @@
+\subsection{Le module \emph{luadraw\_pdfliteral}}
+
+Ce module ne renvoie rien, il ajoute de nouvelles méthodes graphiques aux classes \emph{ld.graph} et \emph{ld.graph3d}.
+
+Lorsque le nombre de données que TikZ doit dessiner devient très important, par exemple un grand nombre de facettes d'une surface, un grand nombre de segments ou chemins d'un pavage, ou encore un nuage de points avec un grand nombre de points, les macros utilisées par TikZ deviennent tellement nombreuses que les temps de compilation et d'affichage peuvent être rédhibitoires.
+
+Une façon de contourner cette difficulté en réduisant de manière significative les temps de compilation est de faire ce type de dessins directement en pdf sans passer par les macros TikZ. Cela ne veut pas dire qu'on n'utilise plus TikZ, car celui-ci est très performant dans la gestion des styles par exemple. L'idée est de rester dans un environnement \emph{tikzpicture}, mais lorsqu'il y a un très grand nombre de segments à tracer par exemple, sans changement de style autre que la couleur (en particulier sans changement d'opacité), avec des remplissages de type \emph{solide} uniquement (ou alors pas de remplissage du tout), on écrit les instructions de dessins, non plus en utilisant la commande \drawcmd, mais directement en langage pdf natif.
+
+\subsubsection{La méthode g:Dliteralpath()}
+
+La méthode \cmd{g:Dliteralpath(path1, args1, path2, args2, ...)} permet de dessiner en pdf les chemins 2D \argu{path1}, \argu{path2},\ldots. Chaque chemin doit être suivi d'une table : \argu{args1}, \argu{args2}, \ldots. Ces tables représentent les options de chacun des chemins, celles-ci sont:
+    \begin{itemize}
+        \item \opt{fill=<table \{r,g,b\}>} : couleur de remplissage, par défaut c'est la couleur courante. La valeur \opt{fill="none"} supprime le remplissage, dans les autres cas la couleur doit être une table au format $\{r,g,b\}$ (avec $r$, $g$ et $b$ entre $0$ et $1$) et le remplissage est \textbf{forcément solide} (avec l'opacité courante), les autres styles de remplissages sont sans effet.
+        
+        \item \opt{draw=<table \{r,g,b\}>} : couleur de tracé, par défaut c'est la couleur courante. La valeur \opt{draw="none"} supprime le tracé (mais pas le remplissage), dans les autres cas la couleur doit être une table au format $\{r,g,b\}$ (avec $r$, $g$ et $b$ entre $0$ et $1$) et le tracé se fait dans le style courant et l'opacité courante.
+        
+        \item \opt{width=<épaisseur en dixième de points>} : épaisseur du trait, c'est l'épaisseur courante par défaut.
+    \end{itemize}
+
+\textbf{NB} : les options choisies pour un chemin s'appliquent également aux chemins suivants si elles ne sont pas modifiées.
+
+\subsubsection{La méthode g:Dliteralpolyline()}
+
+La méthode \cmd{g:Dliteralpolyline(polyline1, args1, polyline2, args2, ...)} permet de dessiner en pdf les lignes polygonales 2D \argu{polyline1}, \argu{polyline2},\ldots. Chaque ligne polygonale doit être suivie d'une table : \argu{args1}, \argu{args2}, \ldots. Ces tables représentent les options de chacune des lignes polygonales, celles-ci sont les mêmes que pour la méthode \cmd{g:Dliteralpath()}, plus l'option :
+    \begin{itemize}
+        \item \opt{close=<booléen>} : indiquant si le ligne polygonale doit être refermée (\false par défaut).
+    \end{itemize}
+
+\textbf{NB} : les options choisies pour une ligne polygonale s'appliquent également aux suivantes si elles ne sont pas modifiées.
+
+
+\subsubsection{La méthode g:Dliteraldots()}
+
+La méthode \cmd{g:Dliteraldots(dots1, args1, dots2, args2, ...)} permet de dessiner en pdf les listes de points 2D (nombres complexes) \argu{dots1}, \argu{dots2},\ldots. Chaque liste de points doit être suivie d'une table : \argu{args1}, \argu{args2}, \ldots. Ces tables représentent les options, celles-ci sont :
+    \begin{itemize}
+        \item \opt{color=<table \{r,g,b\}>} : couleur des points, par défaut c'est la couleur courante du tracé. La couleur doit être une table au format $\{r,g,b\}$ (avec $r$, $g$ et $b$ entre $0$ et $1$) et le tracé se fait en trait plein et avec l'opacité courante. Les points sont circulaires.
+        
+        \item \opt{width=<épaisseur en dixième de points>} : épaisseur du trait, c'est l'épaisseur courante par défaut. Cette épaisseur détermine le diamètre des points.
+    \end{itemize}
+
+\textbf{NB} : les options choisies pour une ligne polygonale s'appliquent également aux suivantes si elles ne sont pas modifiées.
+
+
+\begin{demo}{Diagramme de bifurcation de la suite $u_{u+1}=ru_n(1-u_n)$}
+\begin{luadraw}{name=bifurcation}
+local ld = luadraw
+local cpx = ld.cpx
+local Z = cpx.Z
+local g = ld.graph:new{ window={2.65,4,-0.15,1}, size={10,10} }
+require 'luadraw_pdfliteral'
+local dots = {}
+for r = 2.75, 4, 0.001 do
+    local u = 0.5
+    for k = 1, 25 do u = r*u*(1-u) end -- transition
+    for k = 1, 25 do u = r*u*(1-u); table.insert(dots, Z(r,u)) end
+end
+g:Daxes({Z(2.75,0),0.25,0.2}, {limits={{2.75,4},{0,1.001}}, originpos={"center","center"} })
+g:Dliteraldots(dots, {width=1, color=ld.Red}) -- 31275 points
+g:Show()
+\end{luadraw}
+\end{demo}
+
+
+\subsubsection{La méthode g:Dliteralfacet()}
+
+
+La méthode \cmd{g:Dliteralfacet(F1, args1, F2, arg2, ...)} fait la même chose que la méthode \cmd{g:Dmixfacet()}, sauf que le dessin des facettes est fait en pdf natif. Les arguments \argu{F1}, \argu{F2}, \ldots, sont des listes de facettes (listes de listes de points 3D), et \argu{args1}, \argu{arg2}, \ldots, sont des tables représentant les options, celles-ci sont:
+\begin{itemize}
+    \item \opt{mode=\val{ld.mShaded}} : définit le mode de représentation. Les valeurs possibles sont:
+        \begin{itemize}
+            \item \val{ld.mWireframe} : mode fil de fer, on dessine les arêtes seulement. Lorsque l'option \opt{usepalette} est différente de \nil, la couleur de chaque arête et calculée dans la palette (suivant le même mode que les facettes lorsque celles-ci sont peintes).
+            
+            \item \val{ld.mFlat} ou \val{ld.mFlatHidden} : on dessine les faces de couleur unie, ainsi que les arêtes.
+            
+            \item \val{ld.mShaded} ou \val{ld.mShadedHidden} : on dessine les faces de couleur nuancée en fonction de leur inclinaison, ainsi que les arêtes.
+            
+            \item \val{ld.mShadedOnly} : on dessine les faces de couleur nuancée en fonction de leur inclinaison, mais pas les arêtes.
+        \end{itemize}
+        
+    \item \opt{contrast=1} : ce nombre permet d'accentuer ou diminuer la nuance des couleurs des facettes dans les modes \val{ld.mShaded}, \val{ld.mShadedHidden}, \val{ld.mShadedOnly}.
+    
+   
+    \item \opt{edgecolor=<couleur courante>} : chaîne qui définit la couleur des arêtes.
+           
+    \item \opt{edgewidth=<épaisseur courante>} : épaisseur de trait des arêtes en dixième de point.
+    
+    \item \opt{backcull=\false} : avec la valeur \true, les facettes considérées comme non visibles (vecteur normal non dirigé vers l'observateur) ne sont pas affichées. Cette option est intéressante pour les objets convexes car elle permet de diminuer le nombre de facettes à dessiner.
+    
+    \item \opt{clip=\false} : avec la valeur \true, les facettes sont clippées par la fenêtre 3D.
+    
+    \item \opt{twoside=\true} : booléen qui indique si on distingue les deux côtés des facettes (intérieur et extérieur), avec la valeur \true les deux côtés n'auront pas exactement la même couleur.
+    
+    \item \opt{reverse=false} : avec la valeur \true l'orientation des facettes est inversée.
+    
+    \item \opt{color=<table \{r,g,b\}>} : couleur de remplissage des facettes, par défaut c'est la couleur \val{ld.White}. La couleur doit être une table au format $\{r,g,b\}$ (avec $r$, $g$ et $b$ entre $0$ et $1$).
+  
+    \item \opt{usepalette=nil} : cette option permet éventuellement de préciser une palette de couleurs pour peindre les facettes ainsi qu'un mode de calcul, la syntaxe est : \opt{usepalette=\{palette,mode\fac{,minmax}\}}, où \argu{palette} désigne une table de couleurs qui sont elles-mêmes des tables de la forme $\{r,g,b\}$ où $r$, $g$ et $b$ sont des nombres entre $0$ et $1$. L'argument  \argu{mode} peut être :
+        \begin{itemize}
+            \item soit une des chaînes : \val{"x"}, \val{"y"}, \val{"z"}. Dans le premier cas par exemple, les facettes au centre de gravité d'abscisse minimale ont la première couleur de la palette, les facettes au centre de gravité d'abscisse maximale ont la dernière couleur de la palette, pour les autres, la couleur est calculée en fonction de l'abscisse du centre de gravité par interpolation linéaire.
+            
+            \item soit une fonction : \argu{mode}$\colon f \mapsto \mathrm{mode}(f)\in\mathbb R$, où $f$ désigne une facette (liste de points 3D). Les facettes ayant la valeur minimale ont la première couleur de la palette, celles ayant la valeur maximale ont la dernière couleur de la palette, pour les autres la couleur est calculée par interpolation linéaire.
+        \end{itemize}    
+    L'argument facultatif \argu{minmax} est une table de deux nombres, ces deux nombres sont utilisés comme valeur minimale et valeur maximale de l'argument \argu{mode}. En l'absence de \argu{minmax}, ces deux valeurs sont calculées automatiquement.
+\end{itemize}
+
+\textbf{Quelques remarques}
+\begin{itemize}
+    \item  Les options choisies pour une liste de facettes s'appliquent également aux suivantes si elles ne sont pas modifiées.
+    \item Le dessin est fait avec l'opacité et le style de ligne par défaut. Ils peuvent être modifiés \textbf{avant} l'exécution, avec les méthodes \cmd{g:Fillopacity()} et \cmd{g:Linestyle()}.
+\end{itemize}
+
+\begin{demo}{Bandes sphériques}
+\begin{luadraw}{name=Dliteralfacet}
+local ld = luadraw
+local M, Ms = ld.pt3d.M, ld.pt3d.Ms
+local g = ld.graph3d:new{ size={10,10} }
+require 'luadraw_pdfliteral'
+local R, nb = 4, 5
+local phi2, phi11, dphi = math.pi, nil, math.pi/(2*nb+1)
+
+local sph_strip = function(p1,p2)
+    return ld.surface( function(u,v) return Ms(R,u,v) end, -math.pi, math.pi, p1, p2,{201,11})
+end
+
+local colors = ld.getpalette( ld.palAutumn, nb,true)
+local S = {}
+for k = 1, nb do
+    phi1 = phi2 -dphi; phi2 = phi1 - dphi
+    table.insert(S, sph_strip(phi1,phi2))
+    table.insert(S, {color=colors[k], mode=ld.mShadedOnly})
+end
+g:Dliteralfacet( table.unpack(S) ) -- 10^4 facets
+g:Show()
+\end{luadraw}
+\end{demo}
+
+\textbf{Remarque} : il est possible de réaliser la même chose sans dessiner les facettes, mais c'est  plus technique.

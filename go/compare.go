@@ -37,28 +37,41 @@ type softInkImage struct {
 func (s softInkImage) at(x, y int) [3]float64 { return s.Pix[y*s.W+x] }
 
 type figureAlignmentRun struct {
-	Name     string
-	Score    float64
-	DX, DY   int
-	Channels [3]float64
+	Name     string     `json:"name"`
+	Score    float64    `json:"score"`
+	DX       int        `json:"dx"`
+	DY       int        `json:"dy"`
+	Channels [3]float64 `json:"channels,omitempty"`
 }
 
 type figureComparison struct {
-	Similarity float64
-	Channels   [3]float64
-	Gray       float64
-	DX, DY     int
-	Runs       []figureAlignmentRun
-	Canvas     int
-	Grid       int
+	Similarity                                   float64
+	Channels                                     [3]float64
+	Gray                                         float64
+	DX, DY                                       int
+	Runs                                         []figureAlignmentRun
+	Canvas                                       int
+	Grid                                         int
+	ScaleX, ScaleY, ScaleDev                     float64
+	SizeUnit                                     string
+	AspectRef, AspectCand, AspectDev             float64
+	InkRefW, InkRefH, InkCandW, InkCandH         float64
+	ShareRefW, ShareRefH, ShareCandW, ShareCandH float64
 }
 
 func compareFigureImages(reference, candidate image.Image) (figureComparison, *image.NRGBA, error) {
+	return compareFigureImagesMM(reference, candidate, figureCanvasMM{})
+}
+
+type figureCanvasMM struct{ RefW, RefH, CandW, CandH float64 }
+
+func compareFigureImagesMM(reference, candidate image.Image, mm figureCanvasMM) (figureComparison, *image.NRGBA, error) {
 	ref := flattenOnWhite(reference)
 	cand := flattenOnWhite(candidate)
 	if ref.Bounds().Dx() < 1 || ref.Bounds().Dy() < 1 || cand.Bounds().Dx() < 1 || cand.Bounds().Dy() < 1 {
 		return figureComparison{}, nil, fmt.Errorf("empty input image")
 	}
+	scaleX, scaleY, scaleDev, aspectRef, aspectCand, aspectDev, sizeUnit, inkRefW, inkRefH, inkCandW, inkCandH, shareRefW, shareRefH, shareCandW, shareCandH := measureFigureSize(ref, cand, mm)
 	ref, cand = fitFigureCanvases(ref, cand)
 	rgbRef, originRef := cropFigureInk(ref, false)
 	rgbCand, originCand := cropFigureInk(cand, false)
@@ -95,8 +108,65 @@ func compareFigureImages(reference, candidate image.Image) (figureComparison, *i
 	grayScore := figureOverlapScore(grayA, grayB, figureRound(float64(grayDY*grid)/float64(canvas)), figureRound(float64(grayDX*grid)/float64(canvas))).Mean()
 
 	comparison := figureComparison{Similarity: best.Similarity, Channels: best.Channels, Gray: grayScore,
-		DX: dx, DY: dy, Runs: best.Runs, Canvas: canvas, Grid: grid}
+		DX: dx, DY: dy, Runs: best.Runs, Canvas: canvas, Grid: grid,
+		ScaleX: scaleX, ScaleY: scaleY, ScaleDev: scaleDev, SizeUnit: sizeUnit,
+		AspectRef: aspectRef, AspectCand: aspectCand, AspectDev: aspectDev,
+		InkRefW: inkRefW, InkRefH: inkRefH, InkCandW: inkCandW, InkCandH: inkCandH,
+		ShareRefW: shareRefW, ShareRefH: shareRefH, ShareCandW: shareCandW, ShareCandH: shareCandH}
 	return comparison, figureOverlay(ref, cand, dx, dy), nil
+}
+
+func figureInkBox(src image.Image) (int, int) {
+	b := src.Bounds()
+	minX, minY, maxX, maxY := b.Dx(), b.Dy(), -1, -1
+	for y := 0; y < b.Dy(); y++ {
+		for x := 0; x < b.Dx(); x++ {
+			c := color.NRGBAModel.Convert(src.At(b.Min.X+x, b.Min.Y+y)).(color.NRGBA)
+			if figureMax3(1-float64(c.R)/255, 1-float64(c.G)/255, 1-float64(c.B)/255) > 0.2 {
+				minX, minY, maxX, maxY = min(minX, x), min(minY, y), max(maxX, x), max(maxY, y)
+			}
+		}
+	}
+	if maxX < minX || maxY < minY {
+		return 0, 0
+	}
+	return maxX - minX + 1, maxY - minY + 1
+}
+
+func measureFigureSize(ref, cand image.Image, mm figureCanvasMM) (scaleX, scaleY, dev, aspectRef, aspectCand, aspectDev float64, unit string, inkRefW, inkRefH, inkCandW, inkCandH, shareRefW, shareRefH, shareCandW, shareCandH float64) {
+	rb, cb := ref.Bounds(), cand.Bounds()
+	rw, rh := figureInkBox(ref)
+	cw, ch := figureInkBox(cand)
+	if rb.Dx() > 0 && rb.Dy() > 0 && cb.Dx() > 0 && cb.Dy() > 0 {
+		shareRefW, shareRefH = float64(rw)/float64(rb.Dx()), float64(rh)/float64(rb.Dy())
+		shareCandW, shareCandH = float64(cw)/float64(cb.Dx()), float64(ch)/float64(cb.Dy())
+	}
+	if mm.RefW > 0 && mm.RefH > 0 && mm.CandW > 0 && mm.CandH > 0 {
+		unit = "mm"
+		inkRefW, inkRefH = shareRefW*mm.RefW, shareRefH*mm.RefH
+		inkCandW, inkCandH = shareCandW*mm.CandW, shareCandH*mm.CandH
+		scaleX, scaleY = 1, 1
+		if inkRefW > 0 {
+			scaleX = inkCandW / inkRefW
+		}
+		if inkRefH > 0 {
+			scaleY = inkCandH / inkRefH
+		}
+		dev = math.Max(math.Abs(1-scaleX), math.Abs(1-scaleY))
+	} else {
+		unit = "aspect"
+		inkRefW, inkRefH, inkCandW, inkCandH = float64(rw), float64(rh), float64(cw), float64(ch)
+	}
+	if inkRefW > 0 && inkRefH > 0 && inkCandW > 0 && inkCandH > 0 {
+		aspectRef, aspectCand = inkRefW/inkRefH, inkCandW/inkCandH
+		if aspectRef > 0 {
+			aspectDev = math.Abs(aspectCand/aspectRef - 1)
+		}
+	}
+	if unit == "aspect" {
+		dev = aspectDev
+	}
+	return
 }
 
 func fitFigureCanvases(reference, candidate *image.NRGBA) (*image.NRGBA, *image.NRGBA) {

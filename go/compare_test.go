@@ -4,6 +4,7 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+	"math"
 	"testing"
 )
 
@@ -39,6 +40,32 @@ func TestCompareFigureImagesFindsTranslation(t *testing.T) {
 	}
 	if len(result.Runs) < 1 {
 		t.Fatalf("alignment runs = %d, want at least one", len(result.Runs))
+	}
+}
+
+func TestEvidenceRejectsInvalidPublicArguments(t *testing.T) {
+	img := testFigureImage(0, 0)
+	cases := []struct {
+		name   string
+		ref    image.Image
+		cand   image.Image
+		detail string
+		crop   [4]float64
+		zoom   int
+	}{
+		{name: "nil reference", ref: nil, cand: img, detail: "all", crop: [4]float64{0, 0, 100, 100}},
+		{name: "nil candidate", ref: img, cand: nil, detail: "all", crop: [4]float64{0, 0, 100, 100}},
+		{name: "bad detail", ref: img, cand: img, detail: "invalid", crop: [4]float64{0, 0, 100, 100}},
+		{name: "non-finite crop", ref: img, cand: img, detail: "all", crop: [4]float64{0, 0, math.NaN(), 100}},
+		{name: "out-of-range crop", ref: img, cand: img, detail: "all", crop: [4]float64{0, 0, 101, 100}},
+		{name: "bad zoom", ref: img, cand: img, detail: "all", crop: [4]float64{0, 0, 100, 100}, zoom: 6001},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if _, err := Evidence(tc.ref, tc.cand, 0, 0, tc.detail, tc.crop, tc.zoom); err == nil {
+				t.Fatal("expected validation error")
+			}
+		})
 	}
 }
 
