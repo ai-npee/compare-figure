@@ -3,13 +3,29 @@ name: compare-figure
 description: "Redraw and compare figures with LuaDraw, using either an automatic model runner or Agent-led CLI tools. Supports images, sizes.csv and Markdown context; default overlap is 17%."
 license: MIT
 metadata:
-  version: "0.1.2"
+  version: "0.2.0"
 ---
 
 # compare-figure: two work modes
 
-In an exported Skill, select bin/<host-os>-<host-arch>/compare-figure (Windows: compare-figure.exe); packaged targets are listed in manifest.json. The default release contains only Linux amd64; for other hosts, build the needed target from the source checkout with `scripts/export_skill.sh --platforms GOOS/GOARCH --out-dir dist/GOOS-GOARCH`. In a source checkout, use build/compare-figure. If it is missing, build from the Skill root with Go 1.25+: `go -C go build -o ../build/compare-figure ./cmd/compare-figure`. Resolve the executable and resources relative to this SKILL.md, not the caller working directory. Use an absolute executable path when operating inside a book directory.
-The examples use compare-figure as shorthand for that full binary path. Installed execution is Go-only; Python and Go compilers are not needed. Lua/TeX/Poppler are detected external tools.
+The Skill package contains Go source and runtime resources, with no prebuilt executable. Before first use, the Agent checks for Go 1.25+ (`go version`); official downloads and installation instructions are https://go.dev/dl/ and https://go.dev/doc/install. From this Skill root run `go -C go build -o ../build/compare-figure ./cmd/compare-figure` (Windows: `go -C go build -o ../build/compare-figure.exe ./cmd/compare-figure`). Go builds for the current host by default; use the existing executable for subsequent calls, and rebuild after source updates. Go modules listed in go/go.mod may need downloading on the first build. Use a writable cache, for example `GOCACHE="$PWD/build/go-cache"` on POSIX systems.
+Resolve the executable and resources relative to this SKILL.md, not the caller working directory. Use an absolute executable path when operating inside a book directory. The examples use compare-figure as shorthand for that full binary path. Execution is native Go; Python is not required. Lua/TeX/Poppler remain detected external tools.
+
+Copy `examples/runner.yaml.example` to `runner.yaml` for a commented automatic-mode configuration; actual runner.yaml/runner.json and *.local.yaml/JSON files are ignored by Git and excluded from Skill exports. Preserve user-adjusted session/view/compile/figure_check budgets when creating local configurations. Use environment variables for keys where practical and never publish real credentials.
+
+The accepted delivery includes a self-contained submitted.tex with the exact LuaDraw program embedded in the official luadraw environment, plus submitted.pdf rebuilt from that TeX. Prefer this editable_tex/submitted_tex as the user's single-file TeX deliverable; editable_source/editable_lua also retain the accepted Lua for compatibility. No input Lua/TikZ sidecar is needed. `compile --source submitted.tex --engine lualatex` uses the official environment; `--engine xelatex` or `--engine pdflatex` extracts and runs the same embedded Lua with Lua/texlua before compiling generated TikZ. A TeX engine is still required for the PDF stage.
+
+## Documentation navigation and reusable paragraphs
+
+`luadraw_doc` is the single knowledge-base tool. Use `mode:list` with a relative `doc` directory to discover actual files (optionally `recursive:true`); `mode:find` searches file names/globs; `mode:grep` searches literal text (`regex:true` opts into a regular expression). Follow `\\input`/`\\include` references using these modes and `mode:read`; do not guess manual section filenames. Access stays within the bundled LuaDraw root.
+
+`mode:read` accepts source files with 1-based start_line/end_line, or a PDF doc (also accepted in query) with page for text. `mode:view` displays a PDF whole page or a percentage crop. Search returns complete paragraph snippets with merged overlapping hits; snippet_chars controls each hit and max_chars controls the result budget. Inspect exact API signatures via source read before writing code.
+
+Use `mode:frequent` to consult previously used paragraphs, with limit, line_chars and max_chars (default 8 entries, 256 characters per line, 4096 total). The output gives a stable entry_id and original document range; pass entry_id for precise selection. Without doc, start_line/end_line select current ranking rows; with doc they select source ranges. Each explicit tool lookup contributes frequency only for paragraphs actually returned. The short automatic excerpt appended after a fresh task's context does not increase counts. `docs.frequent` in the runner YAML controls that initial excerpt (default at most 8 lines / 2048 characters); more detail remains available through the tool. Shared cache lives under build/doc-cache unless configured otherwise; it is excluded from Skill exports and expires when the knowledge-base fingerprint changes.
+
+## Browse saved sessions
+
+Open the packaged viewer.html in a Chromium-based browser and choose the runner output folder. Choose a parent folder to list multiple sessions, or a single session folder. It scans directory entries locally and reads only the selected session and referenced media on demand. Nothing is uploaded and no server is required. Refresh to inspect files added by a running task. The viewer supports Go session.jsonl, run.json/result.json, tool arguments/results, comparison evidence and final previews. It never edits or truncates sessions.
 
 ## Standalone inputs, physical size and Markdown context
 
@@ -58,7 +74,7 @@ The current Agent performs the drawing and iteration. A typical CLI loop is:
 
        compare-figure luadraw-doc-search Dpolyline3d
 
-   This returns text, page/bbox evidence and a relevant official PDF image in the same call. Read that image. Use docs --mode read --doc files/luadraw_base.lua --start-line 1 --end-line 40 for source, or docs --mode view --doc doc/luadraw-doc-en.pdf --page 91 with optional --left/--top/--right/--bottom percentages and --zoom for a manual crop.
+   Search returns text plus official PDF document/page/bbox locations without an image by default. Decide whether a page image is needed. Use `docs --mode view --doc doc/luadraw-doc-en.pdf --page 91` to inspect the located whole page; optionally pass --left/--top/--right/--bottom percentages and --zoom for a region. Search bbox coordinates are PDF points, not percentages. `docs --mode read --doc files/luadraw_base.lua --start-line 1 --end-line 40` reads source text. Explicit --include-image may attach a search crop when requested; do not request images for every lookup automatically.
 3. Write editable figure.lua with the Agent's own file tools. Use real LuaDraw geometry, including actual 3D constructions when needed. A single genuine LuaDraw environment in TeX is also accepted. Generated TikZ is a backend artifact; pure hand-written TikZ and embedded reference rasters are rejected as main source.
 4. Compile, inspect the returned preview/PDF, and compare against the original:
 

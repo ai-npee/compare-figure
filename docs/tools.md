@@ -74,10 +74,10 @@ On this host the system Go is older than the module requirement; an already cach
 The active model gets one `luadraw_doc` tool with three modes. Search mode defaults when `query` is supplied:
 
 ```json
-{"operation":"docs","arguments":{"query":"Dpolyline3d","limit":5,"include_image":true},"inline_images":true}
+{"operation":"docs","arguments":{"query":"Dpolyline3d","limit":5}}
 ```
 
-It returns relevant official tutorial/source/example excerpts with locations and a manual page/crop image. Subsequent detail inspection remains the same tool:
+It returns relevant official tutorial/source/example excerpts with PDF document/page/bbox locations as text, without an image by default. The model chooses whether to inspect the located whole page or a percentage region with `mode:view`; explicit `include_image:true` opts into a search crop. Search bbox values are PDF points, not crop percentages. Subsequent detail inspection remains the same tool:
 
 ```json
 {"operation":"docs","arguments":{"mode":"view","doc":"doc/luadraw-doc-en.pdf","page":118,"left":5,"top":20,"right":95,"bottom":65,"zoom":1400}}

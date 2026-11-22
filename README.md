@@ -6,7 +6,7 @@
 
 ## 仓库与Skill入口
 
-仓库自身可作为Skill：根目录 [SKILL.md](SKILL.md) 含标准YAML frontmatter（name、description、license、metadata.version），是仓库与安装包共用的唯一技能说明源。[VERSION](VERSION) 是默认发布版本，当前为0.1.2。
+仓库自身可作为Skill：根目录 [SKILL.md](SKILL.md) 含标准YAML frontmatter（name、description、license、metadata.version），是仓库与安装包共用的唯一技能说明源。[VERSION](VERSION) 是默认发布版本，当前为0.2.0。
 
 ```text
 SKILL.md / VERSION       Skill入口与发布版本
@@ -21,7 +21,7 @@ dev/python/              Python原型、研发算法、历史查看器与对照�
 build/ / dist/ / runs/   忽略的构建、发布和运行产物
 ```
 
-源码仓库用Go构建后运行；导出的安装包自带平台程序，不要求Python或Go编译器。安装包不含dev/、测试或运行数据。
+源码仓库和导出的Skill包均附带Go源码，**不附带任何预构建程序**。目标机器的Agent首次使用时用Go 1.25+构建本机程序，后续复用；安装包不含Python、开发测试、真实配置或运行数据。
 
 ## 独立图片、尺寸与Markdown上下文
 
@@ -85,7 +85,7 @@ build/compare-figure compare --reference reference.png \
 
 ## 构建与启动
 
-开发构建需Go 1.25+；已导出Skill使用原生二进制，不需要Go编译器。绘图需要实际可用的LuaLaTeX，或独立Lua/texlua加XeLaTeX/pdfLaTeX。文档/PDF操作需要Poppler的 `pdftotext`、`pdfinfo`、`pdftoppm`。Go文档工具不依赖PyMuPDF。
+源码Skill首次使用需Go 1.25+，Agent在目标机本地构建当前平台程序后复用。Go官方下载与安装说明：https://go.dev/dl/ 、https://go.dev/doc/install 。绘图需要实际可用的LuaLaTeX，或独立Lua/texlua加XeLaTeX/pdfLaTeX。文档/PDF操作需要Poppler的 `pdftotext`、`pdfinfo`、`pdftoppm`。Go文档工具不依赖PyMuPDF。
 
 ```bash
 # 在 go/ 目录
@@ -95,10 +95,10 @@ GOCACHE="$PWD/../build/go-cache" go build -o ../build/compare-figure ./cmd/compa
 build/compare-figure environment
 build/compare-figure run --original /path/to/reference.png \
   --context-file /path/to/context.md --out runs/figure-001 \
-  --config /path/to/model.json
+  --config runner.yaml
 ```
 
-模型必须支持图片和工具调用。[配置样例](examples/runner.json) 支持JSON/YAML、模型注册表和extends、Chat Completions/Responses/Anthropic、SSE/非流降级、思考参数及API重试。密钥可从指定环境变量、key文件或临时参数读取，不写入运行元数据、Skill包或转录。
+模型必须支持图片和工具调用。[带注释YAML配置样例](examples/runner.yaml.example) 支持JSON/YAML、模型注册表和extends、Chat Completions/Responses/Anthropic、SSE/非流降级、思考参数及API重试。密钥可从指定环境变量、key文件或临时参数读取，不写入运行元数据、Skill包或转录。
 
 `run --check`校验输入和真实编译路线，不调用模型、不创建会话目录。`environment`报告版本、包路径和实际编译可用性，不能把命令存在当作可用。当前宿主LuaLaTeX已实测可用。探针和编译使用同一套工作目录内的TeX缓存根，避免分离TEXMFVAR/TEXMFCACHE时的fontloader误判；不改用户HOME或系统缓存。LuaLaTeX优先，独立Lua→TikZ→XeLaTeX/pdfLaTeX回退仍保留；目标机器会重新探测。
 
@@ -106,10 +106,10 @@ build/compare-figure run --original /path/to/reference.png \
 
 ```bash
 # 相同输入重复执行会自动恢复已有任务
-build/compare-figure run --original reference.png --out runs/figure-001 --config model.json
+build/compare-figure run --original reference.png --out runs/figure-001 --config runner.yaml
 
 # 也可只复用存储的输入
-build/compare-figure run --out runs/figure-001 --resume --config model.json
+build/compare-figure run --out runs/figure-001 --resume --config runner.yaml
 ```
 
 - 输入指纹拒绝把不同任务静默写入同一目录。已完成且仍满足当前门槛的任务直接返回已有产物，不需要再次调用模型或提供模型密钥。
@@ -131,37 +131,61 @@ build/compare-figure compare --original reference.png --pdf candidate.pdf --out 
 `tools`支持 `compare`、`docs`、`compile`、`environment`、`run`；stdout只有JSON。JSONL持续服务并复用缓存，坏请求独立回错后继续。未给输出目录则复用当前工作目录对应的固定临时槽。图片按 `images[{path,mime,width,height,base64?}]` 回传，可用 `inline_images:true`直接交给图像感知调用方。
 
 ```json
-{"operation":"docs","arguments":{"query":"Dpolyline3d","include_image":true},"inline_images":true}
+{"operation":"docs","arguments":{"query":"Dpolyline3d"}}
+{"operation":"docs","arguments":{"mode":"view","doc":"doc/luadraw-doc-en.pdf","page":91,"left":10,"top":15,"right":85,"bottom":90},"inline_images":true}
 ```
 
-一次文档调用即可返回用法、源码/例子位置、PDF页码/bbox及局部图片，也可指定页码和百分比区域重渲染。暖查询不重新抽整套手册。更多请求示例和库接口见 [Go说明](docs/go-native.md)。
+文档搜索默认只返回用法、源码/例子位置、PDF页码/bbox，不自动附图。模型需要查看时主动调用 `mode:view`，指定检索到的doc和page即可看整页，或附百分比区域和zoom局部重渲染。搜索bbox单位为PDF点，裁切参数为百分比；显式 `include_image:true` 可按需给搜索附图。暖查询不重新抽整套手册。更多请求示例和库接口见 [Go说明](docs/go-native.md)。
 
-## 带版本号的Go-only Skill导出
+文档库还提供 `list/find/grep/read/frequent`：先列真实路径或按文件名定位，再顺着include关系精读；`read`兼容PDF的 `doc`/`query` + `page`，不自动渲染图片。检索按完整段落合并去重，`snippet_chars`调每条长度、`max_chars`调总预算。高频模式可按当前排名行或稳定 `entry_id` 选择；模型主动查看才贡献计数，自动追加到新会话上下文的摘要不计数。默认摘要最多8行/2048字符，可在示例的 `docs.frequent` 配置中关闭。缓存放本Skill的 `build/doc-cache`，不随包分发。详细参数见 [Go说明](docs/go-native.md)。
+
+最终交付的 TeX 内嵌接受的 `\\begin{luadraw}...\\end{luadraw}` 代码，可以单文件编辑，不依赖旁边的Lua或生成TikZ输入；额外保留原接受Lua。`editable_tex`/`submitted_tex` 指向TeX，PDF由该TeX重编。没有LuaLaTeX仍可用独立Lua/texlua生成TikZ，再交给XeLaTeX或pdfLaTeX；PDF阶段仍需要TeX引擎。
+
+## 带版本号的Go源码Skill导出
 
 ```bash
-# 从VERSION读取版本，只构建Linux amd64并导出目录、ZIP和SHA256
+# 从VERSION读取版本，导出源码Skill目录、ZIP和SHA256
 ./scripts/export_skill.sh
-
-# 显式版本及Go工具链（也可设置GO_BIN）
+# 显式版本及本机Go工具链
 ./scripts/export_skill.sh --version 0.2.0 --go /path/to/go
-
-# 需要其他平台时从源码构建；单独目录避免与默认包混用
-./scripts/export_skill.sh --platforms windows/amd64 --out-dir dist/windows-amd64
-# 只复用默认Linux amd64的已准备二进制
-./scripts/export_skill.sh --skip-build
 ```
 
-脚本可以从任意当前工作目录调用，支持带空格路径。默认发布到 `dist/compare-figure-skill-v0.1.2/`、同名 `.zip` 和 `.zip.sha256`，用 `--out-dir` 改目录。版本采用SemVer，可带v前缀；不同版本分别保留，同版本可重复导出。`--skip-build`要求已经准备好build/compare-figure和build/platforms，不会自动编译。安装包中的VERSION、manifest.json.version与SKILL.md的metadata.version保持一致；发布时覆盖版本不会修改源码VERSION。
-
-底层也可以在Linux amd64宿主直接导出本机程序：
+默认输出 `dist/compare-figure-skill-v0.2.0/` 及同名ZIP/SHA256。包只附Go生产源码、go.mod/go.sum、根Skill说明、版本、脱敏YAML示例、提示词、固定LuaDraw资源/手册、Lua辅助脚本和许可证；不附预构建程序。目标机Agent按根Skill说明安装Go 1.25+后，在包根运行：
 
 ```bash
-build/compare-figure export-skill --version 0.1.2 \
-  --out dist/compare-figure-skill-v0.1.2
+go -C go build -o ../build/compare-figure ./cmd/compare-figure
+# Windows本机：
+go -C go build -o ../build/compare-figure.exe ./cmd/compare-figure
 ```
 
-默认发布只带 `bin/linux-amd64/compare-figure` 一个程序。其他平台保留源码和 `build --platforms GOOS/GOARCH`/脚本 `--platforms` 按需构建；显式 `--binaries-dir` 时按调用方准备的目录收集二进制。导出包括校验过Go构建信息/平台的二进制、根SKILL.md、VERSION、原始提示词、固定LuaDraw运行库/官方手册、Lua辅助脚本与许可证。排除Python原型、开发测试、本地配置、密钥和运行数据。相同输入重复导出跳过未变化文件，生成相同SHA256清单；包可离开源码目录运行。
+Go默认构建当前机器平台；首次可能下载go.mod中的模块依赖，后续复用本地缓存。其他平台不必预先打包程序；开发时仍可显式使用 `build --platforms GOOS/GOARCH` 交叉构建。发布脚本只构建本机导出工具，工具本身不入包。不同版本分别保留；同版本拒绝混入旧未知文件。VERSION、manifest版本和Skill元数据一致。Python、开发测试、真实配置、密钥与运行数据均不导出。
 
+## 配置示例与本地配置
+
+```bash
+cp examples/runner.yaml.example runner.yaml
+# 编辑runner.yaml，填写模型和base_url；密钥建议使用api_key_env。
+build/compare-figure run --original reference.png --out runs/figure-001 --config runner.yaml
+```
+
+正式示例使用 `.yaml.example` 后缀并带字段注释；JSON仍兼容。`runner.yaml`、`runner.yml`、`runner.json`、`*.local.yaml`/`*.local.yml`/`*.local.json`和运行目录均由Git忽略。真实配置不纳入Skill清单；请勿把密钥填写到示例。会话/看图/编译/接受配置保留用户调整的参数（128轮、131072输出token、256000上下文等）。
+
+## 本地会话查看器
+
+使用 Chromium、Chrome 或 Edge 打开 [viewer.html](viewer.html)，点击“选择会话文件夹”。选父目录可列出多个会话，也可直接选择单个会话目录；扫描只枚举路径，选中后才读取对应JSONL、元数据、比较图和关联媒体，全程本地只读、不上传、不修改会话，无需启动服务器。正在运行的会话可点击刷新。查看器复用用户指定的DocVision专用UI，来源与许可见 [来源记录](docs/viewer-upstream.json)，支持Go工具调用/回执、最终预览、比较证据和checkpoint，避免重复渲染压缩快照。
+
+## 四图真实自动测试
+
+使用用户指定的 `gpt-6.1-sol`，在《高等数学释疑解难》选取图6.9（立体）和8.8、8.9、8.10（三电路），均由自动runner绘制和提交，未人工修改图稿。四图均LuaLaTeX直编、一次实际submit、非尽力接受、无运行警告：
+
+| 图 | 重叠 | 尺寸偏差 | 模型不确定标记 |
+|---|---:|---:|---|
+| 6.9 | 25.01% | 1.17% | 有 |
+| 8.8 | 62.33% | 0.83% | 无 |
+| 8.9 | 50.89% | 1.52% | 无 |
+| 8.10 | 35.19% | 0.58% | 有 |
+
+四份最终预览均已实际检查；图8.10中部开关在扫描上疑似K₁，模型保留原样并注明不确定。17%是像素接受门槛，仍应结合原图检查语义与投影。完整运行及原始结果位于本地忽略的 `runs/automatic-four-figures/`，不进入源码Skill。回归期间发现的工具错误保留于历史转录，不通过重跑付费模型来覆盖历史。
 
 ## 复杂LuaDraw回归包
 
@@ -174,6 +198,8 @@ GOCACHE="$PWD/../build/go-cache" go test ./luadraw \
 ```
 
 测试先校验附件SHA，再检查真实TikZ和PDF；回退包装加载LuaDraw样式需要的patterns、plotmarks、arrows.meta及decorations等库。测试包位于源码仓库，不打入运行Skill包。
+
+通用会话框架复用的静态调查见 [pi-go评估](docs/pi-go-evaluation.md)：优先考察可导入的agent/model接口，保留现有接受态、媒体和旧会话恢复；本轮没有添加该依赖或迁移生产会话格式。
 
 ## 开发与验证
 

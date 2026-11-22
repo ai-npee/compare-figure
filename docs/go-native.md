@@ -87,33 +87,47 @@ build/compare-figure compare --stdin < comparison.json
 {"operation":"compile","source":"/path/to/figure.lua","options":{"engine":"auto"},"include_image":true}
 ```
 
-The Go document implementation uses `pdftotext -bbox`, `pdfinfo` and `pdftoppm` directly, then Go image code for crops/zoom. It does not invoke the prototype or require PyMuPDF. Source queries and relevant PDF page/bbox/image are returned in the same tool call. Explicit `mode:view` accepts the returned doc/page plus percentage `left/top/right/bottom` and `zoom`; `mode:read` exposes source line windows.
+The Go document implementation uses `pdftotext -bbox`, `pdfinfo` and `pdftoppm` directly, then Go image code for crops/zoom. It does not invoke the prototype or require PyMuPDF. Search returns official snippets and PDF document/page/bbox locations as text, without an image by default. The model chooses whether to call `mode:view` with that doc/page for a whole page, or add percentage `left/top/right/bottom` and `zoom` for a region; search bbox units are PDF points, not percentages. Explicit `include_image:true` remains an opt-in search crop. `mode:read` exposes source line windows.
+
+## Documentation navigation and frequency memory
+
+The single `luadraw_doc` tool supports `list`, `find`, `grep`, `search`, `read`, `view`, and `frequent`. All filesystem access stays within the fixed library root. List direct children (`recursive:true` for descendants), find actual names/globs, and grep literal text (`regex:true` explicitly). `doc` scopes directory/file searches; `limit`, `offset`, and `max_chars` bound navigation results. Read source via 1-based line ranges, capped at 400 lines. Read a PDF as text with doc/query + page, or a page-qualified `doc/luadraw-doc-en.pdf#page=14`. `view` alone requires rendering; search stays text-only unless include_image is explicitly requested.
+
+Search canonicalizes complete source paragraphs and PDF paragraph blocks, merges spatially adjacent same-column PDF hits, deduplicates before pagination, and preserves exact signature locations. `snippet_chars` defaults to 1200 (64–8000), `max_chars` defaults to 6000 (64–32000). Each result provides a source range or PDF page/block range/bbox. Use a precise read for larger context.
+
+`frequent` returns at most 8 ranked paragraphs by default, 256 characters per complete output line and 4096 total; adjust `limit`, `line_chars`, `max_chars`. Its stable short `entry_id` selects a particular paragraph even as ranks change. Without doc, start_line/end_line select ranking rows from a fixed snapshot; with doc, they filter original ranges. Only entries actually emitted by an explicit model lookup increase counts. `FrequentSnippet`, used for the automatic initial user-context excerpt, is read-only and never increments counters. YAML docs.frequent controls that initial excerpt, hard-capped at 8 lines / 2048 characters; zero budgets or prompt_enabled:false disable it.
+
+The shared cache defaults to the Skill root's build/doc-cache (COMPARE_FIGURE_CACHE or explicit cache_dir overrides). It records document paragraphs, IDs and counts only, uses bounded atomic cross-process updates, and invalidates on library fingerprint changes. It is excluded from source exports. Future per-book/global frequency design is recorded as a DocVision note; the standalone tool currently has one shared index.
+
+## Editable TeX delivery and fallback
+
+Delivery includes `submitted.tex` with the accepted program embedded in `\\begin{luadraw}{name=submitted}`. It references no input Lua/TikZ sidecar and is recompiled to produce the delivered PDF. `editable_tex` identifies this file; `editable_source`/`editable_lua` retain the original accepted Lua for API compatibility. Accepted metrics and uncertainty belong to the same accepted source.
+
+```bash
+build/compare-figure compile --source submitted.tex --out work/direct --engine lualatex
+build/compare-figure compile --source submitted.tex --out work/fallback --engine xelatex
+```
+
+With LuaLaTeX, the official environment generates its own intermediates. Without it, the Go compiler extracts the embedded Lua, runs standalone Lua/texlua to generate TikZ, then compiles through XeLaTeX/pdfLaTeX. Lua alone does not generate a finished PDF; a working TeX backend and Poppler remain required. The TeX file can be copied alone into a fresh working directory when LuaDraw and its TeX dependencies are installed or exposed through the Skill compiler.
 
 ## Build and export
 
-The repository is itself a Skill: root SKILL.md contains standard YAML frontmatter and is the single canonical instruction source. The exporter reads it rather than embedding a duplicate in Go. Root VERSION supplies the default release (0.1.2). A release writes the same version into VERSION, manifest.json.version and SKILL.md metadata.version. `export-skill --version` overrides only the output metadata, not source files.
+Root SKILL.md is the single canonical instruction source; VERSION now defaults to 0.2.0. Releases contain production Go sources with go.mod/go.sum and runtime resources, not prebuilt executables. Source-only manifest schema v2 records the distribution and required Go version plus SHA256 hashes. No packaged platform matrix is needed.
 
-From any working directory invoke the repository's `scripts/export_skill.sh` by path. With no version argument it reads VERSION, builds only Linux amd64 by default, and emits `dist/compare-figure-skill-v0.1.2/`, `.zip` and `.zip.sha256`. `--version 0.2.0`, `--go /path/to/go` (or GO_BIN), `--platforms linux/amd64`, `--out-dir DIR` and `--skip-build` are supported. Platforms are isolated per invocation; old targets never leak into a limited release. Skip-build requires existing host and selected platform binaries under build/. Different versions are retained separately; same-version output is refreshed, while unknown destination files are rejected rather than removed or packaged.
-
-Python prototypes, research algorithms, old viewer and comparison tests live in dev/python/; they are development-only and excluded from releases. Example model configuration is examples/runner.json. Runtime prompts/vendor/Lua helper remain rooted at the project/installed Skill directory.
-
-Go 1.25+ is a development requirement, not an installed Skill runtime dependency. External Lua/TeX/Poppler remain required for corresponding drawing/document operations.
+The target machine's Agent checks Go 1.25+ and builds once from the Skill root. Official Go downloads: https://go.dev/dl/ ; installation: https://go.dev/doc/install . The Go toolchain builds for the current host unless GOOS/GOARCH are explicitly set. Initial module downloads may require network access.
 
 ```bash
-# In go/
-GOCACHE="$PWD/../build/go-cache" go build -o ../build/compare-figure ./cmd/compare-figure
+# From the Skill root; use an .exe output name on Windows
+GOCACHE="$PWD/build/go-cache" go -C go build -o ../build/compare-figure ./cmd/compare-figure
+build/compare-figure environment
 
-# Default target: Linux amd64 only
-build/compare-figure build --out build/platforms
-
-# Build another target from source only when needed
-build/compare-figure build --out build/windows --platforms windows/amd64
-
-# Export the current Linux amd64 executable; the release script isolates selected targets
-build/compare-figure export-skill --version 0.1.2 \
-  --out dist/compare-figure-skill-v0.1.2
+# Source-only export; the script compiles a local export tool but does not package it
+./scripts/export_skill.sh
+./scripts/export_skill.sh --version 0.2.0 --go /path/to/go
 ```
 
-`build --go /path/to/go` and `COMPARE_FIGURE_GO` allow an explicit installed Go toolchain. The exporter validates each binary's Go build information, copies fixed resources, emits one Go-only `SKILL.md`, and records SHA-256 values in the manifest. Existing Python artifacts cause a clear destination error instead of retaining a second runtime in the export. It never exports model credentials or run data.
+The package includes canonical Skill/VERSION, source, fixed prompts/vendor/manuals/licenses, Lua helper, commented examples/runner.yaml.example and the local folder-based viewer.html. Python prototypes and tests remain development-only under dev/python. Actual runner.yaml/runner.json/*.local.yaml or JSON files, keys, runs, caches and compiled binaries are excluded. Copy the example to runner.yaml, edit privately, and pass --config runner.yaml. JSON remains accepted for compatibility.
 
-Cross-compilation is distinct from executing on the target platform. Validation reports must identify which binaries were executed and which were only compiled; source-level cross-platform design is not a Windows/macOS real-machine test.
+The export script resolves its own repository root regardless of caller directory. Different release versions are preserved; unknown destination files are rejected, not silently removed. VERSION, manifest.version and Skill metadata.version agree. Exported sources can build independently of the checkout and locate their resources relative to the Skill root.
+
+The native `build --platforms GOOS/GOARCH` command remains available for optional cross-compilation. Cross-compilation is distinct from execution on the target OS; report actual runs separately.

@@ -8,7 +8,7 @@ Python sources here are development-only prototypes and comparison tests. The pr
 - Algorithms: `algorithms/`.
 - Tests: `tests/`.
 - Python-only support files: `requirements.txt` and the historical `viewer.html`.
-- The Python prototype config remains at project root as `examples/runner.json`.
+- The shared commented config example is `examples/runner.yaml.example`; copy it to ignored `runner.yaml` before editing real model credentials. JSON configs remain compatible.
 
 ## Tests
 

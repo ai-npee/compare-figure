@@ -1,6 +1,33 @@
 # 开发记录
 
-## 默认单Linux amd64发布（当前，0.1.2）
+## 源码Skill、真实四图测试与知识库工具升级（当前，0.2.0）
+
+本轮全部需求和验收状态持续保存在忽略的build/task-state/current-requirements.md，防止压缩上下文后遗漏；后续Agent先核对此文件，不重复发起已完成的付费绘图调用。
+
+- 用户覆盖此前单Linux包要求：Skill现在只附生产Go源码和固定资源，不附任何平台二进制；目标机Agent按根Skill说明下载Go1.25+并首次本机构建。官方来源https://go.dev/dl/ 与https://go.dev/doc/install 。source-only exporter manifest schema2，版本0.2.0；搬移后编译/运行/再次导出已局部验证，最终清单待本轮所有改动稳定后核验。
+- 用户修改的runner参数已原样迁为examples/runner.yaml.example，含中文注释；真实runner.local.yaml仅本地忽略，来源为用户授权的外部PDF2MD接入，使用gpt-6.1-sol，密钥不显示、不提交。旧JSON原样归档runs/config-migration，正式示例不再使用正常运行文件名。
+- 四图全自动已真实完成：图6.9/8.8/8.9/8.10重叠分别25.010796%、62.325647%、50.890610%、35.193841%；尺寸偏差1.172448%、0.831351%、1.515310%、0.580678%；均LuaLaTeX、1次真实submit、非best-effort、无warnings。6.9及8.10保留uncertain=true；后者原扫描中部开关疑似K1，模型按原样保留并在源码注释，而非擅自改为K2。四图最终预览均已实际检查，证据runs/automatic-four-figures。此次结果代表真实模型运行；此前“未调用真实模型”均为旧阶段记录。
+- 运行发现[url](images/...)普通图片链接在初始选图及image_context中各有一处旧限制，现两处均修复，并用用户精确up6/down6参数在原文图6.9第10520行验证前后图/上下文。回归同时覆盖原![...]语法。
+- 根viewer.html复用DocVision专用figure_compare/viewer/viewer.html，不使用旧Python metrics viewer；只读文件夹扫描、按需加载选中会话/关联媒体，适配Go JSONL/run/result，删除截断写入功能、避免checkpoint重复；来源与MIT许可记录docs/viewer-upstream.json。已做Node逻辑与真实Chromium加载实际会话验证，浏览器选择目录句柄由测试注入，未声称自动化操作真实系统目录对话框。
+- 文档工具升级包含默认search无图、模型按需PDF页/区域view、库内文件定位/直接read和高频段落缓存；自动摘要只读、不加频次，模型主动工具阅读才计数。PDF read/query/page兼容、段落合并去重/可调长度、跨平台缓存锁和完整回归仍按需求清单逐项核验，不用旧阶段结果代替新功能验收。
+
+### 本轮交付与验证补充
+
+四图均已从原JSONL接受快照无模型恢复，再交付为内嵌LuaDraw的submitted.tex，PDF实际由该TeX重编；best_overlap/scale_dev/uncertain原样保持，api_contacted=false表示此次重交付未触达模型，历史首次绘制确实使用gpt-6.1-sol。另把图6.9的TeX单独复制到空输入目录，CLI强制LuaLaTeX与XeLaTeX两路线均成功，后者backend明确standalone-lua+generated-TikZ。证据runs/tex-only-validation。
+
+Go全模块test/vet及Linux/Windows编译已通过，Windows未执行。Python开发测试最初有1个模块因入口缺少dev/python/algorithms未导入，其余75项通过；补正确PYTHONPATH后该模块4项通过，合计79项；修改后的文档镜像5项再通过。真实文档payload read/query/PDF/page14、库内导航、不同snippet长度、frequent短ID选择与无图默认已在CLI验证，证据runs/final-doc-validation。目录查看器用真实会话加载和截图，测试注入只读folder handle，未操作系统原生目录对话框。频次共享对象并发精确计数与race检查通过。
+
+### 最终源码包核验
+
+源码包0.2.0的manifest共304个文件，分发标记source-only，Go1.25+；无二进制、真实配置或缓存，实际密钥/私有端点字节扫描无泄漏，固定LuaDraw245文件哈希一致。解压到独立目录后真实go build并使用该包程序read/query读取官方PDF第14页成功，资源不依赖checkout路径。源码ZIP位于dist/source-v0.2.0，四图TeX/PDF/会话包位于runs/automatic-four-figures；全部产物忽略，不入Git。
+
+PDF文本索引升v4，算法版本进入指纹：分段用上一视觉行高度而非累计段bbox高度，限制每段12行/2048字符并识别保守标题边界，修复误把整页合为一段；实际page14可分段精读，旧频次坐标失效。显式list/find/grep的已返回导航文本与view的相交页面段落也计频；自动prompt摘要保持只读。
+
+### 后续DocVision设计批注（当前不实现）
+
+用户提出未来将全局高频与每本书高频分层：一本书内共享文档段落频次，每书最常用前10段向历史全局索引贡献；新书尚无书内记录时，使用全局高频冷启动。模型主动阅读推动频次变化，使最终知识段落有机会超过最初的目录/导航段落。自动嵌入user上下文的摘要不加次数，模型主动查看高频某条/范围及进一步读原文才贡献计数。当前独立工具只维护全局高频，不引入书籍工程、MinerU或DocVision依赖。
+
+## 默认单Linux amd64发布（前阶段，0.1.2）
 
 用户要求默认包只放常用Linux amd64程序，其他平台已有源码，需要时再构建。scripts/export_skill.sh和Go build命令默认目标均改为linux/amd64；保留显式--platforms及独立输出目录，跨平台构建按需触发。根VERSION/Skill metadata更新0.1.2，避免与原五平台0.1.1目录混用；旧版本产物保持历史归档。
 
