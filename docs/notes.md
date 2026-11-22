@@ -1,6 +1,16 @@
 # 开发记录
 
-## 修复Python历史小图平移失败（当前）
+## LuaLaTeX缓存修复与用户复杂LuaDraw测试（当前，0.1.1）
+
+用户指出当前LuaLaTeX可用，并提供准确的复杂2D/3D压力测试附件。本轮以附件为准，不再使用skills分支内嵌简单片段；两份测试原字节保存在testdata/luadraw，manifest记录完整SHA、附件名和覆盖范围，不依赖机器附件目录。
+
+- 2D源2225bytes，SHA93706afa92a6ccbcce4fc4f67268ed49e50a472dfc68366404c2d65cdf7e4dab；3D源2124bytes，SHAaf411326f1ed64fab6a6d3ab113199ada4a45d66aeb54873b692a1e13db58547。包括patterns、plotmarks、decorations.markings、透明多边形及36×36曲面、cutfacet分层、调色板面片光照、Stealth螺旋线和数学标签。3D生成3502行TikZ。
+- 已用同一LuaLaTeX命令/同一LuaDraw探针做对照：默认缓存和原分离TEXMFVAR/TEXMFCACHE/XDG目录组合失败；把三个变量指向同一可写根后成功。正式Go及Python对照统一此策略，探针和实际编译一致，缓存仅在自有临时/工作目录，不改HOME/系统缓存。此前“宿主LuaLaTeX不可用”是探针配置导致的旧结论，当前已真实验证可用且优先直编。
+- 用户复杂3D回退首次暴露Unknown arrow tip kind Stealth，已在回退探针/包装中预加载LuaDraw.sty相同的patterns,patterns.meta,plotmarks,arrows.meta,bending,decorations.markings,backgrounds；不修改245个固定vendor文件。Go覆盖测试对每份附件先验SHA，再分别直编/回退，检查实际TikZ、PDF与覆盖标记；mShaded生成逐面RGB填色，不误断言必须含字面shading。
+- 验证：Go各模块回归及vet通过；Python完整79项全部通过、0跳过，补齐库后运行runtime9项再次通过。新增Go直编真实测试通过；原79项中的LuaLaTeX跳过已消除。Go首次全测受源VERSION/SKILL测试中途更新影响的幂等检查，以及不准确shading字面断言，固定版本并改为实际RGB面片标记后受影响app/luadraw包复跑通过，未改生产比较回执。
+- 正式运行时已更新，默认版本与根Skill元数据升至0.1.1，并重建五平台Go-only包；复杂测试只随源码测试区维护，不打进运行Skill包。仅Linux amd64本机实际执行，其他平台为交叉编译；未调用真实绘图模型。旧简单片段移到runs/rejected-simple-fixtures，不作为复杂测试交付。
+
+## 修复Python历史小图平移失败（前阶段）
 
 用户要求解决此前保留的小图平移失败。已复现并修复，不再作为已知失败挂账。
 

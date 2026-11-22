@@ -6,7 +6,7 @@
 
 ## 仓库与Skill入口
 
-仓库自身可作为Skill：根目录 [SKILL.md](SKILL.md) 含标准YAML frontmatter（name、description、license、metadata.version），是仓库与安装包共用的唯一技能说明源。[VERSION](VERSION) 是默认发布版本，当前为0.1.0。
+仓库自身可作为Skill：根目录 [SKILL.md](SKILL.md) 含标准YAML frontmatter（name、description、license、metadata.version），是仓库与安装包共用的唯一技能说明源。[VERSION](VERSION) 是默认发布版本，当前为0.1.1。
 
 ```text
 SKILL.md / VERSION       Skill入口与发布版本
@@ -100,7 +100,7 @@ build/compare-figure run --original /path/to/reference.png \
 
 模型必须支持图片和工具调用。[配置样例](examples/runner.json) 支持JSON/YAML、模型注册表和extends、Chat Completions/Responses/Anthropic、SSE/非流降级、思考参数及API重试。密钥可从指定环境变量、key文件或临时参数读取，不写入运行元数据、Skill包或转录。
 
-`run --check`校验输入和真实编译路线，不调用模型、不创建会话目录。`environment`报告版本、包路径和实际编译可用性，不能把命令存在当作可用。本机LuaLaTeX因fontloader缓存不可写被判为不可用，采用已实测的独立Lua回退；目标机器会重新探测。
+`run --check`校验输入和真实编译路线，不调用模型、不创建会话目录。`environment`报告版本、包路径和实际编译可用性，不能把命令存在当作可用。当前宿主LuaLaTeX已实测可用。探针和编译使用同一套工作目录内的TeX缓存根，避免分离TEXMFVAR/TEXMFCACHE时的fontloader误判；不改用户HOME或系统缓存。LuaLaTeX优先，独立Lua→TikZ→XeLaTeX/pdfLaTeX回退仍保留；目标机器会重新探测。
 
 ## 会话、幂等与续跑
 
@@ -150,17 +150,29 @@ build/compare-figure compare --original reference.png --pdf candidate.pdf --out 
 ./scripts/export_skill.sh --version 0.2.0 --skip-build
 ```
 
-脚本可以从任意当前工作目录调用，支持带空格路径。默认发布到 `dist/compare-figure-skill-v0.1.0/`、同名 `.zip` 和 `.zip.sha256`，用 `--out-dir` 改目录。版本采用SemVer，可带v前缀；不同版本分别保留，同版本可重复导出。`--skip-build`要求已经准备好build/compare-figure和build/platforms，不会自动编译。安装包中的VERSION、manifest.json.version与SKILL.md的metadata.version保持一致；发布时覆盖版本不会修改源码VERSION。
+脚本可以从任意当前工作目录调用，支持带空格路径。默认发布到 `dist/compare-figure-skill-v0.1.1/`、同名 `.zip` 和 `.zip.sha256`，用 `--out-dir` 改目录。版本采用SemVer，可带v前缀；不同版本分别保留，同版本可重复导出。`--skip-build`要求已经准备好build/compare-figure和build/platforms，不会自动编译。安装包中的VERSION、manifest.json.version与SKILL.md的metadata.version保持一致；发布时覆盖版本不会修改源码VERSION。
 
 底层也可以直接调用：
 
 ```bash
-build/compare-figure export-skill --version 0.1.0 \
-  --binaries-dir build/platforms --out dist/compare-figure-skill-v0.1.0
+build/compare-figure export-skill --version 0.1.1 \
+  --binaries-dir build/platforms --out dist/compare-figure-skill-v0.1.1
 ```
 
 也可省略binaries-dir只导出当前平台。导出包括校验过Go构建信息/平台的二进制、根SKILL.md、VERSION、原始提示词、固定LuaDraw运行库/官方手册、Lua辅助脚本与许可证。排除Python原型、开发测试、本地配置、密钥和运行数据。相同输入重复导出跳过未变化文件，生成相同SHA256清单；包可离开源码目录运行。
 
+
+## 复杂LuaDraw回归包
+
+用户提供的 [2D复杂测试](testdata/luadraw/luadraw-test-2d.lua) 与 [3D复杂测试](testdata/luadraw/luadraw-test-3d.lua) 原样保留，来源、完整SHA256与覆盖列表在 [测试包说明](testdata/luadraw/README.md)。包括曲线/网格、图案、plotmarks、装饰箭头、透明多边形、36×36曲面、cutfacet分层、调色板面片光照、螺旋线和数学标注。
+
+```bash
+# 在go/目录：两份复杂样例各测LuaLaTeX直编与独立Lua回退
+GOCACHE="$PWD/../build/go-cache" go test ./luadraw \
+  -run 'TestLuaDrawComplex(2D|3D)$' -count=1 -v
+```
+
+测试先校验附件SHA，再检查真实TikZ和PDF；回退包装加载LuaDraw样式需要的patterns、plotmarks、arrows.meta及decorations等库。测试包位于源码仓库，不打入运行Skill包。
 
 ## 开发与验证
 

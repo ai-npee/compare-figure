@@ -10,8 +10,12 @@ Python模块和测试仅放dev/python，使用conda base（本机/home/lingnc/mi
 
 ## 状态与范围
 
-- 仓库整理：根SKILL.md带name/description/license/metadata.version frontmatter，可作为源码Skill直接使用；go/distribution读取该唯一说明源，导出仅更新版本元数据，不维护Go内嵌副本。根VERSION当前0.1.0；scripts/export_skill.sh从任意cwd构建指定平台并输出带版本目录/ZIP/SHA256，--skip-build显式复用指定平台；VERSION/manifest.version/Skill metadata.version一致。Python模块、algorithms、历史viewer、requirements及tests统一在dev/python；脱敏配置在examples/runner.json。根目录不再放Python，缓存统一build/（旧缓存仅归档，不删除数据）。
-- 最新修复：Python历史小图平移失败已解决，levels_for不再以32格覆盖小于32px的画布，避免零面积格/NaN评分。原(1,8)平移和100%/逐像素对齐已锁定；相同裁剪质心应去重为1个起点，新增不同起点保留与24-96px网格边界测试。完整Python unittest79项：78通过、1宿主LuaLaTeX直编跳过，0失败；生产Go算法/回执和Go-only版本不变。下方77项旧结果仅记录整理时点。
+- 0.1.1当前修复：LuaLaTeX已实测可用；旧探针/编译将TEXMFVAR/TEXMFCACHE分离导致fontloader误判，Go与Python现统一为同一自有可写根，不改HOME。回退包装补齐LuaDraw.sty同套TikZ运行库（含arrows.meta/patterns/plotmarks/decorations），用户复杂3D Stealth箭头真实编译已通过。
+- 复杂测试包以用户直接上传附件为准：testdata/luadraw/luadraw-test-2d.lua（2225B，93706afa…e4dab）、3d.lua同前缀（2124B，af411326…58547）原字节，完整SHA/来源/覆盖见manifest。每份均测试LuaLaTeX和独立Lua回退四条路线，真实PDF/PNG已核验，3D生成3502行TikZ；不使用skills分支简单片段。测试区不打进运行Skill。
+- 当前验证：Python完整79项全通过、0跳过；补运行库后runtime9项再通过；Go回归与vet通过。已重建五平台v0.1.1包，只Linux amd64实跑；最新证据runs/luadraw-complex-validation。旧71/77/79项中宿主跳过的描述仅历史时点，不代表当前LuaLaTeX状态。
+
+- 仓库整理：根SKILL.md带name/description/license/metadata.version frontmatter，可作为源码Skill直接使用；go/distribution读取该唯一说明源，导出仅更新版本元数据，不维护Go内嵌副本。根VERSION当前0.1.1；scripts/export_skill.sh从任意cwd构建指定平台并输出带版本目录/ZIP/SHA256，--skip-build显式复用指定平台；VERSION/manifest.version/Skill metadata.version一致。Python模块、algorithms、历史viewer、requirements及tests统一在dev/python；脱敏配置在examples/runner.json。根目录不再放Python，缓存统一build/（旧缓存仅归档，不删除数据）。
+- 最新修复：Python历史小图平移失败已解决，levels_for不再以32格覆盖小于32px的画布，避免零面积格/NaN评分。原(1,8)平移和100%/逐像素对齐已锁定；相同裁剪质心应去重为1个起点，新增不同起点保留与24-96px网格边界测试。修复当时Python unittest79项：78通过、1直编跳过（现已消除），0失败；该项修复未改生产Go比较算法/回执。下方77项旧结果仅记录整理时点。
 - 整理验证：Go完整test/vet通过；迁移当时Python unittest77项：75通过、1当时小图平移失败（现已修复）、1宿主LuaLaTeX跳过。按主题分批本地Git提交，不推送。资源原样哈希固定，upstream vendor尾随空白不做格式化。
 
 - 最新边界：本程序是独立绘图/比较工具，不读取MinerU索引/content_list/layout/bbox，不要求DocVision工程或原PDF。正式Go已删除这类尺寸回退；历史Python原型/迁移记录只作旧版本追溯。尺寸仅explicit mm > 指定/图片旁sizes.csv（size.csv兼容）> aspect_only；CSV width/height分别保留，scale_px_per_pt只作来源、不重复缩放。返回完整尺寸文字回执和reference/candidate测量来源、页宽与normalization。
@@ -33,7 +37,7 @@ Python模块和测试仅放dev/python，使用conda base（本机/home/lingnc/mi
 - 原四份上游提示词逐字保留，哈希固定docs/upstream.json；实际绘图使用新增LuaDraw system/user模板。不得静默精简或把LuaDraw扩展描述成逐字上游提示词。
 - 固定LuaDraw3.7的245个分发文件、官方手册、LPPL来源及SHA锁；相邻项目0.3.6是exam-zh。回退参考本地origin/feat/skills f0c00e9，不修改外部源仓库。
 - 当前Go全模块test/vet已通过，真实集成涵盖2D/中文数学3D/fallback、裁图/比较/提交、七轮复核修正、无结论保留、无密钥恢复及可移动/幂等导出。Python开发对照71项：70通过、1真实LuaLaTeX宿主原因跳过，含Python接受态由Go无模型恢复。最终构建/清单结果见开发记录。
-- 本机LuaLaTeX命令存在但fontloader缓存不可写，探针如实标记不可用，已实测Lua/texlua→TikZ→XeLaTeX及pdfLaTeX。未调用真实模型，不宣称实际重绘质量、所有图像逐位一致或交叉编译等同目标机实测。
+- 本机LuaLaTeX直编与Lua/texlua→TikZ→XeLaTeX/pdfLaTeX回退均已实测可用；旧fontloader误判由缓存配置修复。未调用真实模型，不宣称实际重绘质量、所有图像逐位一致或交叉编译等同目标机实测。
 - 旧compare.py小图平移与旧校准边界保留在开发记录，不静默改历史分数。algorithms/为研发指标；viewer.html没有会话网页。独立runner不启动全书工作流、不修改外部书稿，merges由调用方消费。
 
 ## 维护约定

@@ -55,7 +55,7 @@ build/compare-figure run --out runs/figure-001 --resume --config /path/to/model.
 
 Model configuration accepts the prototype's JSON or YAML model registry and `extends` structure, the three wire APIs, key environment names, session/checker settings, tool view settings and compile options. Keys are not copied into run metadata or Skill exports. A new task can also be supplied as a JSON object via `run --request file.json` / `run --stdin`; field names use snake_case.
 
-`run --check` checks the input and real compiler route without a model key, without an API request and without creating the session directory. `environment` reports executable/package/version facts and actual candidate usability. This host has LuaLaTeX but its fontloader cache is not writable; the detected standalone Lua routes remain available. Other machines are probed independently.
+`run --check` checks the input and real compiler route without a model key, without an API request and without creating the session directory. `environment` reports executable/package/version facts and actual candidate usability. This host now passes real LuaLaTeX compilation. Both probes and builds point TEXMFVAR, TEXMFCACHE and XDG_CACHE_HOME at the same writable private cache root; the old separated-cache setup caused a false fontloader failure. The fallback wrapper preloads the same TikZ runtime libraries as LuaDraw.sty, including arrows.meta, patterns, plotmarks and decorations.markings. Other machines are probed independently.
 
 The default gates remain overlap 0.17, size deviation 0.10 and hidden best-effort acceptance after 8 real submit attempts. The image is scored before evidence crops/zoom. Unknown physical dimensions use ink aspect instead of mismatched-DPI pixel widths. The model must use LuaDraw, compile, view, compare and submit; final artifacts use the exact accepted editable source.
 
@@ -91,9 +91,9 @@ The Go document implementation uses `pdftotext -bbox`, `pdfinfo` and `pdftoppm` 
 
 ## Build and export
 
-The repository is itself a Skill: root SKILL.md contains standard YAML frontmatter and is the single canonical instruction source. The exporter reads it rather than embedding a duplicate in Go. Root VERSION supplies the default release (0.1.0). A release writes the same version into VERSION, manifest.json.version and SKILL.md metadata.version. `export-skill --version` overrides only the output metadata, not source files.
+The repository is itself a Skill: root SKILL.md contains standard YAML frontmatter and is the single canonical instruction source. The exporter reads it rather than embedding a duplicate in Go. Root VERSION supplies the default release (0.1.1). A release writes the same version into VERSION, manifest.json.version and SKILL.md metadata.version. `export-skill --version` overrides only the output metadata, not source files.
 
-From any working directory invoke the repository's `scripts/export_skill.sh` by path. With no version argument it reads VERSION, builds the default five targets, and emits `dist/compare-figure-skill-v0.1.0/`, `.zip` and `.zip.sha256`. `--version 0.2.0`, `--go /path/to/go` (or GO_BIN), `--platforms linux/amd64`, `--out-dir DIR` and `--skip-build` are supported. Platforms are isolated per invocation; old targets never leak into a limited release. Skip-build requires existing host and selected platform binaries under build/. Different versions are retained separately; same-version output is refreshed, while unknown destination files are rejected rather than removed or packaged.
+From any working directory invoke the repository's `scripts/export_skill.sh` by path. With no version argument it reads VERSION, builds the default five targets, and emits `dist/compare-figure-skill-v0.1.1/`, `.zip` and `.zip.sha256`. `--version 0.2.0`, `--go /path/to/go` (or GO_BIN), `--platforms linux/amd64`, `--out-dir DIR` and `--skip-build` are supported. Platforms are isolated per invocation; old targets never leak into a limited release. Skip-build requires existing host and selected platform binaries under build/. Different versions are retained separately; same-version output is refreshed, while unknown destination files are rejected rather than removed or packaged.
 
 Python prototypes, research algorithms, old viewer and comparison tests live in dev/python/; they are development-only and excluded from releases. Example model configuration is examples/runner.json. Runtime prompts/vendor/Lua helper remain rooted at the project/installed Skill directory.
 
@@ -108,8 +108,8 @@ build/compare-figure build --out build/platforms \
   --platforms linux/amd64,linux/arm64,windows/amd64,darwin/amd64,darwin/arm64
 
 # Export all built targets, or omit --binaries-dir for the current native binary
-build/compare-figure export-skill --version 0.1.0 --binaries-dir build/platforms \
-  --out dist/compare-figure-skill-v0.1.0
+build/compare-figure export-skill --version 0.1.1 --binaries-dir build/platforms \
+  --out dist/compare-figure-skill-v0.1.1
 ```
 
 `build --go /path/to/go` and `COMPARE_FIGURE_GO` allow an explicit installed Go toolchain. The exporter validates each binary's Go build information, copies fixed resources, emits one Go-only `SKILL.md`, and records SHA-256 values in the manifest. Existing Python artifacts cause a clear destination error instead of retaining a second runtime in the export. It never exports model credentials or run data.

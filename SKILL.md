@@ -3,7 +3,7 @@ name: compare-figure
 description: "Redraw and compare figures with LuaDraw, using either an automatic model runner or Agent-led CLI tools. Supports images, sizes.csv and Markdown context; default overlap is 17%."
 license: MIT
 metadata:
-  version: "0.1.0"
+  version: "0.1.1"
 ---
 
 # compare-figure: two work modes
