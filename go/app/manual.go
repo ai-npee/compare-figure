@@ -27,14 +27,20 @@ Compile options:
 
 Docs options:
   --query TEXT               Search query (required for search mode)
-  --mode search|read|view    Manual operation (default search)
-  --doc PATH                 Document path for read/view
-  --page N                   PDF page for view
+  --mode search|read|view|list|find|grep|frequent  Manual operation (default search)
+  --doc PATH                 Document or directory path for read/list/view
+  --page N                   PDF page for text read or image view
+  --entry-id ID              Select a frequent paragraph by stable short/full ID
+  --recursive                List nested directories (default direct children)
   --left/--top/--right/--bottom N   Crop bounds in page percentages
   --zoom N                   View zoom
   --limit N --offset N       Search pagination
   --start-line N --end-line N Read line range
-  --include-image            Attach a relevant manual image (default true)
+  --snippet-chars N          Search snippet size (default 1200)
+  --max-chars N              Search/frequent total character budget
+  --line-chars N             Frequent line/snippet size
+  --regex                    Treat grep query as a regular expression
+  --include-image            Attach a relevant manual image (default false; search only)
   --inline-images            Include image bytes in JSON
   --cache-dir DIR            Documentation index cache
   --out DIR                  Output directory (fixed per-working-directory temporary slot)
@@ -55,14 +61,17 @@ func manualCLI(ctx context.Context, command string, args []string, in io.Reader,
 	}
 	fs := flag.NewFlagSet(command, flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
-	var source, query, mode, doc, outDir, engine, resourceRoot, drawRoot, cacheDir string
-	var page, zoom, limit, offset, startLine, endLine int
+	var source, query, mode, doc, entryID, outDir, engine, resourceRoot, drawRoot, cacheDir string
+	var page, zoom, limit, offset, startLine, endLine, snippetChars, maxChars, lineChars int
 	var left, top, right, bottom float64
-	var includeImage, inlineImages bool
+	var includeImage, inlineImages, regex, recursive bool
+	includeImage = compile
 	fs.StringVar(&source, "source", "", "LuaDraw source")
 	fs.StringVar(&query, "query", "", "search query")
 	fs.StringVar(&mode, "mode", "search", "search/read/view")
 	fs.StringVar(&doc, "doc", "", "manual document")
+	fs.StringVar(&entryID, "entry-id", "", "stable frequent paragraph ID")
+	fs.BoolVar(&recursive, "recursive", false, "list nested directories")
 	fs.StringVar(&outDir, "out", "", "output directory")
 	fs.StringVar(&engine, "engine", "auto", "compiler engine")
 	fs.StringVar(&resourceRoot, "resource-root", "", "runtime resources")
@@ -74,18 +83,22 @@ func manualCLI(ctx context.Context, command string, args []string, in io.Reader,
 	fs.IntVar(&offset, "offset", 0, "search result offset")
 	fs.IntVar(&startLine, "start-line", 0, "first line")
 	fs.IntVar(&endLine, "end-line", 0, "last line")
+	fs.IntVar(&snippetChars, "snippet-chars", 0, "search snippet characters")
+	fs.IntVar(&maxChars, "max-chars", 0, "total character budget")
+	fs.IntVar(&lineChars, "line-chars", 0, "frequent line characters")
+	fs.BoolVar(&regex, "regex", false, "grep regular expression")
 	fs.Float64Var(&left, "left", 0, "crop left percentage")
 	fs.Float64Var(&top, "top", 0, "crop top percentage")
 	fs.Float64Var(&right, "right", 0, "crop right percentage")
 	fs.Float64Var(&bottom, "bottom", 0, "crop bottom percentage")
-	fs.BoolVar(&includeImage, "include-image", true, "attach an image")
+	fs.BoolVar(&includeImage, "include-image", compile, "attach an image")
 	fs.BoolVar(&inlineImages, "inline-images", false, "include image bytes")
 	fs.Usage = func() { _, _ = io.WriteString(out, manualHelp) }
 	if helpArg(args) {
 		fs.Usage()
 		return 0
 	}
-	ordered, err := flagsBeforePositionals(args, map[string]bool{"include-image": true, "inline-images": true})
+	ordered, err := flagsBeforePositionals(args, map[string]bool{"include-image": true, "inline-images": true, "regex": true, "recursive": true})
 	if err != nil {
 		return writeError(out, err, 2)
 	}
@@ -119,17 +132,20 @@ func manualCLI(ctx context.Context, command string, args []string, in io.Reader,
 		return writeError(out, fmt.Errorf("unexpected arguments: %s", strings.Join(pos, " ")), 2)
 	}
 	mode = strings.ToLower(mode)
-	if mode != "search" && mode != "read" && mode != "view" {
-		return writeError(out, fmt.Errorf("invalid docs mode %q; expected search, read, or view", mode), 2)
+	if mode != "search" && mode != "read" && mode != "view" && mode != "list" && mode != "find" && mode != "grep" && mode != "frequent" {
+		return writeError(out, fmt.Errorf("invalid docs mode %q; expected search, read, view, list, find, grep, or frequent", mode), 2)
 	}
-	if mode == "search" && strings.TrimSpace(query) == "" {
+	if (mode == "search" || mode == "find" || mode == "grep") && strings.TrimSpace(query) == "" {
 		return writeError(out, fmt.Errorf("docs search requires --query TEXT or a positional query"), 2)
+	}
+	if doc == "" && (mode == "read" || mode == "view") {
+		doc = query
 	}
 	if (mode == "read" || mode == "view") && doc == "" {
 		return writeError(out, fmt.Errorf("docs %s requires --doc PATH", mode), 2)
 	}
-	arguments := map[string]any{"mode": mode, "query": query, "doc": doc, "include_image": includeImage}
-	values := map[string]any{"page": page, "zoom": zoom, "limit": limit, "offset": offset, "start-line": startLine, "end-line": endLine, "left": left, "top": top, "right": right, "bottom": bottom}
+	arguments := map[string]any{"mode": mode, "query": query, "doc": doc, "include_image": includeImage, "regex": regex, "recursive": recursive, "entry_id": entryID}
+	values := map[string]any{"page": page, "zoom": zoom, "limit": limit, "offset": offset, "start-line": startLine, "end-line": endLine, "snippet-chars": snippetChars, "max-chars": maxChars, "line-chars": lineChars, "left": left, "top": top, "right": right, "bottom": bottom}
 	fs.Visit(func(f *flag.Flag) {
 		if value, ok := values[f.Name]; ok {
 			arguments[strings.ReplaceAll(f.Name, "-", "_")] = value

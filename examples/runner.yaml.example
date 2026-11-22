@@ -1,0 +1,42 @@
+# 复制为 runner.yaml 后填写接入信息；runner.yaml 已加入 Git 忽略。
+# Go 官方下载（Go 1.25+）：https://go.dev/dl/
+base_url: https://api.openai.com/v1
+model: your-vision-tool-model
+api_key_env: OPENAI_API_KEY  # 建议通过环境变量提供密钥；不要提交真实密钥。
+api: openai  # openai（Chat Completions）、responses 或 anthropic
+stream: true
+
+session:
+  max_tool_rounds: 128  # 绘图模型最多执行的工具轮数
+  max_tokens: 131072  # 每次模型响应的最大输出 token 数；需接口支持
+  context_limit: 256000  # 上下文预算；根据模型真实容量配置
+  compaction_at: 0.85  # 达到预算比例时压缩上下文
+  tool_rounds_warn_ratio: 0.7
+  tool_rounds_grace: 20
+  prune_tool_chars: 4096
+  keep_images: 3
+
+view:
+  image_max: 30  # 单任务软看图预算
+  pdf_max: 25
+  warn_ratio: 0.7
+
+compile:
+  engine: auto  # 优先 LuaLaTeX；不可用时独立 Lua→TikZ→XeLaTeX/pdfLaTeX
+  raster_command: pdftoppm
+  raster_dpi: 300
+
+figure_check:
+  enabled: false  # 是否在接受图稿后额外调用视觉模型复核
+  max_rounds: 2
+  min_overlap: 0.17  # 比例值，0.17 对应17%
+  max_scale_dev: 0.1  # 尺寸偏差允许10%
+  accept_min_submits: 8
+
+docs:
+  # cache_dir 默认当前Skill目录下 build/doc-cache；COMPARE_FIGURE_CACHE 可覆写。
+  frequent:
+    prompt_enabled: true  # 新会话上下文后附上过去高频查阅段落；续跑不重复注入
+    prompt_max_chars: 2048  # 摘要字符硬上限2048；0关闭
+    prompt_lines: 8  # 最多8条摘要，可设为4；0关闭
+    line_chars: 256  # 每行字符限制；需要更多信息用luadraw_doc frequent/read

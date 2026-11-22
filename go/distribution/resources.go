@@ -4,22 +4,20 @@ import (
 	cf "compare-figure"
 	"context"
 	"crypto/sha256"
-	"debug/buildinfo"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
-	"runtime"
 	"sort"
 	"strings"
 )
 
-// FindRoot locates movable runtime resources, never a compiled-in developer path.
+// FindRoot locates runtime resources from the canonical Skill file and runtime tree.
 func FindRoot(explicit string) (string, error) {
 	valid := func(path string) bool {
-		for _, name := range []string{"prompts/luadraw_figure.system.md", "vendor/luadraw-3.7/luadraw/files/luadraw.sty", "scripts/luadraw_runtime.lua"} {
+		for _, name := range []string{"SKILL.md", "prompts/luadraw_figure.system.md", "vendor/luadraw-3.7/luadraw/files/luadraw.sty", "scripts/luadraw_runtime.lua"} {
 			if info, err := os.Stat(filepath.Join(path, filepath.FromSlash(name))); err != nil || info.IsDir() {
 				return false
 			}
@@ -35,7 +33,7 @@ func FindRoot(explicit string) (string, error) {
 			return "", e
 		}
 		if !valid(absolute) {
-			return "", fmt.Errorf("runtime resources missing under %s", absolute)
+			return "", fmt.Errorf("canonical SKILL.md or runtime resources missing under %s", absolute)
 		}
 		return absolute, nil
 	}
@@ -72,7 +70,7 @@ func FindRoot(explicit string) (string, error) {
 	return "", fmt.Errorf("runtime resources not found; pass --resource-root or set COMPARE_FIGURE_ROOT")
 }
 
-type ExportOptions struct{ Root, Out, BinariesDir, Version string }
+type ExportOptions struct{ Root, Out, Version string }
 type FileRecord struct {
 	Path   string `json:"path"`
 	SHA256 string `json:"sha256"`
@@ -98,16 +96,25 @@ func Export(ctx context.Context, options ExportOptions) (map[string]any, error) 
 	if out == root || within(out, root) || within(filepath.Join(root, "vendor"), out) || within(filepath.Join(root, "prompts"), out) || within(filepath.Join(root, "scripts"), out) {
 		return nil, fmt.Errorf("export directory must be separate from source resources")
 	}
-	// Do not leave a second runtime choice in an old or user-populated export.
 	if info, e := os.Stat(out); e == nil && info.IsDir() {
 		if err = filepath.WalkDir(out, func(path string, d fs.DirEntry, e error) error {
 			if e != nil {
 				return e
 			}
+			relative, _ := filepath.Rel(out, path)
+			parts := strings.Split(filepath.ToSlash(relative), "/")
+			for _, part := range parts {
+				if part == "bin" || part == "build" || part == "deps" || part == ".deps" || part == "testdata" {
+					return fmt.Errorf("source-only export destination contains a forbidden path %s", path)
+				}
+			}
 			if !d.IsDir() {
-				ext := strings.ToLower(filepath.Ext(path))
-				if ext == ".py" || ext == ".pyc" || ext == ".pyo" {
-					return fmt.Errorf("export contains a Python artifact %s; choose a clean Go-only destination", path)
+				name := strings.ToLower(d.Name())
+				if strings.HasSuffix(name, ".py") || strings.HasSuffix(name, ".pyc") || strings.HasSuffix(name, ".pyo") || strings.HasSuffix(name, "_test.go") {
+					return fmt.Errorf("source-only export destination contains a development artifact %s", path)
+				}
+				if d.Name() == "compare-figure" || d.Name() == "compare-figure.exe" {
+					return fmt.Errorf("source-only export destination contains a native binary %s", path)
 				}
 			}
 			return nil
@@ -125,38 +132,35 @@ func Export(ctx context.Context, options ExportOptions) (map[string]any, error) 
 		if err := ctx.Err(); err != nil {
 			return err
 		}
-		if strings.HasPrefix(filepath.ToSlash(to), "bin/") {
-			info, e := buildinfo.ReadFile(from)
-			if e != nil || !strings.HasSuffix(info.Path, "/cmd/compare-figure") {
-				return fmt.Errorf("not a compare-figure Go binary: %s", from)
-			}
-			settings := map[string]string{}
-			for _, setting := range info.Settings {
-				settings[setting.Key] = setting.Value
-			}
-			parts := strings.Split(filepath.ToSlash(to), "/")
-			platform := settings["GOOS"] + "-" + settings["GOARCH"]
-			if len(parts) != 3 || parts[1] != platform {
-				return fmt.Errorf("binary target %s does not match export path %s", platform, to)
-			}
-		}
 		data, e := os.ReadFile(from)
 		if e == nil {
 			add(to, data, mode)
 		}
 		return e
 	}
-	for _, directory := range []string{"prompts", "vendor/luadraw-3.7"} {
+	for _, directory := range []string{"prompts", "vendor/luadraw-3.7", "go"} {
 		base := filepath.Join(root, filepath.FromSlash(directory))
 		err = filepath.WalkDir(base, func(path string, d fs.DirEntry, e error) error {
 			if e != nil {
 				return e
 			}
 			if d.IsDir() {
+				if path != base && (d.Name() == "build" || d.Name() == "deps" || d.Name() == ".deps" || d.Name() == "testdata") {
+					return filepath.SkipDir
+				}
 				return nil
 			}
 			if d.Type()&os.ModeSymlink != 0 {
 				return fmt.Errorf("symlink in packaged resources: %s", path)
+			}
+			if directory == "go" {
+				name := d.Name()
+				if strings.HasSuffix(name, "_test.go") {
+					return nil
+				}
+				if filepath.Ext(name) != ".go" && name != "go.mod" && name != "go.sum" {
+					return nil
+				}
 			}
 			relative, e := filepath.Rel(root, path)
 			if e != nil {
@@ -168,58 +172,21 @@ func Export(ctx context.Context, options ExportOptions) (map[string]any, error) 
 			return nil, err
 		}
 	}
-	for _, name := range []string{"scripts/luadraw_runtime.lua", "vendor/dependencies.lock.json", "LICENSE"} {
-		if err = copyFile(filepath.Join(root, filepath.FromSlash(name)), name, 0644); err != nil {
+	for _, name := range []string{"scripts/luadraw_runtime.lua", "scripts/export_skill.sh", "vendor/dependencies.lock.json", "LICENSE", "viewer.html", "docs/viewer-upstream.json"} {
+		mode := os.FileMode(0644)
+		if name == "scripts/export_skill.sh" {
+			mode = 0755
+		}
+		if err = copyFile(filepath.Join(root, filepath.FromSlash(name)), name, mode); err != nil {
 			return nil, err
 		}
 	}
-	platforms := []string{}
-	if options.BinariesDir != "" {
-		err = filepath.WalkDir(options.BinariesDir, func(path string, d fs.DirEntry, e error) error {
-			if e != nil {
-				return e
-			}
-			if d.IsDir() {
-				return nil
-			}
-			if d.Name() != "compare-figure" && d.Name() != "compare-figure.exe" {
-				return nil
-			}
-			relative, e := filepath.Rel(options.BinariesDir, path)
-			if e != nil {
-				return e
-			}
-			if filepath.Dir(relative) == "." {
-				return fmt.Errorf("binary must be nested by platform, e.g. linux-amd64/compare-figure")
-			}
-			platforms = append(platforms, filepath.ToSlash(filepath.Dir(relative)))
-			return copyFile(path, filepath.Join("bin", relative), 0755)
-		})
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		exe, e := os.Executable()
-		if e != nil {
-			return nil, e
-		}
-		platform := runtime.GOOS + "-" + runtime.GOARCH
-		name := "compare-figure"
-		if runtime.GOOS == "windows" {
-			name += ".exe"
-		}
-		if err = copyFile(exe, filepath.Join("bin", platform, name), 0755); err != nil {
-			return nil, err
-		}
-		platforms = append(platforms, platform)
+	if err = copyFile(filepath.Join(root, "examples", "runner.yaml.example"), "examples/runner.yaml.example", 0644); err != nil {
+		return nil, fmt.Errorf("copy redacted runner example: %w", err)
 	}
-	if len(platforms) == 0 {
-		return nil, fmt.Errorf("no native binaries found")
-	}
-	sort.Strings(platforms)
 	add("SKILL.md", skill, 0644)
 	add("VERSION", []byte(version+"\n"), 0644)
-	add("README.md", []byte("# compare-figure Go Skill — two modes\n\nSee SKILL.md for both supported work modes. Automatic: run with the supplied model, base URL and key. Semi-automatic: the current Agent writes LuaDraw and calls luadraw-doc-search/docs, compile, compare, or the complete persistent tool CLI; no second model/key is needed. Both default to 17% overlap and a 10% size-deviation limit.\n\nSelect the native binary under bin matching the host OS/architecture. Runtime resources are executable-relative; external Lua/TeX and Poppler are detected before drawing. Packaged platforms: "+strings.Join(platforms, ", ")+".\n\nCompare/docs/compile reuse a fixed temporary output slot per working directory when --out is omitted. Save final artifacts or choose --out before the next call; parallel jobs use distinct outputs. Automatic run workspaces resume accepted results without repeated model calls. Model credentials and Python prototypes are not exported.\n"), 0644)
+	add("README.md", []byte("# compare-figure source Skill\n\nThis export contains production Go source only; it includes no compiled executable. Install Go 1.25+ from the official download page: https://go.dev/dl/. From this directory build the native executable with:\n\n    go -C go build -o ../build/compare-figure ./cmd/compare-figure\n\nCreate the build directory first if needed. Open viewer.html to browse saved sessions. Resources are discovered from the canonical SKILL.md and runtime resource tree.\n"), 0644)
 	names := make([]string, 0, len(files))
 	for name := range files {
 		names = append(names, name)
@@ -245,12 +212,12 @@ func Export(ctx context.Context, options ExportOptions) (map[string]any, error) 
 			return nil, err
 		}
 	}
-	manifest := map[string]any{"schema": "compare-figure-skill/1", "runtime": "go", "version": version, "modes": []string{"automatic", "semi-automatic"}, "default_min_overlap": .17, "default_max_scale_dev": .10, "platforms": platforms, "files": records}
+	manifest := map[string]any{"schema": "compare-figure-skill/2", "distribution": "source-only", "runtime": "go", "go_version": "1.25+", "version": version, "modes": []string{"automatic", "semi-automatic"}, "default_min_overlap": .17, "default_max_scale_dev": .10, "files": records}
 	data, _ := json.MarshalIndent(manifest, "", "  ")
 	if err = cf.AtomicWrite(filepath.Join(out, "manifest.json"), append(data, '\n'), 0644); err != nil {
 		return nil, err
 	}
-	return map[string]any{"ok": true, "runtime": "go", "version": version, "out_dir": out, "platforms": platforms, "written": written, "unchanged": unchanged, "manifest": filepath.Join(out, "manifest.json")}, nil
+	return map[string]any{"ok": true, "runtime": "go", "distribution": "source-only", "version": version, "out_dir": out, "written": written, "unchanged": unchanged, "manifest": filepath.Join(out, "manifest.json")}, nil
 }
 func within(base, path string) bool {
 	relative, e := filepath.Rel(base, path)

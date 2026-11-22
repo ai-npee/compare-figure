@@ -10,11 +10,11 @@ DEFAULT_ROOT = PROJECT_ROOT / "vendor/luadraw-3.7/luadraw"
 
 
 def _schema():
-    return {"type": "function", "function": {"name": "luadraw_doc", "description": "Search/read/view LuaDraw docs. Search hits report PDF bbox in points; left/top/right/bottom crop inputs are page percentages.", "parameters": {"type": "object", "properties": {
-        "mode": {"type": "string", "enum": ["search", "read", "view"]}, "query": {"type": "string"}, "doc": {"type": "string"},
-        "page": {"type": "integer"}, "left": {"type": "number"}, "top": {"type": "number"}, "right": {"type": "number"}, "bottom": {"type": "number"},
+    return {"type": "function", "function": {"name": "luadraw_doc", "description": "Search/read/view LuaDraw docs. Search returns text and PDF hit locations only by default; it does not attach an image. Use mode=view to render a whole page or crop; left/top/right/bottom are page percentages. Search bbox_pts are PDF points, not percentages; bbox_pct is provided for model-directed cropping.", "parameters": {"type": "object", "properties": {
+        "mode": {"type": "string", "enum": ["search", "read", "view"], "description": "search text locations, read source lines, or view a PDF page/crop; view always renders"}, "query": {"type": "string"}, "doc": {"type": "string"},
+        "page": {"type": "integer", "description": "1-based PDF page for view"}, "left": {"type": "number", "description": "Crop left edge as page percentage (0-100)"}, "top": {"type": "number", "description": "Crop top edge as page percentage (0-100)"}, "right": {"type": "number", "description": "Crop right edge as page percentage (0-100)"}, "bottom": {"type": "number", "description": "Crop bottom edge as page percentage (0-100)"},
         "zoom": {"type": "integer"}, "limit": {"type": "integer"}, "offset": {"type": "integer"}, "start_line": {"type": "integer"}, "end_line": {"type": "integer"},
-        "include_image": {"type": "boolean", "description": "Attach one relevant PDF crop when available"}}, "required": []}}}
+        "include_image": {"type": "boolean", "default": False, "description": "Search only: explicitly attach one relevant PDF crop; default false. Ignored by view, which always renders"}}, "required": []}}}
 
 
 def _clamp(value, default):
@@ -198,9 +198,14 @@ class LuaDrawDocs:
             if not query:raise ValueError("search requires query")
             hits=self._search(query,min(20,max(1,int(args.get("limit",5)))),max(0,int(args.get("offset",0))));rows=[];image=None
             for i,hit in enumerate(hits,1):
-                suffix=f" p.{hit['page']} bbox={','.join(f'{v:.1f}' for v in hit['bbox'])}" if hit["kind"]=="pdf" else f" line {hit['line']}"
+                if hit["kind"]=="pdf":
+                    page_info=hit["page_info"];width,height=page_info["width"],page_info["height"];box=hit["bbox"]
+                    pct=[box[0]/width*100,box[1]/height*100,box[2]/width*100,box[3]/height*100]
+                    suffix=f" p.{hit['page']} page_size_pts={width:.1f}x{height:.1f} bbox_pts={','.join(f'{v:.1f}' for v in box)} bbox_pct={','.join(f'{v:.2f}' for v in pct)}"
+                else:
+                    suffix=f" line {hit['line']}"
                 rows.append(f"{i}. {hit['doc']}{suffix}\n   {hit['text']}")
-                if image is None and hit["kind"]=="pdf" and args.get("include_image",True):image=self._render(self.root/hit["doc"],hit["page"],hit["bbox"],args,out_dir,hit["page_info"])
+                if image is None and hit["kind"]=="pdf" and args.get("include_image",False):image=self._render(self.root/hit["doc"],hit["page"],hit["bbox"],args,out_dir,hit["page_info"])
             return meta+"\n"+("\n".join(rows) if rows else "No matches."),image
         if mode=="read":
             doc=self._safe_doc(str(args.get("doc",args.get("query",""))),"source");lines=doc["text"].splitlines()

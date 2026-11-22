@@ -182,16 +182,16 @@ func parseMarkdownImages(markdown string) ([]markdownImageRef, []string) {
 	var refs []markdownImageRef
 	for lineNo, line := range lines {
 		for pos := 0; pos < len(line); {
-			start := strings.Index(line[pos:], "![")
+			start := strings.Index(line[pos:], "[")
 			if start < 0 {
 				break
 			}
 			start += pos
-			open := strings.Index(line[start+2:], "](")
+			open := strings.Index(line[start+1:], "](")
 			if open < 0 {
 				break
 			}
-			open += start + 2
+			open += start + 1
 			targetStart := open + 2
 			if targetStart >= len(line) {
 				break
@@ -227,7 +227,10 @@ func parseMarkdownImages(markdown string) ([]markdownImageRef, []string) {
 					raw = fields[0]
 				}
 			}
-			if raw != "" {
+			isImage := start > 0 && line[start-1] == '!'
+			ext := strings.ToLower(filepath.Ext(normalizeImageRef(raw)))
+			isImage = isImage || ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".webp" || ext == ".gif" || ext == ".pdf"
+			if raw != "" && isImage {
 				refs = append(refs, markdownImageRef{raw: raw, decoded: normalizeImageRef(raw), line: lineNo})
 			}
 			pos = targetEnd + 1

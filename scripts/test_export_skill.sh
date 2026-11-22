@@ -1,15 +1,10 @@
 #!/usr/bin/env bash
-# Focused smoke tests for argument validation; no Go build or export is needed.
+# Focused smoke tests for source-export argument validation.
 set -euo pipefail
-
 script_dir=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 script="${script_dir}/export_skill.sh"
-tmp=$(mktemp -d "${TMPDIR:-/tmp}/compare-figure-export-test.XXXXXX")
-cleanup() { rm -rf -- "$tmp"; }
-trap cleanup EXIT INT TERM
-
 "$script" --help >/dev/null
-if "$script" --version '1.2' --skip-build --out-dir "$tmp/out" >/dev/null 2>&1; then
+if "$script" --version '1.2' >/dev/null 2>&1; then
     printf 'invalid semver unexpectedly accepted\n' >&2
     exit 1
 fi
@@ -17,11 +12,19 @@ if "$script" --bogus >/dev/null 2>&1; then
     printf 'unknown option unexpectedly accepted\n' >&2
     exit 1
 fi
-if "$script" --version '1.2.3/evil' --skip-build --out-dir "$tmp/out" >/dev/null 2>&1; then
+if "$script" --platforms linux/amd64 >/dev/null 2>&1; then
+    printf 'binary platform option unexpectedly accepted\n' >&2
+    exit 1
+fi
+if "$script" --skip-build >/dev/null 2>&1; then
+    printf 'binary reuse option unexpectedly accepted\n' >&2
+    exit 1
+fi
+if "$script" --version '1.2.3/evil' >/dev/null 2>&1; then
     printf 'unsafe version unexpectedly accepted\n' >&2
     exit 1
 fi
-if "$script" --version '1.2.3-01' --skip-build --out-dir "$tmp/out" >/dev/null 2>&1; then
+if "$script" --version '1.2.3-01' >/dev/null 2>&1; then
     printf 'numeric prerelease with leading zero unexpectedly accepted\n' >&2
     exit 1
 fi

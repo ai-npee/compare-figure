@@ -337,6 +337,6 @@ type imageRef struct {
 	line int
 }
 
-var imageRefRE = regexp.MustCompile(`(?i)(?:!\[.*?\]\(|<img[^>]*?src=["'])(images/.+?\.(?:jpg|jpeg|png|gif|webp))(?:\)|["'][^>]*>)`)
+var imageRefRE = regexp.MustCompile(`(?i)(?:!?\[.*?\]\(|<img[^>]*?src=["'])(images/.+?\.(?:jpg|jpeg|png|gif|webp))(?:\)|["'][^>]*>)`)
 
 var _ image.Image

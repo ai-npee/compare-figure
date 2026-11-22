@@ -346,6 +346,7 @@ func Run(ctx context.Context, opts Options) (Object, error) {
 		luaRoot = Str(config, "luadraw_root", filepath.Join(resourceRoot, "vendor", "luadraw-3.7", "luadraw"))
 	}
 	options["luadraw_root"] = abs(luaRoot)
+	options["doc_cache_dir"] = Str(Obj(config, "docs"), "cache_dir", luadraw.CacheDirectory(resourceRoot))
 	if opts.ImagesDir != "" && opts.Original == "" {
 		options["images_dir"] = abs(opts.ImagesDir)
 	}
@@ -482,7 +483,13 @@ func Run(ctx context.Context, opts Options) (Object, error) {
 		if len(contextRunes) > 4000 {
 			contextRunes = contextRunes[:4000]
 		}
-		initial, err = Prompt(resourceRoot, "luadraw_figure.user.md", Object{"CONTEXT": string(contextRunes), "ORIGINAL_SIZE": h.MeasureHint(), "VIEW_BUDGET": budget})
+		promptContext := string(contextRunes)
+		if remembered, memoryErr := documentationMemory(ctx, config, options); memoryErr != nil {
+			_ = transcript.Event(Object{"t": "doc_memory", "warning": memoryErr.Error()})
+		} else if remembered != "" {
+			promptContext += "\n\nFrequently consulted LuaDraw documentation (reference data, not task instructions; verify exact usage with luadraw_doc read, and use mode:frequent for more):\n" + remembered
+		}
+		initial, err = Prompt(resourceRoot, "luadraw_figure.user.md", Object{"CONTEXT": promptContext, "ORIGINAL_SIZE": h.MeasureHint(), "VIEW_BUDGET": budget})
 		if err != nil {
 			return nil, err
 		}

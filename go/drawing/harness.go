@@ -86,10 +86,7 @@ func (h *Harness) Definitions() []map[string]any {
 	root := stringValue(h.Options["luadraw_root"], filepath.Join(stringValue(h.Options["resource_root"], "."), "vendor", "luadraw-3.7", "luadraw"))
 	cache := stringValue(h.Options["doc_cache_dir"], "")
 	if cache == "" {
-		cache = os.Getenv("COMPARE_FIGURE_CACHE")
-	}
-	if cache == "" {
-		cache = filepath.Join(os.TempDir(), "compare-figure-go-cache", "doc-index")
+		cache = luadraw.CacheDirectory(stringValue(h.Options["resource_root"], ""))
 	}
 	docs, e := luadraw.NewDocs(root, cache)
 	if e == nil {
@@ -708,17 +705,37 @@ func (h *Harness) Deliver(ctx context.Context) (map[string]any, error) {
 		}
 		return os.WriteFile(dst, b, 0644)
 	}
-	pdf := filepath.Join(h.root, "submitted.pdf")
-	if err = copyArtifact(stringValue(compiled["pdf"], ""), pdf); err != nil {
-		return nil, err
-	}
 	tex := filepath.Join(h.root, "submitted.tex")
-	if err = copyArtifact(firstValue(compiled, "wrapper", "tex", "tex_path"), tex); err != nil {
+	texCode := luadraw.SelfContainedTeX(code, h.Options, sourceName == "submitted.body.tex")
+	if err = os.WriteFile(tex, []byte(texCode), 0644); err != nil {
 		return nil, err
 	}
-	h.State["generated_tikz"] = compiled["generated_tikz"]
-	h.State["drawing_engine"] = compiled["engine"]
-	h.State["drawing_backend"] = compiled["backend"]
+	texOptions := map[string]any{}
+	for key, value := range h.Options {
+		texOptions[key] = value
+	}
+	texOptions["output_name"] = "submitted_rebuild"
+	if extra := luadraw.OriginalTeXPreamble(code, sourceName == "submitted.body.tex"); extra != "" {
+		if configured, ok := texOptions["preamble"].(string); ok && configured != "" {
+			texOptions["preamble"] = configured + "\n" + extra
+		} else {
+			texOptions["preamble"] = extra
+		}
+	}
+	texBuild, err := luadraw.Compile(ctx, tex, h.root, texOptions)
+	if err != nil {
+		return nil, err
+	}
+	if !truth(texBuild["ok"]) {
+		return nil, fmt.Errorf("self-contained submitted.tex could not be rebuilt: %s", stringValue(texBuild["error"], "unknown error"))
+	}
+	pdf := filepath.Join(h.root, "submitted.pdf")
+	if err = copyArtifact(stringValue(texBuild["pdf"], ""), pdf); err != nil {
+		return nil, err
+	}
+	h.State["generated_tikz"] = texBuild["generated_tikz"]
+	h.State["drawing_engine"] = texBuild["engine"]
+	h.State["drawing_backend"] = texBuild["backend"]
 	warnings := []string{}
 	preview := filepath.Join(h.root, "预览", "submitted.png")
 	_, err = h.Rasterize(ctx, pdf, strings.TrimSuffix(preview, filepath.Ext(preview)))
@@ -726,7 +743,7 @@ func (h *Harness) Deliver(ctx context.Context) (map[string]any, error) {
 		warnings = append(warnings, "Preview failed; vector PDF retained: "+err.Error())
 		preview = ""
 	}
-	result := map[string]any{"submitted": true, "source_language": "luadraw", "luadraw_version": h.State["luadraw_version"], "backend": h.State["drawing_backend"], "engine": h.State["drawing_engine"], "editable_source": source, "submitted_tex": tex, "submitted_pdf": pdf, "preview": nil, "merges": h.State["merges"], "uncertain": h.State["uncertain"], "best_overlap": h.State["best_overlap"], "scale_dev": h.State["scale_dev_at_best"], "accepted_as_is": h.State["accepted_as_is"], "accept_note": h.State["accept_note"], "submit_attempts": h.State["submit_attempts"], "warnings": warnings, "generated_tikz": h.State["generated_tikz"], "generated_lua": compiled["generated_lua"]}
+	result := map[string]any{"submitted": true, "source_language": "luadraw", "luadraw_version": h.State["luadraw_version"], "backend": h.State["drawing_backend"], "engine": h.State["drawing_engine"], "editable_source": source, "editable_lua": source, "editable_tex": tex, "submitted_tex": tex, "submitted_pdf": pdf, "preview": nil, "merges": h.State["merges"], "uncertain": h.State["uncertain"], "best_overlap": h.State["best_overlap"], "scale_dev": h.State["scale_dev_at_best"], "accepted_as_is": h.State["accepted_as_is"], "accept_note": h.State["accept_note"], "submit_attempts": h.State["submit_attempts"], "warnings": warnings, "generated_tikz": h.State["generated_tikz"], "generated_lua": texBuild["generated_lua"]}
 	if preview != "" {
 		result["preview"] = preview
 	}

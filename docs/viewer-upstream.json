@@ -1,0 +1,9 @@
+{
+  "source": "MinerU_Tools/figure_compare/viewer/viewer.html",
+  "repository": "https://github.com/LingNc/DocVision",
+  "revision": "834f0922e92b9a0452ac347fac27b99ff1c4c55b",
+  "source_sha256": "8db50b828ffbc2cc2f3ed5a192a31c19be43db366d25f4f4b05380ca80189903",
+  "license": "MIT",
+  "copyright": "Copyright (c) 2026 LingNc",
+  "adaptation": "Reused the specialized timeline and pixel comparison UI; removed active truncate handler, switched directory access to read mode, enumerated paths without reading file bodies, lazy-loads the selected transcript and referenced media, and normalizes Go runner transcript/run/result records."
+}

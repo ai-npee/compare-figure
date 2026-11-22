@@ -52,8 +52,12 @@ class LuaDrawDocsTests(unittest.TestCase):
         self.assertIn("index_sha256", text)
         self.assertIn("schema 2", text)
         self.assertIn("p.", text)
-        self.assertIn("bbox=", text)
+        self.assertIn("bbox_pts=", text)
+        self.assertIn("bbox_pct=", text)
         self.assertTrue(image and Path(image).is_file())
+        default_text, default_image = tool.execute({"query": "Dscene3d", "limit": 10}, self.out)
+        self.assertIn("bbox_pts=", default_text)
+        self.assertIsNone(default_image)
         read, no_image = tool.execute({"mode": "read", "doc": "files/luadraw_scene3d.lua", "start_line": 2, "end_line": 2}, self.out)
         self.assertIn("2:   return scene", read)
         self.assertIsNone(no_image)
@@ -96,7 +100,7 @@ class LuaDrawDocsTests(unittest.TestCase):
         with mock.patch("builtins.__import__", side_effect=without_fitz):
             tool = LuaDrawDocs(self.root, self.cache)
         text, image = tool.execute({"query": "Dscene3d", "include_image": True}, self.out)
-        self.assertIn("bbox=", text)
+        self.assertIn("bbox_pts=", text)
         self.assertTrue(Path(image).is_file())
 
     def test_jsonl_cli_reuses_one_tool(self):

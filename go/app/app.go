@@ -110,11 +110,10 @@ func Run(ctx context.Context, args []string, in io.Reader, out, errOut io.Writer
 		resource := fs.String("resource-root", "", "runtime resources")
 		target := fs.String("out", "", "export directory")
 		version := fs.String("version", "", "release SemVer (default VERSION / SKILL metadata)")
-		binaries := fs.String("binaries-dir", "", "platform-nested native binaries")
 		if e := fs.Parse(rest); e != nil {
 			return writeError(out, e, 2)
 		}
-		result, e := distribution.Export(ctx, distribution.ExportOptions{Root: *resource, Out: *target, BinariesDir: *binaries, Version: *version})
+		result, e := distribution.Export(ctx, distribution.ExportOptions{Root: *resource, Out: *target, Version: *version})
 		if e != nil {
 			return writeError(out, e, 2)
 		}
@@ -326,7 +325,7 @@ func (s *service) handle(ctx context.Context, request map[string]any) (any, erro
 		inline := runner.Bool(request, "inline_images", false)
 		if operation == "docs" {
 			library := runner.Str(request, "luadraw_root", filepath.Join(root, "vendor", "luadraw-3.7", "luadraw"))
-			cache := runner.Str(request, "cache_dir", defaultCache())
+			cache := runner.Str(request, "cache_dir", luadraw.CacheDirectory(root))
 			key := library + "\n" + cache
 			if s.docs == nil {
 				s.docs = map[string]*luadraw.Docs{}
@@ -397,12 +396,6 @@ func (s *service) handle(ctx context.Context, request map[string]any) (any, erro
 	default:
 		return nil, fmt.Errorf("unknown operation %s", operation)
 	}
-}
-func defaultCache() string {
-	if path := os.Getenv("COMPARE_FIGURE_CACHE"); path != "" {
-		return path
-	}
-	return filepath.Join(os.TempDir(), "compare-figure-go-cache", "doc-index")
 }
 
 func jsonCLI(ctx context.Context, command string, args []string, in io.Reader, out io.Writer) int {

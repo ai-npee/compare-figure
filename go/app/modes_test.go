@@ -106,22 +106,31 @@ func TestSemiAutomaticDocumentQueryDefaultImageAndBoundedOutput(t *testing.T) {
 	if !strings.Contains(text, "The method g:Dpolyline3d(L") {
 		t.Fatal(text)
 	}
-	images := first["images"].([]any)
+	if images := first["images"].([]any); len(images) != 0 {
+		t.Fatalf("default search attached images: %v", first)
+	}
+	view := callNative(t, "docs", "--mode", "view", "--doc", "doc/luadraw-doc-en.pdf", "--page", "1", "--left", "10", "--top", "15", "--right", "85", "--bottom", "90")
+	images := view["images"].([]any)
 	if len(images) != 1 {
-		t.Fatal(first)
+		t.Fatalf("explicit view should render one page crop: %v", view)
 	}
 	imagePath := images[0].(map[string]any)["path"].(string)
 	if filepath.Base(imagePath) != "document.png" || filepath.Base(filepath.Dir(imagePath)) != "预览" {
 		t.Fatal(imagePath)
 	}
-	count := fileCount(t, first["out_dir"].(string))
+	count := fileCount(t, view["out_dir"].(string))
 	for i := 0; i < 2; i++ {
-		next := callNative(t, "docs", "--query", "Dpolyline3d")
+		next := callNative(t, "docs", "--mode", "view", "--doc", "doc/luadraw-doc-en.pdf", "--page", "1", "--left", "10", "--top", "15", "--right", "85", "--bottom", "90")
 		if next["images"].([]any)[0].(map[string]any)["path"] != imagePath {
 			t.Fatal(next)
 		}
 	}
-	if fileCount(t, first["out_dir"].(string)) != count {
+	if fileCount(t, view["out_dir"].(string)) != count {
 		t.Fatal("documentation images accumulated")
+	}
+	// Explicit true remains compatible for callers that want search-attached crops.
+	explicit := callNative(t, "docs", "--query", "Dpolyline3d", "--include-image")
+	if len(explicit["images"].([]any)) != 1 {
+		t.Fatalf("explicit search image missing: %v", explicit)
 	}
 }

@@ -60,28 +60,20 @@ func TestNativeJSONLContinuesAndReturnsImageContract(t *testing.T) {
 	}
 }
 
-func TestNativeSkillExportIsGoOnlyMovableAndIdempotent(t *testing.T) {
+func TestNativeSkillExportIsSourceOnlyMovableAndReexportable(t *testing.T) {
 	resources, e := distribution.FindRoot("")
 	if e != nil {
 		t.Skip(e)
-	}
-	native := filepath.Join(t.TempDir(), "compare-figure")
-	if runtime.GOOS == "windows" {
-		native += ".exe"
 	}
 	compiler := filepath.Join(runtime.GOROOT(), "bin", "go")
 	if runtime.GOOS == "windows" {
 		compiler += ".exe"
 	}
-	cmd := exec.Command(compiler, "build", "-o", native, "./cmd/compare-figure")
-	cmd.Dir = filepath.Join(resources, "go")
-	if output, e := cmd.CombinedOutput(); e != nil {
-		t.Fatal(e, string(output))
-	}
 	target := filepath.Join(t.TempDir(), "skill")
-	export := func() map[string]any {
+	export := func(root, destination string) map[string]any {
 		t.Helper()
-		command := exec.Command(native, "export-skill", "--resource-root", resources, "--out", target)
+		command := exec.Command(compiler, "run", "./cmd/compare-figure", "export-skill", "--resource-root", root, "--out", destination)
+		command.Dir = filepath.Join(resources, "go")
 		output, e := command.CombinedOutput()
 		if e != nil {
 			t.Fatal(e, string(output))
@@ -92,15 +84,15 @@ func TestNativeSkillExportIsGoOnlyMovableAndIdempotent(t *testing.T) {
 		}
 		return result
 	}
-	first := export()
-	if first["runtime"] != "go" || first["written"].(float64) < 1 {
+	first := export(resources, target)
+	if first["runtime"] != "go" || first["distribution"] != "source-only" || first["written"].(float64) < 1 {
 		t.Fatal(first)
 	}
 	before, e := os.ReadFile(filepath.Join(target, "manifest.json"))
 	if e != nil {
 		t.Fatal(e)
 	}
-	second := export()
+	second := export(resources, target)
 	if second["written"] != float64(0) {
 		t.Fatal("export rewrote unchanged assets", second)
 	}
@@ -108,49 +100,61 @@ func TestNativeSkillExportIsGoOnlyMovableAndIdempotent(t *testing.T) {
 	if !bytes.Equal(before, after) {
 		t.Fatal("manifest is not idempotent")
 	}
-	moved := filepath.Join(t.TempDir(), "moved-skill")
-	if filepath.IsAbs(target) && filepath.Base(target) == "skill" {
-		if e = os.Rename(target, moved); e != nil {
-			t.Fatal(e)
-		}
-	}
-	binary := filepath.Join(moved, "bin", runtime.GOOS+"-"+runtime.GOARCH, filepath.Base(native))
-	command := exec.Command(binary, "--help")
-	command.Dir = t.TempDir()
-	command.Env = append(os.Environ(), "COMPARE_FIGURE_ROOT=")
-	output, e := command.CombinedOutput()
-	if e != nil || !bytes.Contains(output, []byte("native Go")) {
-		t.Fatal(e, string(output))
-	}
 	var manifest struct {
-		Runtime string `json:"runtime"`
-		Files   []struct {
+		Schema       string `json:"schema"`
+		Distribution string `json:"distribution"`
+		Files        []struct {
 			Path string `json:"path"`
 		} `json:"files"`
 	}
 	if e = json.Unmarshal(after, &manifest); e != nil {
 		t.Fatal(e)
 	}
-	if manifest.Runtime != "go" {
-		t.Fatal(manifest.Runtime)
+	if manifest.Schema != "compare-figure-skill/2" || manifest.Distribution != "source-only" {
+		t.Fatal(manifest)
 	}
+	seen := map[string]bool{}
 	for _, item := range manifest.Files {
+		seen[item.Path] = true
+		if strings.HasSuffix(item.Path, "_test.go") || strings.Contains(item.Path, "/testdata/") || strings.HasPrefix(item.Path, "bin/") || strings.Contains(item.Path, "/build/") || strings.Contains(item.Path, "/.deps/") {
+			t.Fatal("development artifact exported", item.Path)
+		}
 		ext := strings.ToLower(filepath.Ext(item.Path))
 		if ext == ".py" || ext == ".pyc" || strings.Contains(item.Path, "runner.py") {
 			t.Fatal("Python exported", item.Path)
 		}
 	}
-	// Resource discovery must work from the moved binary, without project cwd.
-	command = exec.Command(binary, "tools", "--stdin")
-	command.Dir = t.TempDir()
-	command.Env = append(os.Environ(), "COMPARE_FIGURE_ROOT=")
-	command.Stdin = strings.NewReader(`{"operation":"docs","arguments":{"mode":"read","doc":"files/luadraw_base.lua","start_line":1,"end_line":3}}`)
-	output, e = command.CombinedOutput()
-	if e != nil {
+	for _, required := range []string{"examples/runner.yaml.example", "go/go.mod", "go/go.sum", "go/cmd/compare-figure/main.go", "SKILL.md", "VERSION", "viewer.html", "scripts/export_skill.sh", "scripts/luadraw_runtime.lua", "prompts/luadraw_figure.system.md", "vendor/luadraw-3.7/luadraw/files/luadraw.sty"} {
+		if !seen[required] {
+			t.Fatal("missing source/runtime resource", required)
+		}
+	}
+	if _, e = os.Stat(filepath.Join(target, "bin")); !os.IsNotExist(e) {
+		t.Fatal("binary directory included", e)
+	}
+	moved := filepath.Join(t.TempDir(), "moved-skill")
+	if e = os.Rename(target, moved); e != nil {
+		t.Fatal(e)
+	}
+	buildDir := filepath.Join(moved, "build")
+	if e = os.MkdirAll(buildDir, 0755); e != nil {
+		t.Fatal(e)
+	}
+	binary := filepath.Join(buildDir, "compare-figure")
+	command := exec.Command(compiler, "-C", filepath.Join(moved, "go"), "build", "-o", binary, "./cmd/compare-figure")
+	if output, e := command.CombinedOutput(); e != nil {
 		t.Fatal(e, string(output))
 	}
-	var response map[string]any
-	if e = json.Unmarshal(output, &response); e != nil || response["ok"] != true {
+	command = exec.Command(binary, "--help")
+	command.Dir = t.TempDir()
+	command.Env = append(os.Environ(), "COMPARE_FIGURE_ROOT=")
+	output, e := command.CombinedOutput()
+	if e != nil || !bytes.Contains(output, []byte("native Go")) {
+		t.Fatal(e, string(output))
+	}
+	command = exec.Command(binary, "export-skill", "--resource-root", moved, "--out", filepath.Join(t.TempDir(), "second-export"))
+	output, e = command.CombinedOutput()
+	if e != nil || !bytes.Contains(output, []byte("source-only")) {
 		t.Fatal(e, string(output))
 	}
 }

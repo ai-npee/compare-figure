@@ -86,7 +86,7 @@ g:Show()
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, key := range []string{"submitted_pdf", "submitted_tex", "editable_source"} {
+	for _, key := range []string{"submitted_pdf", "submitted_tex", "editable_tex", "editable_source"} {
 		path, ok := result[key].(string)
 		if !ok || path == "" {
 			t.Fatalf("delivery missing %s: %#v", key, result)
@@ -94,6 +94,13 @@ g:Show()
 		if _, e := os.Stat(path); e != nil {
 			t.Fatalf("delivery artifact %s: %v", key, e)
 		}
+	}
+	tex, err := os.ReadFile(result["editable_tex"].(string))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(tex), `\begin{luadraw}{name=submitted}`) || strings.Contains(string(tex), `dofile(`) || strings.Contains(string(tex), `\input{`) {
+		t.Fatalf("editable TeX is not self-contained:\n%s", tex)
 	}
 	if _, e := exec.LookPath("pdftocairo"); e == nil {
 		h.Options["raster_command"] = "pdftocairo"
