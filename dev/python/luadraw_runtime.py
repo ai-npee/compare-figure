@@ -13,6 +13,7 @@ from typing import Any
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_ROOT = PROJECT_ROOT / "vendor" / "luadraw-3.7" / "luadraw"
 RUNNER = PROJECT_ROOT / "scripts" / "luadraw_runtime.lua"
+TIKZ_RUNTIME_LIBRARIES = r"\usetikzlibrary{patterns,patterns.meta,plotmarks,arrows.meta,bending,decorations.markings,backgrounds}" + "\n"
 _PROBE_CACHE: dict[str, dict[str, Any]] = {}
 
 
@@ -73,19 +74,21 @@ def _find_lua_files(root: Path) -> Path | None:
     return None
 
 
+def _cache_env(env: dict[str, str], cache: Path) -> dict[str, str]:
+    cache.mkdir(parents=True, exist_ok=True)
+    configured = dict(env)
+    for key in ("TEXMFVAR", "TEXMFCACHE", "XDG_CACHE_HOME"):
+        configured[key] = str(cache)
+    return configured
+
+
 def _usable_lualatex(root: Path, env: dict[str, str]) -> tuple[bool, str]:
     exe = shutil.which("lualatex", path=env.get("PATH"))
     if not exe:
         return False, "lualatex not found"
     with tempfile.TemporaryDirectory(prefix="luadraw-probe-") as td:
         work = Path(td)
-        env = dict(env)
-        env["TEXMFVAR"] = str(work / "texmf-var")
-        env["TEXMFCACHE"] = str(work / "texmf-cache")
-        env["XDG_CACHE_HOME"] = str(work / "cache")
-        (work / "texmf-var").mkdir()
-        (work / "texmf-cache").mkdir()
-        (work / "cache").mkdir()
+        env = _cache_env(env, work / "tex-cache")
         probe_lines = [
             r"\documentclass[tikz,border=1pt]{standalone}",
             r"\usepackage[3d]{luadraw}",
@@ -124,6 +127,7 @@ def _usable_fallback(files: Path, env: dict[str, str], lua_bins: list[str]) -> t
             probe_lines = [
                 r"\documentclass[tikz,border=1pt]{standalone}",
                 r"\usepackage{tikz}",
+                TIKZ_RUNTIME_LIBRARIES.rstrip(),
                 r"\begin{document}",
                 r"\input{figure.tkz}",
                 r"\end{document}",
@@ -301,13 +305,7 @@ def compile_figure(source: str | Path, workdir: str | Path,
         if not info["standalone_lua_usable"]:
             result["logs"].append({"engine": "standalone-lua+tex", "stage": "capability-probe", "returncode": 1, "log": info["probe_log"][-9000:]})
         timeout = int(options.get("compile_timeout", options.get("timeout", 120)))
-        env = _tex_env(root)
-        cache = work / ".luadraw-cache"
-        for dirname in ("texmf-var", "texmf-cache", "xdg"):
-            (cache / dirname).mkdir(parents=True, exist_ok=True)
-        env["TEXMFVAR"] = str(cache / "texmf-var")
-        env["TEXMFCACHE"] = str(cache / "texmf-cache")
-        env["XDG_CACHE_HOME"] = str(cache / "xdg")
+        env = _cache_env(_tex_env(root), work / ".luadraw-cache")
         basename = str(options.get("output_name", "figure"))
         if not re.fullmatch(r"[A-Za-z0-9_-]+", basename):
             raise ValueError("output_name may contain only letters, digits, '_' and '-'")
@@ -378,7 +376,7 @@ def compile_figure(source: str | Path, workdir: str | Path,
                 continue
             result["tikz"] = str(output_tikz)
             result["generated_tikz"] = [str(output_tikz)]
-            wrapper.write_text("\\documentclass[tikz,border=2pt]{standalone}\n\\usepackage{tikz}\n" + package_lines +
+            wrapper.write_text("\\documentclass[tikz,border=2pt]{standalone}\n\\usepackage{tikz}\n" + TIKZ_RUNTIME_LIBRARIES + package_lines +
                                "\\begin{document}\n\\input{" + output_tikz.name + "}\n\\end{document}\n", encoding="utf-8")
             tex_engine = candidate["engine"]
             exe = shutil.which(tex_engine, path=env.get("PATH"))

@@ -162,19 +162,29 @@ func probeKey(root, helper string) string {
 	}
 	return hex.EncodeToString(h.Sum(nil))
 }
+
+const tikzRuntimeLibraries = "\\usetikzlibrary{patterns,patterns.meta,plotmarks,arrows.meta,bending,decorations.markings,backgrounds}\n"
+
+func texCacheEnv(env []string, cache string) ([]string, error) {
+	if err := os.MkdirAll(cache, 0700); err != nil {
+		return nil, err
+	}
+	for _, key := range []string{"TEXMFVAR", "TEXMFCACHE", "XDG_CACHE_HOME"} {
+		env = envSet(env, key, cache)
+	}
+	return env, nil
+}
+
 func testDirect(ctx context.Context, bin string, env []string) (bool, string) {
 	d, e := os.MkdirTemp("", "luadraw-probe-")
 	if e != nil {
 		return false, e.Error()
 	}
 	defer os.RemoveAll(d)
-	for _, n := range []string{"texmf-var", "texmf-cache", "cache"} {
-		_ = os.Mkdir(filepath.Join(d, n), 0700)
+	ee, e := texCacheEnv(env, filepath.Join(d, "tex-cache"))
+	if e != nil {
+		return false, e.Error()
 	}
-	ee := append([]string{}, env...)
-	ee = envSet(ee, "TEXMFVAR", filepath.Join(d, "texmf-var"))
-	ee = envSet(ee, "TEXMFCACHE", filepath.Join(d, "texmf-cache"))
-	ee = envSet(ee, "XDG_CACHE_HOME", filepath.Join(d, "cache"))
 	src := `\documentclass[tikz,border=1pt]{standalone}` + "\n" + `\usepackage[3d]{luadraw}` + "\n" + `\begin{document}` + "\n" + `\directlua{luadraw.graph_name="probe.tkz"; local g=luadraw.graph:new{window={-1,1,-1,1},bbox=false}; g:Dline(-1,1,"red"); g:Show()}` + "\n" + `\end{document}` + "\n"
 	_ = os.WriteFile(filepath.Join(d, "probe.tex"), []byte(src), 0600)
 	c, l := run(ctx, bin, []string{"-interaction=nonstopmode", "-halt-on-error", "probe.tex"}, d, ee, 40*time.Second)
@@ -215,7 +225,7 @@ func testFallback(ctx context.Context, root string, env []string, luas []string,
 			os.RemoveAll(d)
 			continue
 		}
-		_ = os.WriteFile(filepath.Join(d, "probe.tex"), []byte("\\documentclass[tikz,border=1pt]{standalone}\n\\usepackage{tikz}\n\\begin{document}\n\\input{figure.tkz}\n\\end{document}\n"), 0600)
+		_ = os.WriteFile(filepath.Join(d, "probe.tex"), []byte("\\documentclass[tikz,border=1pt]{standalone}\n\\usepackage{tikz}\n"+tikzRuntimeLibraries+"\\begin{document}\n\\input{figure.tkz}\n\\end{document}\n"), 0600)
 		for _, name := range []string{"xelatex", "pdflatex"} {
 			bin := tex[name]
 			if bin == "" {
@@ -548,13 +558,10 @@ func Compile(ctx context.Context, source, workdir string, options map[string]any
 	r["wrapper"] = wrapper
 	r["generated_lua"] = lua
 	cache := filepath.Join(work, ".luadraw-cache")
-	for _, d := range []string{"texmf-var", "texmf-cache", "xdg"} {
-		_ = os.MkdirAll(filepath.Join(cache, d), 0700)
+	env, e := texCacheEnv(envFor(root), cache)
+	if e != nil {
+		return fail(fmt.Errorf("TeX cache: %w", e))
 	}
-	env := envFor(root)
-	env = envSet(env, "TEXMFVAR", filepath.Join(cache, "texmf-var"))
-	env = envSet(env, "TEXMFCACHE", filepath.Join(cache, "texmf-cache"))
-	env = envSet(env, "XDG_CACHE_HOME", filepath.Join(cache, "xdg"))
 	pkgs := stringsOpt(options["tex_packages"])
 	if pkgs == nil {
 		pkgs = stringsOpt(options["packages"])
@@ -641,7 +648,7 @@ func Compile(ctx context.Context, source, workdir string, options map[string]any
 		}
 		r["tikz"] = tkz
 		r["generated_tikz"] = []string{tkz}
-		body := "\\documentclass[tikz,border=2pt]{standalone}\n\\usepackage{tikz}\n" + preamble + "\\begin{document}\n\\input{" + filepath.Base(tkz) + "}\n\\end{document}\n"
+		body := "\\documentclass[tikz,border=2pt]{standalone}\n\\usepackage{tikz}\n" + tikzRuntimeLibraries + preamble + "\\begin{document}\n\\input{" + filepath.Base(tkz) + "}\n\\end{document}\n"
 		_ = os.WriteFile(wrapper, []byte(body), 0600)
 		_ = os.Remove(pdf)
 		code, l = run(ctx, lookup(c.Engine), []string{"-interaction=nonstopmode", "-halt-on-error", "-jobname=" + name, filepath.Base(wrapper)}, work, env, dur)
