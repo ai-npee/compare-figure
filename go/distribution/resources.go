@@ -72,7 +72,7 @@ func FindRoot(explicit string) (string, error) {
 	return "", fmt.Errorf("runtime resources not found; pass --resource-root or set COMPARE_FIGURE_ROOT")
 }
 
-type ExportOptions struct{ Root, Out, BinariesDir string }
+type ExportOptions struct{ Root, Out, BinariesDir, Version string }
 type FileRecord struct {
 	Path   string `json:"path"`
 	SHA256 string `json:"sha256"`
@@ -81,6 +81,10 @@ type FileRecord struct {
 
 func Export(ctx context.Context, options ExportOptions) (map[string]any, error) {
 	root, err := FindRoot(options.Root)
+	if err != nil {
+		return nil, err
+	}
+	skill, version, err := skillDocument(root, options.Version)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +217,8 @@ func Export(ctx context.Context, options ExportOptions) (map[string]any, error) 
 		return nil, fmt.Errorf("no native binaries found")
 	}
 	sort.Strings(platforms)
-	add("SKILL.md", []byte(skillText(platforms)), 0644)
+	add("SKILL.md", skill, 0644)
+	add("VERSION", []byte(version+"\n"), 0644)
 	add("README.md", []byte("# compare-figure Go Skill — two modes\n\nSee SKILL.md for both supported work modes. Automatic: run with the supplied model, base URL and key. Semi-automatic: the current Agent writes LuaDraw and calls luadraw-doc-search/docs, compile, compare, or the complete persistent tool CLI; no second model/key is needed. Both default to 17% overlap and a 10% size-deviation limit.\n\nSelect the native binary under bin matching the host OS/architecture. Runtime resources are executable-relative; external Lua/TeX and Poppler are detected before drawing. Packaged platforms: "+strings.Join(platforms, ", ")+".\n\nCompare/docs/compile reuse a fixed temporary output slot per working directory when --out is omitted. Save final artifacts or choose --out before the next call; parallel jobs use distinct outputs. Automatic run workspaces resume accepted results without repeated model calls. Model credentials and Python prototypes are not exported.\n"), 0644)
 	names := make([]string, 0, len(files))
 	for name := range files {
@@ -240,12 +245,12 @@ func Export(ctx context.Context, options ExportOptions) (map[string]any, error) 
 			return nil, err
 		}
 	}
-	manifest := map[string]any{"schema": "compare-figure-skill/1", "runtime": "go", "modes": []string{"automatic", "semi-automatic"}, "default_min_overlap": .17, "default_max_scale_dev": .10, "platforms": platforms, "files": records}
+	manifest := map[string]any{"schema": "compare-figure-skill/1", "runtime": "go", "version": version, "modes": []string{"automatic", "semi-automatic"}, "default_min_overlap": .17, "default_max_scale_dev": .10, "platforms": platforms, "files": records}
 	data, _ := json.MarshalIndent(manifest, "", "  ")
 	if err = cf.AtomicWrite(filepath.Join(out, "manifest.json"), append(data, '\n'), 0644); err != nil {
 		return nil, err
 	}
-	return map[string]any{"ok": true, "runtime": "go", "out_dir": out, "platforms": platforms, "written": written, "unchanged": unchanged, "manifest": filepath.Join(out, "manifest.json")}, nil
+	return map[string]any{"ok": true, "runtime": "go", "version": version, "out_dir": out, "platforms": platforms, "written": written, "unchanged": unchanged, "manifest": filepath.Join(out, "manifest.json")}, nil
 }
 func within(base, path string) bool {
 	relative, e := filepath.Rel(base, path)

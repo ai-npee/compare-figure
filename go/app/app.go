@@ -109,11 +109,12 @@ func Run(ctx context.Context, args []string, in io.Reader, out, errOut io.Writer
 		fs.SetOutput(errOut)
 		resource := fs.String("resource-root", "", "runtime resources")
 		target := fs.String("out", "", "export directory")
+		version := fs.String("version", "", "release SemVer (default VERSION / SKILL metadata)")
 		binaries := fs.String("binaries-dir", "", "platform-nested native binaries")
 		if e := fs.Parse(rest); e != nil {
 			return writeError(out, e, 2)
 		}
-		result, e := distribution.Export(ctx, distribution.ExportOptions{Root: *resource, Out: *target, BinariesDir: *binaries})
+		result, e := distribution.Export(ctx, distribution.ExportOptions{Root: *resource, Out: *target, BinariesDir: *binaries, Version: *version})
 		if e != nil {
 			return writeError(out, e, 2)
 		}

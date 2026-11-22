@@ -1,0 +1,34 @@
+{
+  "base_url": "https://api.openai.com/v1",
+  "model": "your-vision-tool-model",
+  "api_key_env": "OPENAI_API_KEY",
+  "api": "openai",
+  "stream": true,
+  "session": {
+    "max_tool_rounds": 128,
+    "max_tokens": 16384,
+    "context_limit": 128000,
+    "compaction_at": 0.85,
+    "tool_rounds_warn_ratio": 0.7,
+    "tool_rounds_grace": 20,
+    "prune_tool_chars": 4096,
+    "keep_images": 3
+  },
+  "view": {
+    "image_max": 30,
+    "pdf_max": 25,
+    "warn_ratio": 0.7
+  },
+  "compile": {
+    "engine": "auto",
+    "raster_command": "pdftoppm",
+    "raster_dpi": 300
+  },
+  "figure_check": {
+    "enabled": false,
+    "max_rounds": 2,
+    "min_overlap": 0.17,
+    "max_scale_dev": 0.1,
+    "accept_min_submits": 8
+  }
+}
