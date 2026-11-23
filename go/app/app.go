@@ -30,6 +30,7 @@ Commands:
   run, auto           Autonomous session; identical reruns resume automatically
   compile             Compile LuaDraw (alias: luadraw-compile)
   docs                Search/read/view manuals (alias: luadraw-doc-search)
+  luadraw-doc          Standalone LuaDraw documentation JSON/JSONL service
   compare             Compare image/PDF: --reference REF --candidate PDF
   tool, agent-tool    Persist and execute any of the 11 drawing tools
   tools               JSON/JSONL service: compare, docs, compile, environment, run
@@ -39,6 +40,8 @@ Commands:
 
 Examples:
   compare-figure run --original ref.png --out run-dir --model MODEL --base-url URL --api-key-env MODEL_KEY
+  compare-figure luadraw-doc --request request.json
+  compare-figure luadraw-doc --jsonl < requests.jsonl
   compare-figure luadraw-doc-search Dpolyline3d
   compare-figure compile figure.lua
   compare-figure compare --reference ref.png --candidate figure.pdf --threshold 17
@@ -73,7 +76,7 @@ func Run(ctx context.Context, args []string, in io.Reader, out, errOut io.Writer
 		return agentToolCLI(ctx, rest, in, out)
 	case "compare", "tools":
 		return jsonCLI(ctx, command, rest, in, out)
-	case "compile", "luadraw-compile", "docs", "luadraw-doc-search", "doc-search":
+	case "compile", "luadraw-compile", "docs", "luadraw-doc-search", "luadraw-doc", "doc-search":
 		if command == "doc-search" {
 			command = "docs"
 		}

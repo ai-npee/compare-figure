@@ -4,9 +4,24 @@
 
 生产比较/会话基线为DocVision `20faca6`，绘图固定LuaDraw 3.7。四份原始提示词保留哈希基线，当前绘图使用新增的LuaDraw提示词；来源和许可见 [清单](docs/upstream.json) 与 [固定依赖](vendor/dependencies.lock.json)。完整迁移、接口及幂等行为见 [Go说明](docs/go-native.md)。
 
+## 原创LuaDraw图与独立文档工具
+
+没有参考图时，当前Agent也可使用本Skill：先查文档，再编写LuaDraw程序、编译并查看PDF，按用户要求修正；不需要模型密钥、书稿或参考图，不进入比对/submit流程。
+
+```bash
+build/compare-figure luadraw-doc --mode frequent --cache-dir work/shared-doc-cache
+build/compare-figure luadraw-doc --query Dpolyline3d --cache-dir work/shared-doc-cache
+build/compare-figure luadraw-doc --request examples/luadraw-doc.json.example
+build/compare-figure luadraw-doc --stdin --cache-dir work/shared-doc-cache
+build/compare-figure luadraw-doc --jsonl --cache-dir work/shared-doc-cache
+build/compare-figure compile --source figure.tex --out work/compiled
+```
+
+专用文档入口接受裸参数JSON或docs envelope，stdout为JSON；JSONL常驻复用索引实例，错误逐行返回后继续。沿用七种文档模式、稳定段落ID、高频计数、无图搜索与按需PDF查看；缓存可通过CLI/JSON/环境变量指定。现有 `docs`、`luadraw-doc-search` 和 `tools --jsonl` 仍兼容。CLI及外部程序/Go包调用、缓存优先级、退出码见 [独立文档工具说明](docs/luadraw-doc.md)。索引内容是LuaDraw官方手册/源码，文档操作需要Poppler，不需要LuaLaTeX；真正绘图编译才需要Lua/TeX。
+
 ## 仓库与Skill入口
 
-仓库自身可作为Skill：根目录 [SKILL.md](SKILL.md) 含标准YAML frontmatter（name、description、license、metadata.version），是仓库与安装包共用的唯一技能说明源。[VERSION](VERSION) 是默认发布版本，当前为0.2.0。
+仓库自身可作为Skill：根目录 [SKILL.md](SKILL.md) 含标准YAML frontmatter（name、description、license、metadata.version），是仓库与安装包共用的唯一技能说明源。[VERSION](VERSION) 是默认发布版本，当前为0.2.1。
 
 ```text
 SKILL.md / VERSION       Skill入口与发布版本
@@ -147,10 +162,10 @@ build/compare-figure compare --original reference.png --pdf candidate.pdf --out 
 # 从VERSION读取版本，导出源码Skill目录、ZIP和SHA256
 ./scripts/export_skill.sh
 # 显式版本及本机Go工具链
-./scripts/export_skill.sh --version 0.2.0 --go /path/to/go
+./scripts/export_skill.sh --version 0.2.1 --go /path/to/go
 ```
 
-默认输出 `dist/compare-figure-skill-v0.2.0/` 及同名ZIP/SHA256。包只附Go生产源码、go.mod/go.sum、根Skill说明、版本、脱敏YAML示例、提示词、固定LuaDraw资源/手册、Lua辅助脚本和许可证；不附预构建程序。目标机Agent按根Skill说明安装Go 1.25+后，在包根运行：
+默认输出 `dist/compare-figure-skill-v0.2.1/` 及同名ZIP/SHA256。包只附Go生产源码、go.mod/go.sum、根Skill说明、版本、脱敏YAML示例、提示词、固定LuaDraw资源/手册、Lua辅助脚本和许可证；不附预构建程序。目标机Agent按根Skill说明安装Go 1.25+后，在包根运行：
 
 ```bash
 go -C go build -o ../build/compare-figure ./cmd/compare-figure

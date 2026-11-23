@@ -11,6 +11,19 @@ import (
 const manualHelp = `Usage:
   compare-figure compile [figure.lua] --source figure.lua [--out DIR] [options]
   compare-figure docs [QUERY] --query QUERY [options]
+  compare-figure luadraw-doc --query QUERY [options]
+  compare-figure luadraw-doc --request FILE | --stdin | --jsonl [options]
+
+Standalone luadraw-doc:
+  No reference image, model key or drawing session required.
+  Accepts bare tool JSON or operation=docs envelopes; stdout is JSON.
+  --request FILE             Read one JSON object (use - for stdin)
+  --stdin                    Read one JSON object from stdin
+  --jsonl                    Read requests line by line; errors do not stop later lines
+  These input modes are mutually exclusive; JSON overrides explicit flag defaults.
+  --cache-dir DIR            Shared writable index/frequency cache
+  Default cache: Skill-root/build/doc-cache; COMPARE_FIGURE_CACHE overrides it.
+  Uses the same Docs options below; docs-only, no run/compile JSON dispatch.
 
 Commands:
   compile, luadraw-compile  Compile a LuaDraw figure without a model/API key.
@@ -52,8 +65,10 @@ Use --help with either command for this usage. Results are JSON on stdout.
 
 // manualCLI runs non-model LuaDraw compile and documentation operations.
 func manualCLI(ctx context.Context, command string, args []string, in io.Reader, out io.Writer) int {
-	_ = in
 	command = strings.ToLower(command)
+	if command == "luadraw-doc" {
+		return docsServiceCLI(ctx, args, in, out)
+	}
 	compile := command == "compile" || command == "luadraw-compile"
 	docs := command == "docs" || command == "luadraw-doc-search"
 	if !compile && !docs {

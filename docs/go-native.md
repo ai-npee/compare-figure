@@ -2,6 +2,10 @@
 
 The supported exported runtime is Go. Python remains the development prototype and cross-language test oracle; it is not an export choice or a runtime bridge. The Go binary does not spawn Python for models, compilation, documents or image comparison.
 
+## Standalone LuaDraw documentation and original figures
+
+As of 0.2.1, `luadraw-doc` offers CLI flags, `--request`, `--stdin`, and persistent `--jsonl` with bare tool arguments or a docs envelope. It requires no reference, model key, Markdown input or drawing session, reuses the same configurable index/frequency caches, and can be used by unrelated drawing agents. The public `luadraw.NewDocs` / `Definition` / `Execute` / `FrequentSnippet` Go API remains available. See [standalone documentation interface](luadraw-doc.md) and the packaged `examples/luadraw-doc.json.example`. Original drawing uses documentation → editable LuaDraw source → compile → inspect → deliver; reference comparison is applicable only when a reference is supplied.
+
 ## Standalone sizing and Markdown context
 
 Reference sizing has no parsing-engine/index/bbox dependency. Input is a local image, optionally a nearby or explicitly selected sizes.csv and optional Markdown. Explicit `reference_mm` / `--reference-mm W,H` wins; otherwise `sizes_csv` / `--sizes-csv FILE` or nearby sizes.csv (size.csv accepted) provides file,width_mm,height_mm,page_w_mm. `# scale_px_per_pt=...` is provenance only: CSV mm are already calibrated and must not be scaled again. Without mm, validate ink aspect only and say so explicitly.
@@ -112,7 +116,7 @@ With LuaLaTeX, the official environment generates its own intermediates. Without
 
 ## Build and export
 
-Root SKILL.md is the single canonical instruction source; VERSION now defaults to 0.2.0. Releases contain production Go sources with go.mod/go.sum and runtime resources, not prebuilt executables. Source-only manifest schema v2 records the distribution and required Go version plus SHA256 hashes. No packaged platform matrix is needed.
+Root SKILL.md is the single canonical instruction source; VERSION now defaults to 0.2.1. Releases contain production Go sources with go.mod/go.sum and runtime resources, not prebuilt executables. Source-only manifest schema v2 records the distribution and required Go version plus SHA256 hashes. No packaged platform matrix is needed.
 
 The target machine's Agent checks Go 1.25+ and builds once from the Skill root. Official Go downloads: https://go.dev/dl/ ; installation: https://go.dev/doc/install . The Go toolchain builds for the current host unless GOOS/GOARCH are explicitly set. Initial module downloads may require network access.
 
@@ -123,7 +127,7 @@ build/compare-figure environment
 
 # Source-only export; the script compiles a local export tool but does not package it
 ./scripts/export_skill.sh
-./scripts/export_skill.sh --version 0.2.0 --go /path/to/go
+./scripts/export_skill.sh --version 0.2.1 --go /path/to/go
 ```
 
 The package includes canonical Skill/VERSION, source, fixed prompts/vendor/manuals/licenses, Lua helper, commented examples/runner.yaml.example and the local folder-based viewer.html. Python prototypes and tests remain development-only under dev/python. Actual runner.yaml/runner.json/*.local.yaml or JSON files, keys, runs, caches and compiled binaries are excluded. Copy the example to runner.yaml, edit privately, and pass --config runner.yaml. JSON remains accepted for compatibility.

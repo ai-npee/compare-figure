@@ -1,0 +1,12 @@
+{
+  "operation": "docs",
+  "cache_dir": "build/doc-cache",
+  "arguments": {
+    "mode": "search",
+    "query": "Dpolyline3d",
+    "limit": 5,
+    "snippet_chars": 1200,
+    "max_chars": 6000,
+    "include_image": false
+  }
+}

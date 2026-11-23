@@ -1,0 +1,136 @@
+package app
+
+import (
+	"bufio"
+	"bytes"
+	"context"
+	"encoding/json"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"testing"
+
+	"compare-figure/distribution"
+)
+
+func docsTestResources(t *testing.T) string {
+	t.Helper()
+	for _, name := range []string{"pdftotext", "pdfinfo", "pdftoppm"} {
+		if _, err := exec.LookPath(name); err != nil {
+			t.Skipf("Poppler unavailable: %s", name)
+		}
+	}
+	root, err := distribution.FindRoot("")
+	if err != nil {
+		t.Skipf("LuaDraw resources unavailable: %v", err)
+	}
+	return root
+}
+
+func runDocsCLI(t *testing.T, args []string, input string) (int, string) {
+	t.Helper()
+	var out bytes.Buffer
+	code := Run(context.Background(), append([]string{"luadraw-doc"}, args...), strings.NewReader(input), &out, &out)
+	return code, out.String()
+}
+
+func decodeDocsResult(t *testing.T, output string) map[string]any {
+	t.Helper()
+	var result map[string]any
+	if err := json.Unmarshal([]byte(output), &result); err != nil {
+		t.Fatalf("invalid JSON result: %v: %s", err, output)
+	}
+	return result
+}
+
+func TestLuaDrawDocsCLIJSONArgsEnvelopeAndCache(t *testing.T) {
+	resources := docsTestResources(t)
+	cache := filepath.Join(t.TempDir(), "chosen-cache")
+	requests := `{"mode":"search","query":"Dpolyline3d","limit":1}` + "\n" +
+		`{"operation":"docs","arguments":{"mode":"read","doc":"files/luadraw_base.lua","start_line":1,"end_line":2},"cache_dir":""}`
+	code, output := runDocsCLI(t, []string{"--jsonl", "--resource-root", resources, "--cache-dir", cache}, requests)
+	if code != 0 {
+		t.Fatalf("CLI returned %d: %s", code, output)
+	}
+	scanner := bufio.NewScanner(strings.NewReader(output))
+	var results []map[string]any
+	for scanner.Scan() {
+		results = append(results, decodeDocsResult(t, scanner.Text()))
+	}
+	if len(results) != 2 || results[0]["ok"] != true || !strings.Contains(results[0]["text"].(string), "Dpolyline3d") {
+		t.Fatalf("bare tool arguments did not search: %#v", results)
+	}
+	if results[1]["ok"] != true || !strings.Contains(results[1]["text"].(string), "LuaDraw") {
+		t.Fatalf("tools envelope did not read without an image/model: %#v", results)
+	}
+	if _, err := os.Stat(filepath.Join(cache, "luadraw-doc-index-v4.json")); err != nil {
+		t.Fatalf("index was not written under --cache-dir: %v", err)
+	}
+
+	statBefore, err := os.Stat(filepath.Join(cache, "luadraw-doc-index-v4.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	freqRequest := `{"mode":"frequent","limit":8,"max_chars":2048}`
+	code, output = runDocsCLI(t, []string{"--stdin", "--resource-root", resources, "--cache-dir", cache}, freqRequest)
+	if code != 0 {
+		t.Fatalf("frequent failed: %d %s", code, output)
+	}
+	result := decodeDocsResult(t, output)
+	if result["ok"] != true || result["text"] == "" {
+		t.Fatalf("frequent did not return indexed usage: %#v", result)
+	}
+	statAfter, err := os.Stat(filepath.Join(cache, "luadraw-doc-index-v4.json"))
+	if err != nil || !statAfter.ModTime().Equal(statBefore.ModTime()) {
+		t.Fatalf("warm index was rebuilt: before=%v after=%v err=%v", statBefore.ModTime(), statAfter, err)
+	}
+}
+
+func TestLuaDrawDocsCLIJSONLContinuesAndRejectsOtherOperations(t *testing.T) {
+	resources := docsTestResources(t)
+	cache := filepath.Join(t.TempDir(), "cache")
+	requests := "{not json}\n" + `{"id":"bad-op","operation":"run","arguments":{}}` + "\n" + `{"mode":"search","query":"Dpolyline3d","limit":1}` + "\n"
+	code, output := runDocsCLI(t, []string{"--jsonl", "--resource-root", resources, "--cache-dir", cache}, requests)
+	if code != 1 {
+		t.Fatalf("expected aggregate error exit 1, got %d: %s", code, output)
+	}
+	scanner := bufio.NewScanner(strings.NewReader(output))
+	var results []map[string]any
+	for scanner.Scan() {
+		results = append(results, decodeDocsResult(t, scanner.Text()))
+	}
+	if len(results) != 3 {
+		t.Fatalf("expected one output per nonblank line; got %d: %s", len(results), output)
+	}
+	if results[0]["ok"] != false || results[1]["ok"] != false || results[1]["id"] != "bad-op" {
+		t.Fatalf("invalid JSON and run operation must be isolated errors: %#v", results[:2])
+	}
+	if results[2]["ok"] != true || !strings.Contains(results[2]["text"].(string), "Dpolyline3d") {
+		t.Fatalf("valid request after errors did not succeed: %#v", results[2])
+	}
+}
+
+func TestLuaDrawDocsCLIJSONOptionsOverrideFlagDefaults(t *testing.T) {
+	resources := docsTestResources(t)
+	defaultCache := filepath.Join(t.TempDir(), "default-cache")
+	jsonCache := filepath.Join(t.TempDir(), "json-cache")
+	request := `{"operation":"docs","arguments":{"mode":"search","query":"Dpolyline3d","limit":1},"cache_dir":"` + filepath.ToSlash(jsonCache) + `"}`
+	code, output := runDocsCLI(t, []string{"--request", "-", "--resource-root", resources, "--cache-dir", defaultCache, "--query", "does-not-exist"}, request)
+	if code != 0 {
+		t.Fatalf("request via stdin failed: %d %s", code, output)
+	}
+	if _, err := os.Stat(filepath.Join(jsonCache, "luadraw-doc-index-v4.json")); err != nil {
+		t.Fatalf("JSON cache_dir did not override flag default: %v", err)
+	}
+	if _, err := os.Stat(defaultCache); !os.IsNotExist(err) {
+		t.Fatalf("default cache unexpectedly used: err=%v", err)
+	}
+}
+
+func TestLuaDrawDocsCLIRejectsInputModeMixing(t *testing.T) {
+	code, output := runDocsCLI(t, []string{"--stdin", "--jsonl"}, "")
+	if code != 2 || !strings.Contains(output, "mutually exclusive") {
+		t.Fatalf("expected mutually exclusive input error, got %d %s", code, output)
+	}
+}

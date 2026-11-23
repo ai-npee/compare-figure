@@ -10,6 +10,8 @@ Python模块和测试仅放dev/python，使用conda base（本机/home/lingnc/mi
 
 ## 状态与范围
 
+- 0.2.1追加：当前Agent可无参考图创作LuaDraw图，先frequent/search/定位精读，再编写源码、compile/看PDF并交付；没有参考图不调用compare/submit，不声称比对分数。独立luadraw-doc CLI接受参数、--request/--stdin/--jsonl的裸工具JSON或docs envelope，供其他Skill/外部程序调用；不需model/key/reference/Markdown。复用现有索引与频次缓存，--cache-dir/JSON cache_dir或环境变量可设。原docs/luadraw-doc-search/tools接口兼容；专用docs入口禁止JSON切换到run/compile。文档初始化需Poppler，绘图编译才需Lua/TeX。独立调用契约docs/luadraw-doc.md与examples/luadraw-doc.json.example随源码Skill打包；公开Go luadraw.NewDocs/Definition/Execute/FrequentSnippet接口保留。Go全模块test/vet与专项回归通过；从无参考图/无密钥的另一目录实际验证CLI字段、JSON文件/裸参数、JSONL坏行继续、非docs请求拒绝、指定缓存和索引mtime复用；源码包307文件全部SHA核验通过，解压后构建并执行search/frequent JSONL成功。未重跑已完成四图付费模型。
+
 - 当前0.2.0用户要求：仅分发生产Go源码、go.mod/go.sum、SKILL/VERSION、固定LuaDraw资源、提示词、Lua helper、注释examples/runner.yaml.example、专用只读viewer.html及来源/许可；不附任何平台二进制、开发测试、真实配置或缓存。官方Go下载go.dev/dl，目标机Agent首次go -C go build；原0.1.2单Linux包策略由本次直接用户要求覆盖，不得恢复旧默认。导出manifest schema2 source-only/go/1.25+，所有文件SHA；目标平台按本机Go确定。
 - 用户全部需求与验收证据持续保存在忽略的build/task-state/current-requirements.md：压缩上下文后优先读取，不重复启动已完成真实模型任务。配置改带注释YAML .example，保留用户128轮/131072输出/256000上下文/300dpi等参数；真实runner.local.yaml仅忽略且0600，凭证不得输出/提交/打包。
 - gpt-6.1-sol真实四图自动运行已完成，图6.9/8.8/8.9/8.10重叠25.01/62.33/50.89/35.19%，尺寸偏差1.17/0.83/1.52/0.58%；均正常一次submit，无best-effort及warnings，6.9及8.10保留uncertain。四份预览已查看；8.10中部K1原扫描疑点按原样保留。仅本地runs/automatic-four-figures留存；image_context与启动选图均支持[url](images/...)普通图片链接，用原书图6.9精确up6/down6验证成功。

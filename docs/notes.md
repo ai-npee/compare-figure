@@ -1,6 +1,14 @@
 # 开发记录
 
-## 源码Skill、真实四图测试与知识库工具升级（当前，0.2.0）
+## 独立文档索引接口与原创LuaDraw绘制（当前，0.2.1）
+
+用户要求让只想创作LuaDraw图的Agent/其他Skill使用既有知识库，而无需参考图。新增独立luadraw-doc入口，支持CLI字段和互斥的--request/--stdin/--jsonl；JSON接受裸工具参数或docs envelope，显式JSON覆盖CLI默认值，输入缺省operation为docs，拒绝切换run/compile。JSONL共用service与Docs实例，坏行独立报错后继续，保留request id，有失败最终exit1；单次失败exit2。原docs/luadraw-doc-search/tools调用不变。
+
+索引/频次缓存保持原机制，CLI --cache-dir、JSON cache_dir、环境变量可设；外部程序不需模型key、reference或Markdown。文档初始化当前需要Poppler，绘图编译才需要Lua/TeX。原创图Skill流程为先frequent/精读，再编写LuaDraw、compile/看PDF、交付源码/PDF，没有参考图不报告compare分数或进入submit接受态。公开Go NewDocs/Definition/Execute/FrequentSnippet接口在独立说明中提供调用方式。
+
+新docs/luadraw-doc.md与examples/luadraw-doc.json.example纳入源码导出，版本0.2.1；代码专项测试与Go全模块test/vet已通过。真实外部目录调用、源码包解压构建和缓存复用检验均通过：无reference/key时CLI/PDF读页、裸JSON、文件envelope、JSONL坏行和非法operation后继续有效请求，指定cache落盘且warm index mtime不变。0.2.1源码包307文件全部哈希校验、实际私有密钥/端点字符串扫描无泄漏，解压独立构建后search/frequent JSONL成功；ZIP SHA256 dd36256ca6fcd3f2dbd287bbfa64193bfea6797cdbdf59f6dc855a950bed5666，证据runs/standalone-doc-validation及build/standalone-doc-package。未调用付费模型，未修改固定vendor、比较回执或会话接受语义。
+
+## 源码Skill、真实四图测试与知识库工具升级（前阶段，0.2.0）
 
 本轮全部需求和验收状态持续保存在忽略的build/task-state/current-requirements.md，防止压缩上下文后遗漏；后续Agent先核对此文件，不重复发起已完成的付费绘图调用。
 

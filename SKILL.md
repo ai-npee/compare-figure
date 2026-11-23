@@ -1,9 +1,9 @@
 ---
 name: compare-figure
-description: "Redraw and compare figures with LuaDraw, using either an automatic model runner or Agent-led CLI tools. Supports images, sizes.csv and Markdown context; default overlap is 17%."
+description: "Create original LuaDraw figures or redraw and compare references. Provides standalone CLI/JSON/JSONL documentation lookup with shared frequency caching, plus automatic and Agent-led drawing tools; reference comparison defaults to 17% overlap."
 license: MIT
 metadata:
-  version: "0.2.0"
+  version: "0.2.1"
 ---
 
 # compare-figure: two work modes
@@ -14,6 +14,23 @@ Resolve the executable and resources relative to this SKILL.md, not the caller w
 Copy `examples/runner.yaml.example` to `runner.yaml` for a commented automatic-mode configuration; actual runner.yaml/runner.json and *.local.yaml/JSON files are ignored by Git and excluded from Skill exports. Preserve user-adjusted session/view/compile/figure_check budgets when creating local configurations. Use environment variables for keys where practical and never publish real credentials.
 
 The accepted delivery includes a self-contained submitted.tex with the exact LuaDraw program embedded in the official luadraw environment, plus submitted.pdf rebuilt from that TeX. Prefer this editable_tex/submitted_tex as the user's single-file TeX deliverable; editable_source/editable_lua also retain the accepted Lua for compatibility. No input Lua/TikZ sidecar is needed. `compile --source submitted.tex --engine lualatex` uses the official environment; `--engine xelatex` or `--engine pdflatex` extracts and runs the same embedded Lua with Lua/texlua before compiling generated TikZ. A TeX engine is still required for the PDF stage.
+
+## Original drawing and standalone documentation — no reference image required
+
+When the user wants a new LuaDraw diagram, use the current Agent's reasoning and file tools. No reference bitmap, Markdown book, image_context workspace, second model or API key is required. Consult documentation before inventing API calls:
+
+    compare-figure luadraw-doc --mode frequent --cache-dir work/shared-doc-cache
+    compare-figure luadraw-doc --query graph3d --snippet-chars 1200 --max-chars 6000 --cache-dir work/shared-doc-cache
+
+Use list/find/grep to discover real files, read exact constructors/methods/examples, and view a PDF page/crop only when helpful. Write figure.lua or a self-contained TeX luadraw environment, compile it, and inspect the generated PDF/preview. For a new drawing without a reference, judge the user-requested geometry, labels and style; no reference comparison score or submit acceptance is available. Deliver editable TeX/Lua and PDF after compilation succeeds. Run compare only if the user supplies a reference.
+
+The documentation command is also an independent machine interface:
+
+    compare-figure luadraw-doc --stdin --cache-dir work/shared-doc-cache
+    compare-figure luadraw-doc --request examples/luadraw-doc.json.example
+    compare-figure luadraw-doc --jsonl --cache-dir work/shared-doc-cache
+
+Supply a bare JSON tool object (`{"mode":"search","query":"Dpolyline3d"}`) or an envelope (`{"operation":"docs","arguments":{"mode":"search","query":"Dpolyline3d"},"cache_dir":"work/shared-doc-cache"}`). JSONL keeps one local process and index objects alive across requests; it is not a model session or a network server. A bad line returns a JSON error and subsequent lines continue. Prefer one shared writable cache directory across agent sessions; use separate --out directories for parallel PDF previews. The existing `tools --jsonl` envelope interface remains available. See docs/luadraw-doc.md for calling contracts, Go API, dependencies and cache controls. This library indexes the bundled LuaDraw manuals/sources, not arbitrary LuaLaTeX documentation.
 
 ## Documentation navigation and reusable paragraphs
 
