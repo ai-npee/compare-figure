@@ -6,21 +6,13 @@
 
 ## 快速安装
 
-复制下面这段话给你的 Agent：
+复制给你的 Agent：
 
 ```text
-请安装并配置 compare-figure Skill：
-https://github.com/LingNc/compare-figure
-
-请先阅读仓库 README.md 和 SKILL.md，再安装到当前工具支持的 Skill 目录。
-如果仓库已有正式 Release，优先获取源码 Skill ZIP 和对应 SHA256，校验后解压；
-否则克隆仓库并使用根目录 SKILL.md。
-按说明检查 Go 1.25+、Lua/TeX 和 Poppler，首次构建本机程序，
-再做不调用付费模型的文档检索与编译检查，告诉我安装位置和可用功能。
-默认使用当前 Agent 绘图；仅在我要求自动 runner 时配置额外模型。
+请按 https://github.com/ai-npee/compare-figure/blob/main/install.md 安装 compare-figure Skill。
 ```
 
-安装完成后，直接描述要画什么，或提供参考图、Markdown／LaTeX 文稿和图形要求即可。正式发布包为源码包，首次构建和依赖检查由上述安装步骤完成，后续复用。
+手动安装也可直接查看 [安装流程](install.md)。安装完成后，提供参考图或描述想画什么即可。
 
 ## 怎么使用
 
@@ -62,7 +54,7 @@ https://github.com/LingNc/compare-figure
 仓库和 Skill 包均只附生产源码，不带预构建程序。首次需要 [Go 1.25+](https://go.dev/dl/)（[安装说明](https://go.dev/doc/install)）；绘图需要 LuaLaTeX，或 Lua/texlua 配合 XeLaTeX/pdfLaTeX，文档与 PDF 操作需要 Poppler。正式程序不依赖 Python。
 
 ```bash
-git clone https://github.com/LingNc/compare-figure.git
+git clone https://github.com/ai-npee/compare-figure.git
 cd compare-figure
 go -C go build -o ../build/compare-figure ./cmd/compare-figure
 build/compare-figure environment

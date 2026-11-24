@@ -172,7 +172,7 @@ func Export(ctx context.Context, options ExportOptions) (map[string]any, error) 
 			return nil, err
 		}
 	}
-	for _, name := range []string{"scripts/luadraw_runtime.lua", "scripts/export_skill.sh", "vendor/dependencies.lock.json", "LICENSE", "viewer.html", "docs/viewer-upstream.json", "docs/luadraw-doc.md", "examples/luadraw-doc.json.example"} {
+	for _, name := range []string{"scripts/luadraw_runtime.lua", "scripts/export_skill.sh", "vendor/dependencies.lock.json", "LICENSE", "install.md", "viewer.html", "docs/viewer-upstream.json", "docs/luadraw-doc.md", "examples/luadraw-doc.json.example"} {
 		mode := os.FileMode(0644)
 		if name == "scripts/export_skill.sh" {
 			mode = 0755

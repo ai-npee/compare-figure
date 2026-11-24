@@ -10,6 +10,8 @@ Python模块和测试仅放dev/python，使用conda base（本机/home/lingnc/mi
 
 ## 状态与范围
 
+- 安装入口install.md：独立流程包含Release校验/clone、Agent技能目录注册、Go/LuaTeX/Poppler依赖、Linux/Windows构建验证、默认当前Agent绘图及可选自动runner；README仅保留一句安装链接，install.md随源码Skill导出。用户已明确授权推送main（不含发布标签）；首次git push因连接GitHub过慢超时，安装文档验证提交后重试，结果以实际远端输出记录。
+
 - README组织规则：开头清楚说明LuaDraw原创/参考图重绘、Markdown插图上下文、LaTeX数学配图、可编辑源码/PDF与质量检查；随后提供可复制给Agent的安装指令和自然语言使用示例，不写“给谁看的”。构建/参数/开发细节后置，完整原说明迁移docs/usage.md。Skill源码导出以CI验证+版本标签发布为目标，本轮仅本地配置，未推送/远端运行或创建Release；实际操作契约见docs/releasing.md，源代码分发政策不变。PDF到源码映射继续暂缓。
 
 - 后续计划（用户明确暂缓）：PDF页/区域→TeX源文件及行范围的SyncTeX映射仅记录设计，当前没有必要实现；不重编手册、不修改vendor、不新增依赖或接口。具体候选方案见docs/notes.md；未来需PDF与映射同次编译/哈希绑定、路径可搬移、多来源范围及LuaDraw生成代码的映射精度说明。未经新的需求，不将此项作为未完成任务自动推进。

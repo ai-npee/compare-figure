@@ -1,5 +1,9 @@
 # 开发记录
 
+## 独立安装流程与推送
+
+用户要求用install.md集中安装流程，避免冗长安装提示词。新增根install.md，说明源码包/仓库获取、SHA校验、技能目录注册、依赖与Linux/Windows构建、无模型文档验证及可选自动runner；README缩为一句安装链接。install.md纳入Skill导出清单，所引用相对路径在包内可用，完整仓库说明使用远端链接。用户已授权推送main；首次git push连接GitHub超过60秒过慢失败，HTTPS直连检查无响应；使用现有本地代理后GitHub可达，并确认旧LingNc地址301跳转到ai-npee/compare-figure，安装/克隆链接改为实际地址。安装说明相对链接与包内字节一致、308文件完整CI导出/哈希/解压构建/资源检索及app/distribution回归通过，证据build/install-ci-validation/export-step.log。不创建Release标签。
+
 ## README入口整理与源码Skill持续发布
 
 按用户要求首页先解释主要功能：参考图片重绘、文字描述原创LuaDraw图、Markdown插图上下文和LaTeX数学配图，随后提供可复制给Agent的安装话术、自然语言使用示例和两种模式；构建/配置/开发放后面，不标注面向谁阅读。原有完整CLI、尺寸、会话、JSON、导出与验证说明迁入docs/usage.md并调整相对链接，详细接口继续链接既有文档，避免首页重复堆砌历史数据。Markdown/LaTeX指绘图上下文和嵌入目标，不夸大为整篇自动转换。
