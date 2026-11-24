@@ -10,6 +10,8 @@ Python模块和测试仅放dev/python，使用conda base（本机/home/lingnc/mi
 
 ## 状态与范围
 
+- 远端CI首轮45370931894：Go test/vet/源码ZIP导出校验及解压构建均成功，Node22/24因查看器测试假设中文/英文混合路径固定顺序而失败；本地en_US环境已精确复现。修复仅测试按路径集合验证存在性，保留最新数值轮次排序断言，CI两Node版本均覆盖C/en_US/zh_CN三环境，本地通过。已授权推送main，需确认修复后远端CI成功，不把测试错误称Go构建失败；远程origin现ai-npee/compare-figure，临时http.proxy使用已有localhost7897，不写全局配置。
+
 - 安装入口install.md：独立流程包含Release校验/clone、Agent技能目录注册、Go/LuaTeX/Poppler依赖、Linux/Windows构建验证、默认当前Agent绘图及可选自动runner；README仅保留一句安装链接，install.md随源码Skill导出。用户已明确授权推送main（不含发布标签）；首次git push因连接GitHub过慢超时，安装文档验证提交后重试，结果以实际远端输出记录。
 
 - README组织规则：开头清楚说明LuaDraw原创/参考图重绘、Markdown插图上下文、LaTeX数学配图、可编辑源码/PDF与质量检查；随后提供可复制给Agent的安装指令和自然语言使用示例，不写“给谁看的”。构建/参数/开发细节后置，完整原说明迁移docs/usage.md。Skill源码导出以CI验证+版本标签发布为目标，本轮仅本地配置，未推送/远端运行或创建Release；实际操作契约见docs/releasing.md，源代码分发政策不变。PDF到源码映射继续暂缓。

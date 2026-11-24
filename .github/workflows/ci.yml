@@ -143,5 +143,9 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Test viewer
-        run: node scripts/test_viewer.mjs
+      - name: Test viewer across locales
+        run: |
+          set -euo pipefail
+          for locale in C.UTF-8 en_US.UTF-8 zh_CN.UTF-8; do
+            env LANG="$locale" LC_ALL="$locale" node scripts/test_viewer.mjs
+          done

@@ -18,4 +18,4 @@ The release workflow only responds to `v*` tags. It rejects a tag that differs f
 
 Creating/pushing a tag is the release trigger; do not tag or publish without release authorization. The workflows in this repository do not push commits or tags.
 
-The configuration and its export/verification step have been checked locally. They have not yet been pushed or executed on GitHub; the first remote run must confirm the Ubuntu package installation and hosted-runner environment.
+The workflow now runs on GitHub. Its initial run completed the Ubuntu integration-tool installation, Go tests/vet, and source export/build checks successfully; the viewer test exposed a locale-dependent assertion, reproduced locally in English and corrected to verify artifact membership rather than mixed-language path positions. Both Node versions now test C, English and Chinese locale settings. Check the latest Actions run for the overall result.

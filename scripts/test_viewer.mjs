@@ -46,12 +46,14 @@ assert.equal(api.state.sessionFiles[1].file, null, 'non-selected session stays u
 
 const rootCompare = api.comparePathsForSession('', [{ path: 'compare/round_0001/comparison.png' }, { path: '预览/submitted.png' }, { path: 'other/compare/comparison.png' }]);
 assert.equal(rootCompare.length, 2, 'single-session directory root resolves comparison and final preview');
-assert.equal(rootCompare[0].path, 'compare/round_0001/comparison.png');
-assert.equal(rootCompare[1].path, '预览/submitted.png');
+assert.deepEqual(new Set(Array.from(rootCompare, item => item.path)), new Set([
+  'compare/round_0001/comparison.png', '预览/submitted.png',
+]), 'root artifacts are found regardless of locale-dependent path order');
 const batchCompare = api.comparePathsForSession('figure-6.9', [{ path: 'figure-6.9/compare/round_0001/comparison.png' }, { path: 'figure-6.9/预览/submitted.png' }]);
 assert.equal(batchCompare.length, 2);
-assert.equal(batchCompare[0].path, 'figure-6.9/compare/round_0001/comparison.png', 'batch root resolves nested session artifacts');
-assert.equal(batchCompare[1].path, 'figure-6.9/预览/submitted.png');
+assert.deepEqual(new Set(Array.from(batchCompare, item => item.path)), new Set([
+  'figure-6.9/compare/round_0001/comparison.png', 'figure-6.9/预览/submitted.png',
+]), 'batch root resolves artifacts regardless of locale-dependent path order');
 const rounds = api.comparePathsForSession('figure-6.9', [
   { path: 'figure-6.9/compare/round_0002/comparison.png' },
   { path: 'figure-6.9/compare/round_0010/comparison.png' },
@@ -126,4 +128,4 @@ api.render([
 const lazyDetailsHTML = elements.get('#timeline').innerHTML;
 assert.doesNotMatch(lazyDetailsHTML, /<h1>hidden thought<\/h1>/, 'collapsed reasoning is not markdown-rendered');
 assert.match(lazyDetailsHTML, /data-media-ref="file:\/\/media\/result\.png"/, 'images directly attached to tool results are shown');
-console.log('viewer parser, fresh-file, partial-write, and bounded-timeline checks passed');
+console.log(`viewer parser, fresh-file, partial-write, and bounded-timeline checks passed (${Intl.DateTimeFormat().resolvedOptions().locale})`);

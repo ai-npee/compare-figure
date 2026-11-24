@@ -1,5 +1,11 @@
 # 开发记录
 
+## 首次远端CI：跨语言路径排序断言修复
+
+用户反馈构建失败，实际Actions运行45370931894（提交966db5d）中Go测试/vet/源码导出、ZIP验证与独立构建均成功，失败的是Node22/24的scripts/test_viewer.mjs第49行：中文预览与英文compare路径经localeCompare排序，在GitHub英文环境与本地中文环境下顺序不同。用LANG/LC_ALL=en_US.UTF-8在本地精确复现，确认是测试错误地依赖混合语言路径位置。
+
+修复root/batch视图发现断言为路径集合一致，不改变生产查看器排序或最新比较轮次功能，保留numeric round_0010优先于round_0002的行为断言；CI两个Node版本额外分别覆盖C.UTF-8/en_US.UTF-8/zh_CN.UTF-8，本地三环境均通过。真实远端新运行结果待推送后确认，不修改Go/比较/分发语义，不打发布标签。
+
 ## 独立安装流程与推送
 
 用户要求用install.md集中安装流程，避免冗长安装提示词。新增根install.md，说明源码包/仓库获取、SHA校验、技能目录注册、依赖与Linux/Windows构建、无模型文档验证及可选自动runner；README缩为一句安装链接。install.md纳入Skill导出清单，所引用相对路径在包内可用，完整仓库说明使用远端链接。用户已授权推送main；首次git push连接GitHub超过60秒过慢失败，HTTPS直连检查无响应；使用现有本地代理后GitHub可达，并确认旧LingNc地址301跳转到ai-npee/compare-figure，安装/克隆链接改为实际地址。安装说明相对链接与包内字节一致、308文件完整CI导出/哈希/解压构建/资源检索及app/distribution回归通过，证据build/install-ci-validation/export-step.log。不创建Release标签。
