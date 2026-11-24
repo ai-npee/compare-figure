@@ -1,5 +1,11 @@
 # 开发记录
 
+## README入口整理与源码Skill持续发布
+
+按用户要求首页先解释主要功能：参考图片重绘、文字描述原创LuaDraw图、Markdown插图上下文和LaTeX数学配图，随后提供可复制给Agent的安装话术、自然语言使用示例和两种模式；构建/配置/开发放后面，不标注面向谁阅读。原有完整CLI、尺寸、会话、JSON、导出与验证说明迁入docs/usage.md并调整相对链接，详细接口继续链接既有文档，避免首页重复堆砌历史数据。Markdown/LaTeX指绘图上下文和嵌入目标，不夸大为整篇自动转换。
+
+源码导出接入GitHub Actions：普通更新/PR测试和校验，版本标签与VERSION一致才可发布ZIP/SHA；CI构建的本机导出工具不进分发包，维持source-only，真实配置/缓存/转录/私有数据不入包。仅在本地准备工作流及发布说明，未经明确指令不推送、不创建远端标签或Release；本地验证与远端执行结果分开记录。本地验证通过：README/详细文档相对链接与首页信息顺序、两个workflow的YAML解析、所有嵌入Bash与Node语法、Go全模块test/vet、viewer和导出参数测试；实际307文件源码ZIP校验和、解压manifest逐文件哈希、版本一致性、排除规则、独立构建及LuaDraw资源list验证通过。此外主线直接从最终YAML读取并执行完整“Export and validate source Skill”步骤，307文件解压校验、VERSION/SKILL/manifest一致、包内构建和资源检索全部通过，持久日志build/ci-validation/export-step.log。远端Actions/Ubuntu安装步骤尚未执行，没有推送、tag或Release。该次仅说明与CI配置，运行功能版本保持0.2.2，PDF源码精确映射继续暂缓。
+
 ## 后续计划：PDF页面／区域到TeX源码映射（暂缓）
 
 用户已确认先加入计划，目前没有必要实现。当前继续使用PDF文字/图片查看、grep定位和源码按行read，不新增运行依赖、不重编官方手册、不改固定vendor或现有工具接口。

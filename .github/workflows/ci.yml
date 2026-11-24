@@ -1,0 +1,147 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  go:
+    name: Go tests, vet, and source export
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go/go.mod
+          cache-dependency-path: go/go.sum
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install integration-test tools
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y \
+            lua5.4 \
+            poppler-utils \
+            texlive-fonts-recommended \
+            texlive-lang-chinese \
+            texlive-latex-extra \
+            texlive-luatex \
+            texlive-xetex \
+            unzip \
+            zip
+
+      - name: Run Go tests
+        working-directory: go
+        run: go test ./...
+
+      - name: Run Go vet
+        working-directory: go
+        run: go vet ./...
+
+      - name: Test source-export argument validation
+        run: bash scripts/test_export_skill.sh
+
+      - name: Export and validate source Skill
+        env:
+          EXPORT_DIR: ${{ runner.temp }}/compare-figure-export
+        run: |
+          set -euo pipefail
+          mkdir -p "$EXPORT_DIR"
+          bash scripts/export_skill.sh --out-dir "$EXPORT_DIR"
+
+          archive=$(find "$EXPORT_DIR" -maxdepth 1 -type f -name 'compare-figure-skill-v*.zip' -print -quit)
+          [[ -n "$archive" && -s "$archive" ]]
+          [[ -s "$archive.sha256" ]]
+          (cd "$EXPORT_DIR" && sha256sum --check "$(basename "$archive").sha256")
+
+          unpack="$RUNNER_TEMP/unpacked-skill"
+          mkdir -p "$unpack"
+          unzip -q "$archive" -d "$unpack"
+          mapfile -t unpacked_dirs < <(find "$unpack" -mindepth 1 -maxdepth 1 -type d -name 'compare-figure-skill-v*' -print)
+          [[ "${#unpacked_dirs[@]}" -eq 1 ]]
+          skill="${unpacked_dirs[0]}"
+
+          node - "$skill" <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const crypto = require('node:crypto');
+          const skill = process.argv[2];
+          const manifest = JSON.parse(fs.readFileSync(path.join(skill, 'manifest.json'), 'utf8'));
+          const version = fs.readFileSync(path.join(skill, 'VERSION'), 'utf8').trim();
+          const skillText = fs.readFileSync(path.join(skill, 'SKILL.md'), 'utf8');
+          const skillVersion = skillText.match(/^metadata:\s*\r?\n\s+version:\s*["']?([^\s"']+)["']?\s*$/m)?.[1];
+          if (manifest.version !== version || skillVersion !== version) {
+            throw new Error(`version mismatch: VERSION=${version}, manifest=${manifest.version}, SKILL=${skillVersion}`);
+          }
+          if (manifest.schema !== 'compare-figure-skill/2' || manifest.distribution !== 'source-only') {
+            throw new Error('unexpected source-export manifest schema or distribution');
+          }
+          if (!Array.isArray(manifest.files) || manifest.files.length === 0) throw new Error('manifest has no files');
+          const listed = new Set();
+          for (const entry of manifest.files) {
+            const rel = entry.path;
+            if (typeof rel !== 'string' || rel.startsWith('/') || rel.split('/').includes('..')) {
+              throw new Error(`unsafe manifest path: ${rel}`);
+            }
+            if (/(^|\/)(?:bin|\.deps|__pycache__|runtimefiles)(\/|$)|^(?:build|runs|dist|dev|\.github|doc-cache)(\/|$)|_test\.go$|\.exe$|\.py[co]?$|(^|\/)(?:runner\.(?:json|ya?ml)|[^/]+\.local\.(?:json|ya?ml))$/i.test(rel)) {
+              throw new Error(`development artifact or binary included: ${rel}`);
+            }
+            const file = path.join(skill, rel);
+            const body = fs.readFileSync(file);
+            const digest = crypto.createHash('sha256').update(body).digest('hex');
+            if (digest !== entry.sha256) throw new Error(`manifest SHA-256 mismatch: ${rel}`);
+            listed.add(rel);
+          }
+          function walk(dir, prefix = '') {
+            for (const name of fs.readdirSync(dir)) {
+              const rel = prefix ? `${prefix}/${name}` : name;
+              const full = path.join(dir, name);
+              if (fs.statSync(full).isDirectory()) walk(full, rel);
+              else if (rel !== 'manifest.json' && !listed.has(rel)) throw new Error(`unmanifested export file: ${rel}`);
+            }
+          }
+          walk(skill);
+          NODE
+
+          mkdir -p "$skill/build"
+          (
+            cd "$skill/go"
+            go build -o "$skill/build/compare-figure" ./cmd/compare-figure
+          )
+          "$skill/build/compare-figure" --help >/dev/null
+          "$skill/build/compare-figure" luadraw-doc --mode list --doc files --limit 1 >/dev/null
+
+  node:
+    name: Viewer test (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [22, 24]
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Test viewer
+        run: node scripts/test_viewer.mjs

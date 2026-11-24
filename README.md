@@ -1,240 +1,95 @@
 # compare-figure
 
-原生 **Go LuaDraw 矢量图 runner 与图形比对工具**。完整会话、模型协议、11个绘图工具、文档检索附图、编译、复核、续跑和交付均在Go中实现。**Skill只导出Go运行版本；Python只用于开发原型和对照测试，不是运行桥接或导出选项。**
+**用 LuaDraw 绘制、重绘和检查高质量矢量插图，交付可编辑的 LaTeX 源码与 PDF。**
 
-生产比较/会话基线为DocVision `20faca6`，绘图固定LuaDraw 3.7。四份原始提示词保留哈希基线，当前绘图使用新增的LuaDraw提示词；来源和许可见 [清单](docs/upstream.json) 与 [固定依赖](vendor/dependencies.lock.json)。完整迁移、接口及幂等行为见 [Go说明](docs/go-native.md)。
+可以根据参考图片还原图形，也可以从文字描述创作数学图、几何图、函数图和示意图；支持结合 Markdown 的插图上下文，或为 LaTeX 文稿绘制可嵌入的图稿。内置 LuaDraw 官方文档检索、编译、图片比对与本地会话查看器，帮助完成“查文档 → 绘图 → 编译 → 看图 → 修正”的过程。
 
-## 原创LuaDraw图与独立文档工具
+## 快速安装
 
-没有参考图时，当前Agent也可使用本Skill：先查文档，再编写LuaDraw程序、编译并查看PDF，按用户要求修正；不需要模型密钥、书稿或参考图，不进入比对/submit流程。
-
-```bash
-build/compare-figure luadraw-doc --mode frequent --cache-dir work/shared-doc-cache
-build/compare-figure luadraw-doc --query Dpolyline3d --cache-dir work/shared-doc-cache
-build/compare-figure luadraw-doc --request examples/luadraw-doc.json.example
-build/compare-figure luadraw-doc --stdin --cache-dir work/shared-doc-cache
-build/compare-figure luadraw-doc --jsonl --cache-dir work/shared-doc-cache
-build/compare-figure compile --source figure.tex --out work/compiled
-```
-
-专用文档入口接受裸参数JSON或docs envelope，stdout为JSON；JSONL常驻复用索引实例，错误逐行返回后继续。沿用七种文档模式、稳定段落ID、高频计数、无图搜索与按需PDF查看；缓存可通过CLI/JSON/环境变量指定。现有 `docs`、`luadraw-doc-search` 和 `tools --jsonl` 仍兼容。CLI及外部程序/Go包调用、缓存优先级、退出码见 [独立文档工具说明](docs/luadraw-doc.md)。索引内容是LuaDraw官方手册/源码，文档操作需要Poppler，不需要LuaLaTeX；真正绘图编译才需要Lua/TeX。
-
-## 仓库与Skill入口
-
-仓库自身可作为Skill：根目录 [SKILL.md](SKILL.md) 含标准YAML frontmatter（name、description、license、metadata.version），是仓库与安装包共用的唯一技能说明源。[VERSION](VERSION) 是默认发布版本，当前为0.2.2。
+复制下面这段话给你的 Agent：
 
 ```text
-SKILL.md / VERSION       Skill入口与发布版本
-README.md / AGENTS.md    使用说明与维护约定
-go/                      正式Go程序、包和原生测试
-prompts/                 固定来源及LuaDraw提示词
-vendor/                  固定LuaDraw资源、许可和SHA锁
-scripts/                 Lua辅助与构建/发布脚本
-examples/                脱敏配置示例
-docs/                    接口、迁移来源及开发记录
-dev/python/              Python原型、研发算法、历史查看器与对照测试
-build/ / dist/ / runs/   忽略的构建、发布和运行产物
+请安装并配置 compare-figure Skill：
+https://github.com/LingNc/compare-figure
+
+请先阅读仓库 README.md 和 SKILL.md，再安装到当前工具支持的 Skill 目录。
+如果仓库已有正式 Release，优先获取源码 Skill ZIP 和对应 SHA256，校验后解压；
+否则克隆仓库并使用根目录 SKILL.md。
+按说明检查 Go 1.25+、Lua/TeX 和 Poppler，首次构建本机程序，
+再做不调用付费模型的文档检索与编译检查，告诉我安装位置和可用功能。
+默认使用当前 Agent 绘图；仅在我要求自动 runner 时配置额外模型。
 ```
 
-源码仓库和导出的Skill包均附带Go源码，**不附带任何预构建程序**。目标机器的Agent首次使用时用Go 1.25+构建本机程序，后续复用；安装包不含Python、开发测试、真实配置或运行数据。
+安装完成后，直接描述要画什么，或提供参考图、Markdown／LaTeX 文稿和图形要求即可。正式发布包为源码包，首次构建和依赖检查由上述安装步骤完成，后续复用。
 
-## 独立图片、尺寸与Markdown上下文
+## 怎么使用
 
-程序只需要图片，可另附尺寸CSV和Markdown；不读取MinerU索引/bbox或依赖DocVision工程。常见目录可直接使用：
+| 想完成的事情 | 可以这样描述 |
+|---|---|
+| 按图片重绘 | “把这张图用 LuaDraw 重绘，保留标注、比例和线型，给我可编辑 TeX 和 PDF。” |
+| 从描述创作 | “画一个椭球与平面相交的三维示意图，标注坐标轴和截面，适合黑白讲义。” |
+| 处理 Markdown 插图 | “重绘这份 Markdown 中的指定插图，结合图前后的题意和符号，给出图稿与替换建议。” |
+| 为 LaTeX 文稿配图 | “为这段 LaTeX 题目绘制函数与阴影区域图，字体和数学标注与正文一致。” |
+| 查询 LuaDraw 用法 | “先检索官方手册和源码示例，确认曲面、箭头和标注的方法，再绘图。” |
 
-```text
-Book.md
-images/Book/figure.jpg
-images/Book/sizes.csv
-```
+主要有两种工作方式：
+
+- **当前 Agent 绘图**：直接查文档、写 LuaDraw、编译、看图和修正，无需额外模型密钥；既可重绘，也可原创。
+- **自动绘图**：提供支持图片与工具调用的模型接入，让 runner 自动迭代参考图重绘，保留会话并支持中断续跑。
+
+参考图重绘支持图片及可选的实际尺寸、Markdown 上下文，并提供像素叠图和尺寸偏差检查。原创图按描述检查结构、标注与样式，不需要参考图片或比对分数。Markdown／LaTeX 文稿可作为绘图上下文和图稿嵌入目标；当前不是一键转换整篇文稿的工具。
+
+## 能得到什么
+
+- **可编辑图稿**：自动 runner 交付内嵌 LuaDraw 代码的独立 TeX、原 Lua、PDF 和预览；当前 Agent 绘图也按此形式整理交付。
+- **文档辅助**：检索官方手册、查看 PDF 页／区域，或读取 TeX／Lua 文件的指定行；共享高频缓存可跨任务复用，也可供其他程序独立调用。
+- **重绘检查**：结合叠图、物理尺寸和实际图像检查还原效果；分数不能代替内容核对。
+- **会话回看**：用 Chrome／Edge 打开 [viewer.html](viewer.html)，选择会话目录，查看工具过程和图片。只读本地目录，按需加载，不上传；手动刷新读取新内容。
+
+## 详细说明
+
+| 内容 | 入口 |
+|---|---|
+| Skill 行为与完整操作流程 | [SKILL.md](SKILL.md) |
+| CLI、尺寸、Markdown 输入、配置、续跑与工具 | [详细使用说明](docs/usage.md) |
+| 独立文档工具：CLI／JSON／JSONL／Go 接口、缓存 | [LuaDraw 文档检索](docs/luadraw-doc.md) |
+| 原生 Go 接口、构建和资源导出 | [Go 运行说明](docs/go-native.md) |
+| CI 检查、版本标签与源码 Skill 发布 | [发布说明](docs/releasing.md) |
+| 已验证范围、历史变更和后续计划 | [开发记录](docs/notes.md) |
+
+## 构建与配置
+
+仓库和 Skill 包均只附生产源码，不带预构建程序。首次需要 [Go 1.25+](https://go.dev/dl/)（[安装说明](https://go.dev/doc/install)）；绘图需要 LuaLaTeX，或 Lua/texlua 配合 XeLaTeX/pdfLaTeX，文档与 PDF 操作需要 Poppler。正式程序不依赖 Python。
 
 ```bash
-# 自动：从Markdown选图，自动读旁边的sizes.csv并取图前后文
-build/compare-figure run --source-md Book.md --image-ref images/Book/figure.jpg \
-  --out work/auto --model MODEL --base-url URL --api-key-env KEY_ENV
-
-# 半自动：同样从Markdown选原图，与Agent自己生成的PDF比较
-build/compare-figure compare --source-md Book.md --image-ref images/Book/figure.jpg \
-  --candidate redrawn.pdf
-```
-
-也可直接传 `--reference reference.jpg` 或 `--original reference.jpg`。Markdown相对链接以MD目录解析；多图时指定完整 `--image-ref`（唯一文件名也可），初始上下文取目标前后20行，完整MD供image_context查相邻图和扩展上下文。半自动 `tool`首次同样支持source-md/image-ref，无需重复original。用户书稿只读。
-
-尺寸优先级：显式 `--reference-mm W,H` > 指定 `--sizes-csv FILE` / 图片旁或上级自动发现的sizes.csv（兼容size.csv）> 无毫米时仅墨迹宽高比。CSV格式：
-
-```csv
-# scale_px_per_pt=1.1361
-file,width_mm,height_mm,page_w_mm
-figure.jpg,86.63,103.71,143.93
-```
-
-CSV的mm已是定标结果，直接使用宽高，不再除一次scale。返回reference_measurement/candidate_measurement包含画布毫米、页宽、来源、CSV位置；text逐字采用原版compare_figure模板，提供Soft-ink overlap、墨迹占比/物理mm、宽高倍率/偏差、长宽比、平移和叠图图例；Agent compare_figure工具直接返回该文字和图片，不附自建JSON包。无尺寸时明确aspect_only，不误称已核验毫米。
-
-**物理尺寸先测、像素再归一化**：候选PDF读取真实页面毫米，先计算墨迹尺寸及偏差，再等比缩放候选图到原图宽度、补白到共同像素画布做重叠比较；不会独立拉伸宽高。即使归一化后图形相同，实际印刷尺寸放大两倍仍不能通过尺寸门槛。
-
-## 两种工作模式
-
-**自动模式**：用户提供支持视觉与工具调用的模型、base URL和key，Agent启动runner，由runner完成绘图迭代。默认17%重叠门槛，保留10%尺寸偏差检查。无需先写配置文件也可直接接入：
-
-```bash
-# FIGURE_MODEL_KEY中放用户提供的key；也支持 --api-key-file 或 --api-key
-build/compare-figure run --original reference.png --out runs/auto \
-  --model MODEL --base-url BASE_URL --api-key-env FIGURE_MODEL_KEY
-```
-
-**半自动模式**：当前Agent自己看原图、写LuaDraw、查手册、编译、查看对比图并改进，不需要额外模型或key。Skill明确指导Agent在 `pass=true` 且目视确认内容、标注和结构正确后结束；直接循环无需启动runner或调用submit。
-
-```bash
-build/compare-figure luadraw-doc-search Dpolyline3d
-# Agent使用自己的文件工具编写figure.lua
-build/compare-figure compile --source figure.lua --out runs/manual-compiled
-build/compare-figure compare --reference reference.png \
-  --candidate runs/manual-compiled/figure.pdf --threshold 17
-```
-
-编译PDF路径以输出JSON的 `pdf` 为准。比较回传 `similarity_percent`、`thresholds`、`pass` 和 `images`；读取实际对比图再决定如何修改。`--threshold`单位为百分比，JSON的 `pass_overlap` 单位为比例；默认分别为17和0.17。`--max-scale-dev`默认0.10，整图打分后才裁切证据。成功计算但不达标仍退出0，Agent应检查 `pass`。
-
-原11工具也可通过持久化的 `tool` / `agent-tool` 逐项调用：首次传 `--workspace`、`--original`、`--name`、`--args`；后续只需工作区和工具调用。`write_file/edit_file/read_file/grep/compile/view_pdf/compare_figure/submit/image_context/view_image/luadraw_doc` 均复用原生实现；`--name deliver`交付已接受稿。复杂参数用 `--args-file`。
-
-**默认输出固定复用**：compare/docs/compile未传 `--out` 时，按当前工作目录和操作类型使用一个固定临时槽，下一次覆盖上一次。比较固定保存comparison.png、metrics.json、result.json；文档图固定为预览/document.png，重复调用不会积累时间戳图。可用 `COMPARE_FIGURE_OUTPUT_ROOT`改位置。需要保留成品时指定 `--out` 或复制出来，并行任务使用不同输出目录。自动/持久工具工作区保留有意记录的源码与状态。
-
-## 构建与启动
-
-源码Skill首次使用需Go 1.25+，Agent在目标机本地构建当前平台程序后复用。Go官方下载与安装说明：https://go.dev/dl/ 、https://go.dev/doc/install 。绘图需要实际可用的LuaLaTeX，或独立Lua/texlua加XeLaTeX/pdfLaTeX。文档/PDF操作需要Poppler的 `pdftotext`、`pdfinfo`、`pdftoppm`。Go文档工具不依赖PyMuPDF。
-
-```bash
-# 在 go/ 目录
-GOCACHE="$PWD/../build/go-cache" go build -o ../build/compare-figure ./cmd/compare-figure
-
-# 以下在项目根目录运行；Windows用对应 .exe
-build/compare-figure environment
-build/compare-figure run --original /path/to/reference.png \
-  --context-file /path/to/context.md --out runs/figure-001 \
-  --config runner.yaml
-```
-
-模型必须支持图片和工具调用。[带注释YAML配置样例](examples/runner.yaml.example) 支持JSON/YAML、模型注册表和extends、Chat Completions/Responses/Anthropic、SSE/非流降级、思考参数及API重试。密钥可从指定环境变量、key文件或临时参数读取，不写入运行元数据、Skill包或转录。
-
-`run --check`校验输入和真实编译路线，不调用模型、不创建会话目录。`environment`报告版本、包路径和实际编译可用性，不能把命令存在当作可用。当前宿主LuaLaTeX已实测可用。探针和编译使用同一套工作目录内的TeX缓存根，避免分离TEXMFVAR/TEXMFCACHE时的fontloader误判；不改用户HOME或系统缓存。LuaLaTeX优先，独立Lua→TikZ→XeLaTeX/pdfLaTeX回退仍保留；目标机器会重新探测。
-
-## 会话、幂等与续跑
-
-```bash
-# 相同输入重复执行会自动恢复已有任务
-build/compare-figure run --original reference.png --out runs/figure-001 --config runner.yaml
-
-# 也可只复用存储的输入
-build/compare-figure run --out runs/figure-001 --resume --config runner.yaml
-```
-
-- 输入指纹拒绝把不同任务静默写入同一目录。已完成且仍满足当前门槛的任务直接返回已有产物，不需要再次调用模型或提供模型密钥。
-- 接受后、交付前中断可从已记录状态重编和收账。初始化失败后的重试仍保留首轮原图/任务；已开始的续跑不重复开场消息。
-- 11个工具包括写/改/读/grep、compile、view_pdf、compare_figure、submit、image_context、view_image、luadraw_doc。原图与邻图通过专门看图工具读取；文件工具限制在工作区。
-- 模型优先写可编辑LuaDraw程序，也接受单个真实LuaDraw环境的TeX正文；拒绝纯手写TikZ主稿。LuaDraw自动生成的TikZ是编译产物。
-- 默认门槛为17%重叠、10%尺寸偏差，8次真实提交后才告知尽力还原入口。比较先量物理尺寸、再归一化，始终先整图评分再裁证据。毫米尺寸未知时只检查墨迹宽高比。
-- 可配置原图印刷尺寸、局部PDF重渲染、看图软预算、动态逐图门槛、跨页merges、轮次预算、压缩、可选视觉复核。修正可跨多轮工具；复核失败交付已接受稿，交付重编该稿以避免未提交草稿混入。
-- 输出含编辑源、包装/生成依赖、PDF、预览、结果JSON及文件媒体转录；同一工作区有进程锁防止并发写入。当前版本3的原型转录/元数据可继续读取。
-
-## 原生JSON工具
-
-```bash
-build/compare-figure tools --request request.json
-build/compare-figure tools --jsonl
-build/compare-figure compare --original reference.png --pdf candidate.pdf --out runs/comparison
-```
-
-`tools`支持 `compare`、`docs`、`compile`、`environment`、`run`；stdout只有JSON。JSONL持续服务并复用缓存，坏请求独立回错后继续。未给输出目录则复用当前工作目录对应的固定临时槽。图片按 `images[{path,mime,width,height,base64?}]` 回传，可用 `inline_images:true`直接交给图像感知调用方。
-
-```json
-{"operation":"docs","arguments":{"query":"Dpolyline3d"}}
-{"operation":"docs","arguments":{"mode":"view","doc":"doc/luadraw-doc-en.pdf","page":91,"left":10,"top":15,"right":85,"bottom":90},"inline_images":true}
-```
-
-文档搜索默认只返回用法、源码/例子位置、PDF页码/bbox，不自动附图。模型需要查看时主动调用 `mode:view`，指定检索到的doc和page即可看整页，或附百分比区域和zoom局部重渲染。搜索bbox单位为PDF点，裁切参数为百分比；显式 `include_image:true` 可按需给搜索附图。暖查询不重新抽整套手册。更多请求示例和库接口见 [Go说明](docs/go-native.md)。
-
-文档库还提供 `list/find/grep/read/frequent`：先列真实路径或按文件名定位，再顺着include关系精读；`read`兼容PDF的 `doc`/`query` + `page`，不自动渲染图片。检索按完整段落合并去重，`snippet_chars`调每条长度、`max_chars`调总预算。高频模式可按当前排名行或稳定 `entry_id` 选择；模型主动查看才贡献计数，自动追加到新会话上下文的摘要不计数。默认摘要最多8行/2048字符，可在示例的 `docs.frequent` 配置中关闭。缓存放本Skill的 `build/doc-cache`，不随包分发。详细参数见 [Go说明](docs/go-native.md)。
-
-最终交付的 TeX 内嵌接受的 `\\begin{luadraw}...\\end{luadraw}` 代码，可以单文件编辑，不依赖旁边的Lua或生成TikZ输入；额外保留原接受Lua。`editable_tex`/`submitted_tex` 指向TeX，PDF由该TeX重编。没有LuaLaTeX仍可用独立Lua/texlua生成TikZ，再交给XeLaTeX或pdfLaTeX；PDF阶段仍需要TeX引擎。
-
-## 带版本号的Go源码Skill导出
-
-```bash
-# 从VERSION读取版本，导出源码Skill目录、ZIP和SHA256
-./scripts/export_skill.sh
-# 显式版本及本机Go工具链
-./scripts/export_skill.sh --version 0.2.2 --go /path/to/go
-```
-
-默认输出 `dist/compare-figure-skill-v0.2.2/` 及同名ZIP/SHA256。包只附Go生产源码、go.mod/go.sum、根Skill说明、版本、脱敏YAML示例、提示词、固定LuaDraw资源/手册、Lua辅助脚本和许可证；不附预构建程序。目标机Agent按根Skill说明安装Go 1.25+后，在包根运行：
-
-```bash
+git clone https://github.com/LingNc/compare-figure.git
+cd compare-figure
 go -C go build -o ../build/compare-figure ./cmd/compare-figure
-# Windows本机：
-go -C go build -o ../build/compare-figure.exe ./cmd/compare-figure
+build/compare-figure environment
+build/compare-figure luadraw-doc --query Dpolyline3d
 ```
 
-Go默认构建当前机器平台；首次可能下载go.mod中的模块依赖，后续复用本地缓存。其他平台不必预先打包程序；开发时仍可显式使用 `build --platforms GOOS/GOARCH` 交叉构建。发布脚本只构建本机导出工具，工具本身不入包。不同版本分别保留；同版本拒绝混入旧未知文件。VERSION、manifest版本和Skill元数据一致。Python、开发测试、真实配置、密钥与运行数据均不导出。
+Windows 构建输出名改为 `../build/compare-figure.exe`。编译结果的实际路径以 JSON 响应为准。
 
-## 配置示例与本地配置
+自动 runner 的配置从 [注释示例](examples/runner.yaml.example) 复制，密钥建议通过环境变量传入。真实配置、缓存和运行数据不进入源码 Skill 包。当前 Agent 绘图不需要填写这份模型配置。
 
 ```bash
 cp examples/runner.yaml.example runner.yaml
-# 编辑runner.yaml，填写模型和base_url；密钥建议使用api_key_env。
+# 配置模型后，按参考图启动自动绘图
 build/compare-figure run --original reference.png --out runs/figure-001 --config runner.yaml
+# 原创或重绘图稿均可单独编译
+build/compare-figure compile --source figure.tex --out work/compiled
 ```
 
-正式示例使用 `.yaml.example` 后缀并带字段注释；JSON仍兼容。`runner.yaml`、`runner.yml`、`runner.json`、`*.local.yaml`/`*.local.yml`/`*.local.json`和运行目录均由Git忽略。真实配置不纳入Skill清单；请勿把密钥填写到示例。会话/看图/编译/接受配置保留用户调整的参数（128轮、131072输出token、256000上下文等）。
-
-## 本地会话查看器
-
-使用 Chromium、Chrome 或 Edge 打开 [viewer.html](viewer.html)，点击“选择会话文件夹”。选父目录可列出多个会话，也可直接选择单个会话目录。页面持有浏览器只读目录/文件句柄，扫描仅枚举路径，不复制整套文件、不上传、不修改会话，无需服务器。选择会话或点击“刷新”会取得当前文件新快照；刷新还会重扫目录以发现新增会话和图片，按路径保留选中项。当前是按需/手动刷新，不是自动文件监听。
-
-v0.2.2修复了旧File缓存导致旧转录、历史比较图预读、切换竞态和图片URL未释放。首载只读选中转录、少量元数据和当前比较/最终图；消息里的图片进入视口才读取，折叠的工具/思考正文展开后才排版，最新比较轮次优先且缺失通道禁用。时间线默认最近100条，可点“载入更早”回看；完整图像适屏缩放和窄屏布局已修复。查看器复用用户指定的DocVision专用UI，来源与许可见 [来源记录](docs/viewer-upstream.json)，支持Go工具调用/回执、最终预览、比较证据和checkpoint，避免重复渲染压缩快照。
-
-Chromium受控测试（100个会话、所选约2.99MB/4000消息）：首屏DOM由168702降至1485个；20轮比较的测试会话首载读取由44降至5个文件，其他会话正文读取0。另用真实8.8会话验证41次工具和10/10张图片按需显示。测试通过注入目录句柄完成，时间不代表磁盘吞吐。仍需遍历目录路径，并完整读取/解析所选JSONL；没有流式尾读或全量虚拟滚动，超大单会话和巨大目录仍有CPU/内存开销。详细证据与局限见 [开发记录](docs/notes.md)。
-
-## 四图真实自动测试
-
-使用用户指定的 `gpt-6.1-sol`，在《高等数学释疑解难》选取图6.9（立体）和8.8、8.9、8.10（三电路），均由自动runner绘制和提交，未人工修改图稿。四图均LuaLaTeX直编、一次实际submit、非尽力接受、无运行警告：
-
-| 图 | 重叠 | 尺寸偏差 | 模型不确定标记 |
-|---|---:|---:|---|
-| 6.9 | 25.01% | 1.17% | 有 |
-| 8.8 | 62.33% | 0.83% | 无 |
-| 8.9 | 50.89% | 1.52% | 无 |
-| 8.10 | 35.19% | 0.58% | 有 |
-
-四份最终预览均已实际检查；图8.10中部开关在扫描上疑似K₁，模型保留原样并注明不确定。17%是像素接受门槛，仍应结合原图检查语义与投影。完整运行及原始结果位于本地忽略的 `runs/automatic-four-figures/`，不进入源码Skill。回归期间发现的工具错误保留于历史转录，不通过重跑付费模型来覆盖历史。
-
-## 复杂LuaDraw回归包
-
-用户提供的 [2D复杂测试](testdata/luadraw/luadraw-test-2d.lua) 与 [3D复杂测试](testdata/luadraw/luadraw-test-3d.lua) 原样保留，来源、完整SHA256与覆盖列表在 [测试包说明](testdata/luadraw/README.md)。包括曲线/网格、图案、plotmarks、装饰箭头、透明多边形、36×36曲面、cutfacet分层、调色板面片光照、螺旋线和数学标注。
+## 开发与发布
 
 ```bash
-# 在go/目录：两份复杂样例各测LuaLaTeX直编与独立Lua回退
-GOCACHE="$PWD/../build/go-cache" go test ./luadraw \
-  -run 'TestLuaDrawComplex(2D|3D)$' -count=1 -v
+go -C go test ./...
+go -C go vet ./...
+node scripts/test_viewer.mjs
+./scripts/export_skill.sh
 ```
 
-测试先校验附件SHA，再检查真实TikZ和PDF；回退包装加载LuaDraw样式需要的patterns、plotmarks、arrows.meta及decorations等库。测试包位于源码仓库，不打入运行Skill包。
+导出版本取自 [VERSION](VERSION)，生成源码 Skill ZIP、SHA256 和逐文件清单。GitHub Actions 配置在代码更新时测试并验证源码包，匹配版本的 `vX.Y.Z` 标签可触发 Release 发布；仅推送代码不会自动发布正式版本，详见 [发布说明](docs/releasing.md)。首次远端运行结果以 Actions 记录为准。
 
-通用会话框架复用的静态调查见 [pi-go评估](docs/pi-go-evaluation.md)：优先考察可导入的agent/model接口，保留现有接受态、媒体和旧会话恢复；本轮没有添加该依赖或迁移生产会话格式。
-
-## 开发与验证
-
-```bash
-# 在 go/ 目录，执行原生回归和静态检查
-GOCACHE="$PWD/../build/go-cache" go test ./...
-GOCACHE="$PWD/../build/go-cache" go vet ./...
-```
-
-测试使用本地模拟模型API及真实TeX/Poppler，不调用付费或真实模型。跨平台构建不等于Windows/macOS实机验收，具体实测范围记录在 [开发记录](docs/notes.md)。
-
-Python开发原型、算法和测试集中在 [dev/python/](dev/python/README.md)，不参与正式运行。对照测试使用conda base及 [开发依赖](dev/python/requirements.txt)：
-
-```bash
-conda run -n base env PYTHONPATH=dev/python:dev/python/algorithms:dev/python/tests \
-  python -m unittest discover -s dev/python/tests -v
-```
-
-Python历史比较器的小图平移失败已修复：小图金字塔网格不再超过画布尺寸，避免零面积单元污染评分；测试核验精确平移和逐像素对齐，正式Go评分器未改。历次验证与校准接口边界见开发记录。旧生产迁移表在 [迁移说明](docs/migration.md)，原型JSON说明在 [原型接口](docs/tools.md)。项目采用 [MIT许可](LICENSE)，LuaDraw分发保留LPPL 1.3c+。
+项目采用 [MIT 许可](LICENSE)，固定 LuaDraw 3.7 资源保留原许可。依赖和提示词来源见 [固定依赖](vendor/dependencies.lock.json) 与 [来源清单](docs/upstream.json)。

@@ -10,6 +10,8 @@ Python模块和测试仅放dev/python，使用conda base（本机/home/lingnc/mi
 
 ## 状态与范围
 
+- README组织规则：开头清楚说明LuaDraw原创/参考图重绘、Markdown插图上下文、LaTeX数学配图、可编辑源码/PDF与质量检查；随后提供可复制给Agent的安装指令和自然语言使用示例，不写“给谁看的”。构建/参数/开发细节后置，完整原说明迁移docs/usage.md。Skill源码导出以CI验证+版本标签发布为目标，本轮仅本地配置，未推送/远端运行或创建Release；实际操作契约见docs/releasing.md，源代码分发政策不变。PDF到源码映射继续暂缓。
+
 - 后续计划（用户明确暂缓）：PDF页/区域→TeX源文件及行范围的SyncTeX映射仅记录设计，当前没有必要实现；不重编手册、不修改vendor、不新增依赖或接口。具体候选方案见docs/notes.md；未来需PDF与映射同次编译/哈希绑定、路径可搬移、多来源范围及LuaDraw生成代码的映射精度说明。未经新的需求，不将此项作为未完成任务自动推进。
 
 - 0.2.2完成：修复独立viewer的File旧快照、历史比较图预读、图片/会话/目录切换竞态、objectURL回收、全量DOM、适屏裁图和窄屏布局；最新100事件分页，工具/思考展开后排版，视口图像惰性加载，最新比较轮次与可用视图，未写完JSONL尾行暂缓。实际Chromium受控测试首载44→5文件、4000消息DOM168702→1485，其他会话正文0读取，重新选择看到新追加、最新round20、分页/快切/空目录/URL回收/390px无溢出均通过；真实8.8会话41工具、10/10图片滚动后显示正常，浏览器异常0。证据runs/viewer-audit及runs/viewer-validation。只读目录句柄不复制/上传，手动刷新/重新选择fresh getFile，未实现自动监听/轮询；仍遍历路径、完整读取解析所选JSONL，未验证极大转录/慢网络盘，不把CPU测试称磁盘吞吐。源码包307文件全部SHA/凭证排除及搬移构建/文档读页通过。用户另询问doc：已有search/read/view/list/find/grep/frequent，可读TeX/Lua文件行范围；尚无PDF页到源码行精确映射/SyncTeX，须grep页内独特文本定位，不宣称已精确反查。

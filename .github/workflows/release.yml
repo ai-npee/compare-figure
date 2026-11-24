@@ -1,0 +1,78 @@
+name: Release source Skill
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Run CI checks
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+
+  release:
+    name: Publish source-only Skill archive
+    needs: checks
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v4
+
+      - name: Verify tag matches VERSION
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          version=$(tr -d '[:space:]' < VERSION)
+          [[ "$RELEASE_TAG" == "v$version" ]] || {
+            printf 'Tag %s does not match VERSION %s\n' "$RELEASE_TAG" "$version" >&2
+            exit 1
+          }
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go/go.mod
+          cache-dependency-path: go/go.sum
+
+      - name: Export source archive and checksum
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_DIR: ${{ runner.temp }}/compare-figure-release
+        run: |
+          set -euo pipefail
+          mkdir -p "$RELEASE_DIR"
+          bash scripts/export_skill.sh --version "$RELEASE_TAG" --out-dir "$RELEASE_DIR"
+          archive="$RELEASE_DIR/compare-figure-skill-${RELEASE_TAG}.zip"
+          [[ -s "$archive" ]]
+          [[ -s "$archive.sha256" ]]
+          (cd "$RELEASE_DIR" && sha256sum --check "$(basename "$archive").sha256")
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_DIR: ${{ runner.temp }}/compare-figure-release
+        run: |
+          set -euo pipefail
+          archive="$RELEASE_DIR/compare-figure-skill-${RELEASE_TAG}.zip"
+          args=(
+            gh release create "$RELEASE_TAG"
+            "$archive"
+            "$archive.sha256"
+            --title "compare-figure ${RELEASE_TAG}"
+            --generate-notes
+          )
+          if [[ "$RELEASE_TAG" == *-* ]]; then
+            args+=(--prerelease --latest=false)
+          fi
+          "${args[@]}"
