@@ -10,6 +10,8 @@ Python模块和测试仅放dev/python，使用conda base（本机/home/lingnc/mi
 
 ## 状态与范围
 
+- 0.2.2完成：修复独立viewer的File旧快照、历史比较图预读、图片/会话/目录切换竞态、objectURL回收、全量DOM、适屏裁图和窄屏布局；最新100事件分页，工具/思考展开后排版，视口图像惰性加载，最新比较轮次与可用视图，未写完JSONL尾行暂缓。实际Chromium受控测试首载44→5文件、4000消息DOM168702→1485，其他会话正文0读取，重新选择看到新追加、最新round20、分页/快切/空目录/URL回收/390px无溢出均通过；真实8.8会话41工具、10/10图片滚动后显示正常，浏览器异常0。证据runs/viewer-audit及runs/viewer-validation。只读目录句柄不复制/上传，手动刷新/重新选择fresh getFile，未实现自动监听/轮询；仍遍历路径、完整读取解析所选JSONL，未验证极大转录/慢网络盘，不把CPU测试称磁盘吞吐。源码包307文件全部SHA/凭证排除及搬移构建/文档读页通过。用户另询问doc：已有search/read/view/list/find/grep/frequent，可读TeX/Lua文件行范围；尚无PDF页到源码行精确映射/SyncTeX，须grep页内独特文本定位，不宣称已精确反查。
+
 - 0.2.1追加：当前Agent可无参考图创作LuaDraw图，先frequent/search/定位精读，再编写源码、compile/看PDF并交付；没有参考图不调用compare/submit，不声称比对分数。独立luadraw-doc CLI接受参数、--request/--stdin/--jsonl的裸工具JSON或docs envelope，供其他Skill/外部程序调用；不需model/key/reference/Markdown。复用现有索引与频次缓存，--cache-dir/JSON cache_dir或环境变量可设。原docs/luadraw-doc-search/tools接口兼容；专用docs入口禁止JSON切换到run/compile。文档初始化需Poppler，绘图编译才需Lua/TeX。独立调用契约docs/luadraw-doc.md与examples/luadraw-doc.json.example随源码Skill打包；公开Go luadraw.NewDocs/Definition/Execute/FrequentSnippet接口保留。Go全模块test/vet与专项回归通过；从无参考图/无密钥的另一目录实际验证CLI字段、JSON文件/裸参数、JSONL坏行继续、非docs请求拒绝、指定缓存和索引mtime复用；源码包307文件全部SHA核验通过，解压后构建并执行search/frequent JSONL成功。未重跑已完成四图付费模型。
 
 - 当前0.2.0用户要求：仅分发生产Go源码、go.mod/go.sum、SKILL/VERSION、固定LuaDraw资源、提示词、Lua helper、注释examples/runner.yaml.example、专用只读viewer.html及来源/许可；不附任何平台二进制、开发测试、真实配置或缓存。官方Go下载go.dev/dl，目标机Agent首次go -C go build；原0.1.2单Linux包策略由本次直接用户要求覆盖，不得恢复旧默认。导出manifest schema2 source-only/go/1.25+，所有文件SHA；目标平台按本机Go确定。

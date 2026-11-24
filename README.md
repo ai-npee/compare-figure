@@ -21,7 +21,7 @@ build/compare-figure compile --source figure.tex --out work/compiled
 
 ## 仓库与Skill入口
 
-仓库自身可作为Skill：根目录 [SKILL.md](SKILL.md) 含标准YAML frontmatter（name、description、license、metadata.version），是仓库与安装包共用的唯一技能说明源。[VERSION](VERSION) 是默认发布版本，当前为0.2.1。
+仓库自身可作为Skill：根目录 [SKILL.md](SKILL.md) 含标准YAML frontmatter（name、description、license、metadata.version），是仓库与安装包共用的唯一技能说明源。[VERSION](VERSION) 是默认发布版本，当前为0.2.2。
 
 ```text
 SKILL.md / VERSION       Skill入口与发布版本
@@ -162,10 +162,10 @@ build/compare-figure compare --original reference.png --pdf candidate.pdf --out 
 # 从VERSION读取版本，导出源码Skill目录、ZIP和SHA256
 ./scripts/export_skill.sh
 # 显式版本及本机Go工具链
-./scripts/export_skill.sh --version 0.2.1 --go /path/to/go
+./scripts/export_skill.sh --version 0.2.2 --go /path/to/go
 ```
 
-默认输出 `dist/compare-figure-skill-v0.2.1/` 及同名ZIP/SHA256。包只附Go生产源码、go.mod/go.sum、根Skill说明、版本、脱敏YAML示例、提示词、固定LuaDraw资源/手册、Lua辅助脚本和许可证；不附预构建程序。目标机Agent按根Skill说明安装Go 1.25+后，在包根运行：
+默认输出 `dist/compare-figure-skill-v0.2.2/` 及同名ZIP/SHA256。包只附Go生产源码、go.mod/go.sum、根Skill说明、版本、脱敏YAML示例、提示词、固定LuaDraw资源/手册、Lua辅助脚本和许可证；不附预构建程序。目标机Agent按根Skill说明安装Go 1.25+后，在包根运行：
 
 ```bash
 go -C go build -o ../build/compare-figure ./cmd/compare-figure
@@ -187,7 +187,11 @@ build/compare-figure run --original reference.png --out runs/figure-001 --config
 
 ## 本地会话查看器
 
-使用 Chromium、Chrome 或 Edge 打开 [viewer.html](viewer.html)，点击“选择会话文件夹”。选父目录可列出多个会话，也可直接选择单个会话目录；扫描只枚举路径，选中后才读取对应JSONL、元数据、比较图和关联媒体，全程本地只读、不上传、不修改会话，无需启动服务器。正在运行的会话可点击刷新。查看器复用用户指定的DocVision专用UI，来源与许可见 [来源记录](docs/viewer-upstream.json)，支持Go工具调用/回执、最终预览、比较证据和checkpoint，避免重复渲染压缩快照。
+使用 Chromium、Chrome 或 Edge 打开 [viewer.html](viewer.html)，点击“选择会话文件夹”。选父目录可列出多个会话，也可直接选择单个会话目录。页面持有浏览器只读目录/文件句柄，扫描仅枚举路径，不复制整套文件、不上传、不修改会话，无需服务器。选择会话或点击“刷新”会取得当前文件新快照；刷新还会重扫目录以发现新增会话和图片，按路径保留选中项。当前是按需/手动刷新，不是自动文件监听。
+
+v0.2.2修复了旧File缓存导致旧转录、历史比较图预读、切换竞态和图片URL未释放。首载只读选中转录、少量元数据和当前比较/最终图；消息里的图片进入视口才读取，折叠的工具/思考正文展开后才排版，最新比较轮次优先且缺失通道禁用。时间线默认最近100条，可点“载入更早”回看；完整图像适屏缩放和窄屏布局已修复。查看器复用用户指定的DocVision专用UI，来源与许可见 [来源记录](docs/viewer-upstream.json)，支持Go工具调用/回执、最终预览、比较证据和checkpoint，避免重复渲染压缩快照。
+
+Chromium受控测试（100个会话、所选约2.99MB/4000消息）：首屏DOM由168702降至1485个；20轮比较的测试会话首载读取由44降至5个文件，其他会话正文读取0。另用真实8.8会话验证41次工具和10/10张图片按需显示。测试通过注入目录句柄完成，时间不代表磁盘吞吐。仍需遍历目录路径，并完整读取/解析所选JSONL；没有流式尾读或全量虚拟滚动，超大单会话和巨大目录仍有CPU/内存开销。详细证据与局限见 [开发记录](docs/notes.md)。
 
 ## 四图真实自动测试
 

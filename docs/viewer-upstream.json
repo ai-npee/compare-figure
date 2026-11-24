@@ -5,5 +5,5 @@
   "source_sha256": "8db50b828ffbc2cc2f3ed5a192a31c19be43db366d25f4f4b05380ca80189903",
   "license": "MIT",
   "copyright": "Copyright (c) 2026 LingNc",
-  "adaptation": "Reused the specialized timeline and pixel comparison UI; removed active truncate handler, switched directory access to read mode, enumerated paths without reading file bodies, lazy-loads the selected transcript and referenced media, and normalizes Go runner transcript/run/result records."
+  "adaptation": "Reused the specialized timeline and pixel comparison UI; removed active truncate handler, switched directory access to read mode, enumerates handles without reading file bodies, reads fresh selected-session snapshots, lazily loads visible/referenced media and the selected comparison view, revokes object URLs, bounds timeline rendering and defers collapsed bodies, and normalizes Go runner transcript/run/result records."
 }

@@ -3,7 +3,7 @@ name: compare-figure
 description: "Create original LuaDraw figures or redraw and compare references. Provides standalone CLI/JSON/JSONL documentation lookup with shared frequency caching, plus automatic and Agent-led drawing tools; reference comparison defaults to 17% overlap."
 license: MIT
 metadata:
-  version: "0.2.1"
+  version: "0.2.2"
 ---
 
 # compare-figure: two work modes
@@ -42,7 +42,7 @@ Use `mode:frequent` to consult previously used paragraphs, with limit, line_char
 
 ## Browse saved sessions
 
-Open the packaged viewer.html in a Chromium-based browser and choose the runner output folder. Choose a parent folder to list multiple sessions, or a single session folder. It scans directory entries locally and reads only the selected session and referenced media on demand. Nothing is uploaded and no server is required. Refresh to inspect files added by a running task. The viewer supports Go session.jsonl, run.json/result.json, tool arguments/results, comparison evidence and final previews. It never edits or truncates sessions.
+Open the packaged viewer.html in a Chromium-based browser and choose the runner output folder. Choose a parent folder to list multiple sessions, or a single session folder. It retains read-only directory/file handles, enumerates paths without copying/uploading folder contents, and reads fresh selected-session snapshots on selection or manual Refresh. Refresh rescans to discover new files and preserves selection by path; there is no automatic filesystem watcher. Images load when their thumbnails enter view, the comparison panel reads only its selected view (newest comparison round), and collapsed tool/reasoning bodies render on expansion. The timeline starts with the latest 100 events and offers earlier events on demand. Nothing is uploaded and no server is required. The viewer supports Go session.jsonl, run.json/result.json, tool arguments/results, comparison evidence and final previews. It never edits or truncates sessions. Directory enumeration and full selected-JSONL parsing still cost time/memory for very large inputs; pagination bounds initial DOM rendering, not the transcript bytes read.
 
 ## Standalone inputs, physical size and Markdown context
 

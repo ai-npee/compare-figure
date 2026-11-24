@@ -5,6 +5,8 @@ import vm from 'node:vm';
 const html = await readFile(new URL('../viewer.html', import.meta.url), 'utf8');
 const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 assert.ok(script, 'inline viewer script exists');
+assert.match(html, /<style>[\s\S]*?<\/style>\s*<\/head>/, 'style and document head close before body');
+assert.match(html, /<body>[\s\S]*<\/body>\s*<\/html>/, 'viewer body and document close');
 new vm.Script(script, { filename: 'viewer.html' });
 
 const elements = new Map();
@@ -50,6 +52,11 @@ const batchCompare = api.comparePathsForSession('figure-6.9', [{ path: 'figure-6
 assert.equal(batchCompare.length, 2);
 assert.equal(batchCompare[0].path, 'figure-6.9/compare/round_0001/comparison.png', 'batch root resolves nested session artifacts');
 assert.equal(batchCompare[1].path, 'figure-6.9/预览/submitted.png');
+const rounds = api.comparePathsForSession('figure-6.9', [
+  { path: 'figure-6.9/compare/round_0002/comparison.png' },
+  { path: 'figure-6.9/compare/round_0010/comparison.png' },
+]);
+assert.equal(rounds[0].path, 'figure-6.9/compare/round_0010/comparison.png', 'comparison rounds sort newest-first numerically');
 
 const metadataRows = api.normalizeGoRows([
   { t: 'meta', kind: 'system', tools: [{ function: { name: 'read_image', description: 'Inspect a local image' } }] },
@@ -89,13 +96,34 @@ assert.match(checkpointOnly[0].text, /snapshot only/);
 
 assert.equal(api.escapeText('Bearer abc.def api_key=secret123 <script>'), 'Bearer [已隐藏] api_key=[已隐藏] &lt;script&gt;');
 
+const tailRows = api.parseSessionText('{"t":"msg","text":"complete"}\n{"t":"msg"');
+assert.equal(tailRows.length, 1, 'incomplete final JSONL line is deferred instead of reported as corruption');
+assert.equal(tailRows[0].text, 'complete');
+assert.equal(api.parseSessionText('{"t":"msg"}\n{bad}\n').at(-1).t, 'parse_error', 'malformed completed lines remain visible');
+let version = 0;
+const freshRecord = { file: null, handle: { async getFile() { version++; const snapshot = version; return { text: async () => `snapshot-${snapshot}` }; } } };
+assert.equal(await (await api.lazyFile(freshRecord)).text(), 'snapshot-1');
+assert.equal(await (await api.lazyFile(freshRecord, true)).text(), 'snapshot-2', 'fresh loads bypass the cached File snapshot');
+
 let reads = 0;
 const unused = { path: 'run/media/other.png', handle: { async getFile() { reads++; return { name: 'other.png' }; } } };
 const referenced = { path: 'run/media/ref.png', handle: { async getFile() { reads++; return { name: 'ref.png' }; } } };
 const meta = { path: 'run/run.json', handle: { async getFile() { reads++; return { name: 'run.json' }; } } };
 api.state.allFiles.push(unused, referenced, meta);
+for (const rec of [unused, referenced, meta]) api.state.fileByPath.set(rec.path, rec);
 await api.warmSelectedFiles('run/', [{ t: 'msg', images: ['file://media/ref.png'] }]);
-assert.equal(reads, 2, 'only metadata and referenced media are read');
+assert.equal(reads, 1, 'only selected run metadata is read eagerly');
 assert.equal(unused.file, undefined, 'unreferenced media stays unread');
-assert.ok(referenced.file);
-console.log('viewer parser and lazy-file checks passed');
+assert.equal(referenced.file, undefined, 'referenced media is deferred until its thumbnail enters view');
+api.render(Array.from({ length: 4000 }, (_, i) => ({ t: 'msg', role: 'assistant', text: `event ${i}` })));
+const timelineHTML = elements.get('#timeline').innerHTML;
+assert.ok((timelineHTML.match(/class="entry"/g) || []).length <= 100, 'large transcript initially renders at most 100 timeline events');
+assert.match(timelineHTML, /载入更早/, 'older events remain accessible through pagination');
+api.render([
+  { t: 'msg', role: 'assistant', reasoning_content: '# hidden thought', tool_calls: [{ id: 'direct', function: { name: 'read_image', arguments: '{}' } }] },
+  { t: 'msg', role: 'tool', tool_call_id: 'direct', text: 'image result', images: ['file://media/result.png'] },
+]);
+const lazyDetailsHTML = elements.get('#timeline').innerHTML;
+assert.doesNotMatch(lazyDetailsHTML, /<h1>hidden thought<\/h1>/, 'collapsed reasoning is not markdown-rendered');
+assert.match(lazyDetailsHTML, /data-media-ref="file:\/\/media\/result\.png"/, 'images directly attached to tool results are shown');
+console.log('viewer parser, fresh-file, partial-write, and bounded-timeline checks passed');
