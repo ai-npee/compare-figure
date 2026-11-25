@@ -189,11 +189,15 @@ func Run(ctx context.Context, opts Options) (Object, error) {
 			return nil, fmt.Errorf("reference dimensions must be finite nonnegative millimetres")
 		}
 	}
-	config, err := LoadConfig(opts.Config)
+	resourceRoot, err := distribution.FindRoot(opts.ResourceRoot)
 	if err != nil {
 		return nil, err
 	}
-	resourceRoot, err := distribution.FindRoot(opts.ResourceRoot)
+	configPath, err := ResolveConfigPath(opts.Config, resourceRoot)
+	if err != nil {
+		return nil, err
+	}
+	config, err := LoadConfig(configPath)
 	if err != nil {
 		return nil, err
 	}
@@ -383,7 +387,7 @@ func Run(ctx context.Context, opts Options) (Object, error) {
 		if !Bool(environment, "ready", Bool(environment, "usable", false)) {
 			return nil, fmt.Errorf("no usable toolchain for drawing mode %s: %v", opts.DrawingMode, environment)
 		}
-		return Object{"ok": true, "check": true, "api_contacted": false, "environment": environment, "resume": existing}, nil
+		return Object{"ok": true, "check": true, "api_contacted": false, "config_path": configPath, "environment": environment, "resume": existing}, nil
 	}
 	if !existing {
 		stored := filepath.Join(root, "media", "original"+strings.ToLower(filepath.Ext(reference)))

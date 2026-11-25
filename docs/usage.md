@@ -1,6 +1,6 @@
 # 详细使用说明
 
-快速安装、主要功能和使用示例见 [README](../README.md)。以下保留CLI、输入尺寸、会话、工具与验证细节；命令默认从仓库根执行。
+快速安装、主要功能和使用示例见 [README](../README.md)。自动 runner 启动前先按[配置指南](configuration.md)查找已有配置：显式 `--config`、`COMPARE_FIGURE_CONFIG`、当前目录、Skill资源根依次选取，标准名为 `runner.yaml`／`runner.yml`／`runner.json`。配置好模型和运行设置后只需传本次任务输入及输出目录；先用 `run --check` 查看 `config_path`，不要重复索要已有接入参数。以下保留CLI、输入尺寸、会话、工具与验证细节；命令默认从仓库根执行。
 
 自0.3.0起支持 [luadraw／mixed／latex／asymptote四策略](drawing-modes.md)，下方LuaDraw源码示例仅代表默认策略。配置 `drawing.mode` 或 `--drawing-mode` 切换；常规TikZ在latex/mixed模式允许。文档工具通用名为 `document_search`／CLI `document-search`，旧LuaDraw别名保留，底层直接引用独立doc-library，旧缓存文件格式和频次ID不迁移。最新差异见 [兼容矩阵](doc-library-compatibility.md)；下方历史验证数字标记原时点，不作为新版本包数量。
 

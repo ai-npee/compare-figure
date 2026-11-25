@@ -11,7 +11,20 @@ metadata:
 The Skill package contains Go source and runtime resources, with no prebuilt executable. Before first use, the Agent checks for Go 1.25+ (`go version`); official downloads and installation instructions are https://go.dev/dl/ and https://go.dev/doc/install. From this Skill root run `go -C go build -o ../build/compare-figure ./cmd/compare-figure` (Windows: `go -C go build -o ../build/compare-figure.exe ./cmd/compare-figure`). Go builds for the current host by default; use the existing executable for subsequent calls, and rebuild after source updates. Go modules listed in go/go.mod may need downloading on the first build. Use a writable cache, for example `GOCACHE="$PWD/build/go-cache"` on POSIX systems.
 Resolve the executable and resources relative to this SKILL.md, not the caller working directory. Use an absolute executable path when operating inside a book directory. The examples use compare-figure as shorthand for that full binary path. Execution is native Go; Python is not required. Lua/TeX/Poppler remain detected external tools. Asymptote modes also require a working `asy` executable; see install.md. The independent doc-library module is a fixed upstream Go dependency downloaded during the first build; no sibling checkout is required.
 
-Copy `examples/runner.yaml.example` to `runner.yaml` for a commented automatic-mode configuration; actual runner.yaml/runner.json and *.local.yaml/JSON files are ignored by Git and excluded from Skill exports. Preserve user-adjusted session/view/compile/figure_check budgets when creating local configurations. Use environment variables for keys where practical and never publish real credentials.
+## Before automatic runs: discover configuration
+
+Do this before asking the user for model, URL or key details. Automatic configuration applies to `run`/`auto` and `tools` with `operation: "run"`; standalone `compile`, `docs`, `compare`, `tool` and `environment` do not load it. `run --environment` follows the same discovery rules.
+
+1. Check whether the request already provides `--config PATH` or JSON `config`. Otherwise check `COMPARE_FIGURE_CONFIG`.
+2. If neither selects a path, inspect the process working directory for `runner.yaml`, then `runner.yml`, then `runner.json`; only then inspect the Skill/resource root in that same filename order. Deduplicate when cwd equals the root. Do not scan parent directories or HOME.
+3. Select only the first match; files are not merged. Explicit/env paths that are missing, invalid or unreadable fail rather than falling back. A discovered file that cannot be parsed also fails. Relative paths inside it resolve from process cwd.
+4. Do not automatically load `runner.local.yaml` or its `.yml`/`.json` variants. If one is clearly the intended private config, select it explicitly with `--config PATH` or `COMPARE_FIGURE_CONFIG=PATH`. Never read or print credentials merely to discover settings. Confirm only the config path and that expected keys exist; let the program read secret values.
+5. If an existing applicable config is present, use it. Do not ask again for model/URL/key. If none exists, copy `examples/runner.yaml.example` to cwd as `runner.yaml`, then request only genuinely missing connection details. The example is documentation, not an automatically loaded config. `run.json`, `result.json`, `agent-state` and session files are runtime state, not model configuration.
+6. Before any model request, run `compare-figure run --config PATH --original IMAGE --out DIR --check` (or use the discovered default) and verify success. `--check` does not contact the API or create session files. Then start the actual run. Task inputs remain explicit: `--original` or `--source-md` plus `--image-ref`, and `--out`.
+
+`--config none` (also JSON `"config":"none"`) is a reserved value that disables file discovery while retaining CLI options, environment defaults and built-in defaults. The environment variable is second only in selecting the config file; it does not mean all environment variables override file API fields. For details and actual config keys see [configuration guide](docs/configuration.md). Preserve user-adjusted budgets when preparing a new local file; do not overwrite an existing config.
+
+Copy `examples/runner.yaml.example` only when no reusable config exists. Actual runner.yaml/runner.json and *.local.yaml/JSON files are ignored by Git and excluded from Skill exports. Never publish real credentials.
 
 ## Drawing policy (independent of work mode and TeX engine)
 
@@ -104,7 +117,7 @@ The current Agent performs the drawing and iteration. A typical CLI loop is:
 1. Inspect the reference and surrounding context. Identify geometry, dimensions, labels, line styles, layering and any cross-page continuation. Preserve uncertain marks rather than inventing missing labels.
 2. Search the selected library documentation before inventing methods:
 
-       compare-figure document-search-search Dpolyline3d
+       compare-figure document-search Dpolyline3d
 
    Search returns text plus official PDF document/page/bbox locations without an image by default. Decide whether a page image is needed. Use `docs --mode view --doc doc/luadraw-doc-en.pdf --page 91` to inspect the located whole page; optionally pass --left/--top/--right/--bottom percentages and --zoom for a region. Search bbox coordinates are PDF points, not percentages. `docs --mode read --doc files/luadraw_base.lua --start-line 1 --end-line 40` reads source text. Explicit --include-image may attach a search crop when requested; do not request images for every lookup automatically.
 3. Write editable figure.lua (luadraw), figure.asy (asymptote), or figure.tex (latex/mixed). Use real geometry, including actual 3D constructions when needed. Pure hand-written TikZ is allowed in latex/mixed and rejected in luadraw/asymptote. Generated artifacts do not replace the accepted source. Embedding the reference raster is not redrawing.

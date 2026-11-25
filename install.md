@@ -71,7 +71,33 @@ Windows 可用 PowerShell 的 `$env:GOCACHE`、`$env:GOMODCACHE`、`$env:GOPATH`
 
 安装验证不调用付费模型。需要验证具体图稿时再执行 `compile --source figure.tex --out work/compiled`，并检查返回的 PDF 和预览。没有图稿时无需为了安装启动自动重绘。
 
-## 4. 开始使用
+## 4. 配置与跨目录使用
+
+安装包中的 `examples/runner.yaml.example` 只是脱敏说明，**不会自动加载**。自动 runner 只在 `run`/`auto` 或 `tools` 的 `operation: "run"` 中发现配置；`compile`、`docs`、`compare`、独立 `tool` 和 `environment` 不读取 runner 文件。默认发现顺序是：显式 `--config`/JSON `config`，`COMPARE_FIGURE_CONFIG`，当前工作目录的 `runner.yaml` → `runner.yml` → `runner.json`，最后是 Skill/resource root 的同名顺序。只选第一个，不合并；不扫描父目录或 HOME，也不读取 `runner.local.*`。
+
+已有配置时直接使用，不需要重新询问模型、URL 或 key；不要为发现配置读取或打印凭证。没有配置时才复制示例：
+
+```bash
+cp examples/runner.yaml.example runner.yaml
+# 编辑 runner.yaml；key 建议只放在 api_key_env 指向的环境变量中
+build/compare-figure run --original /path/to/reference.png --out runs/figure \
+  --check
+build/compare-figure run --original /path/to/reference.png --out runs/figure
+```
+
+`--check` 在正式运行前验证输入、配置和编译路线，不调用模型。显式路径不存在、不可读或解析失败会直接报错，不会静默回退。需要禁用文件配置时使用保留词 `--config none`；它只关闭文件发现，CLI、环境默认值和内置默认值仍生效。私人 `runner.local.yaml` 只能用 `--config PATH` 或 `COMPARE_FIGURE_CONFIG=PATH` 明确选择。`run.json`、`result.json`、`agent-state` 和 session 文件是状态，不是模型配置。
+
+从其他项目目录运行时，给配置和资源使用绝对路径；配置文件内的相对路径仍按进程 cwd 解释：
+
+```bash
+COMPARE_FIGURE_CONFIG=/srv/figures/runner.yaml \
+  /opt/compare-figure/build/compare-figure run \
+  --original /srv/figures/reference.png --out /srv/figures/runs/one --check
+```
+
+字段和优先级见 [配置指南](docs/configuration.md)。任务输入仍由 `--original`，或 `--source-md` + `--image-ref`，以及 `--out` 指定；不要把原图或任务输出目录当作 YAML 配置项。
+
+## 5. 开始使用
 
 让当前 Agent 阅读根目录的 [SKILL.md](SKILL.md)，然后提供参考图或说明想画什么。操作其他项目时使用可执行程序的绝对路径；资源可自动从 Skill 根发现，必要时指定 `--resource-root`。
 

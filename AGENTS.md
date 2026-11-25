@@ -10,6 +10,8 @@ Python模块和测试仅放dev/python，使用conda base（本机/home/lingnc/mi
 
 ## 状态与范围
 
+- 用户要求配置默认位置与Agent操作明确：run/auto/tools.operation=run按显式--config/JSONconfig > COMPARE_FIGURE_CONFIG > cwd的runner.yaml/yml/json > Skill资源根同名顺序选择一份配置，不合并；--config none禁用文件发现，没文件沿用CLI/env/内置默认。显式/env和已发现文件无效立即报错，不扫描父目录/HOME、不自动猜runner.local.*，后者需明确--config/env选取。run --environment同规则，独立compile/docs/compare/tool/environment不读runner配置。run --check返回config_path仅路径，不输出内容/不触达模型也不验证API密钥。SKILL开头已加先发现再询问：先用已有配置，不重复问model/URL/key，首次先check；example仅示例、真实runner.yaml输入配置、run/result/session是状态不能混用。模型/URL/drawing/session/view/compile/figure_check/docs可从配置省略CLI，--original或source-md/image-ref及--out仍任务输入；相对路径按进程cwd。完整docs/configuration.md及README/install/example说明随源码Skill导出。禁止输出真实凭证或覆盖已有配置。
+
 - 用户最新要求取消每次提交的自动CI，只需要推标签自动Release：ci.yml仅保留workflow_dispatch手动入口，无push/PR/workflow_call；release.yml不再调用CI或needs checks，仅v*标签触发版本一致校验、打包、checksum与创建Release。普通push/PR不运行Actions，需要完整检查时本地跑或手动触发。v0.3.0已在用户授权下正式发布，tag指向07b98b0，Release source Skill运行45571780693 success，ZIP与.sha256已上传；本次发布策略调整不重写既有标签/附件，后续tag生效。
 
 - 最新用户要求已完成：四绘图库提示词参照完整LuaDraw规范，go/runner/prompt.go统一DrawingPrompts加载；库policy+共享drawing_figure.system完整workflow，四mode同一user骨架恢复原尺寸/看图预算/Context动态围栏/查文档到提交步骤，提醒/复核后续轮/反馈也为文件。模板路径和作用见docs/prompt-guide.md；新模板适用于新会话，续跑原system/user不改写且system只出现一次，已接受无密钥恢复不依赖新模板。一次性变量替换不重展开Context，动态围栏保护内嵌代码，四mode原尺寸Hint可保留about39%页宽（前次explicit_mm漏page_w历史不改）。用户明确允许删除unused旧latex_figure.system.md/user.md，现已删除；只保留仍用于视觉复核的latex_figurecheck两原件及SHA，docs/upstream.json保留历史来源hash并标明移除。此要求覆盖下方历史“四原模板必须本地保留”，不得自动恢复unused两文件。

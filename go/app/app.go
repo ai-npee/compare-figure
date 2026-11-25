@@ -64,6 +64,11 @@ explicit output directory. Parallel tasks should use distinct --out directories.
 Automatic run accepts --model, --base-url, --api, --api-key-env, --api-key-file,
 --api-key, --config, --pass-threshold PERCENT, --resume and other session options.
 Use --resource-root when resources are not beside the installed binary.
+Run configuration: --config PATH > COMPARE_FIGURE_CONFIG > current-directory
+runner.yaml/runner.yml/runner.json > the same names in the Skill resource root.
+Select one file (no implicit merging). --config none disables file discovery.
+Use run --check --original REF --out DIR to inspect config_path without contacting a model.
+Independent compile/docs/compare/tool/environment commands do not load runner config.
 `
 
 func Run(ctx context.Context, args []string, in io.Reader, out, errOut io.Writer) int {
@@ -265,14 +270,24 @@ func runCLI(ctx context.Context, args []string, in io.Reader, out io.Writer) int
 		if opts.LuaDrawRoot != "" {
 			values = append(values, "--luadraw-root", opts.LuaDrawRoot)
 		}
-		if opts.DrawingMode == "" && opts.Config != "" {
-			config, e := runner.LoadConfig(opts.Config)
-			if e != nil {
-				return writeError(out, e, 2)
-			}
-			if configured := runner.Str(runner.Obj(config, "drawing"), "mode", ""); configured != "" {
-				values = append(values, "--drawing-mode", configured)
-			}
+		mode := opts.DrawingMode
+		root, e := distribution.FindRoot(opts.ResourceRoot)
+		if e != nil {
+			return writeError(out, e, 2)
+		}
+		path, e := runner.ResolveConfigPath(opts.Config, root)
+		if e != nil {
+			return writeError(out, e, 2)
+		}
+		config, e := runner.LoadConfig(path)
+		if e != nil {
+			return writeError(out, e, 2)
+		}
+		if mode == "" {
+			mode = runner.Str(runner.Obj(config, "drawing"), "mode", "")
+		}
+		if mode != "" {
+			values = append(values, "--drawing-mode", mode)
 		}
 		return Run(ctx, append([]string{"environment"}, values...), in, out, io.Discard)
 	}

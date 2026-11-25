@@ -1,5 +1,11 @@
 # 开发记录
 
+## 配置发现与Agent入口
+
+用户指出Agent总不知道已有配置且默认读取位置说明缺失。核实旧LoadConfig空路径只返回空对象、run只读显式--config，SKILL仅让复制example，未规定先发现再问模型信息。新增runner.ResolveConfigPath：显式--config/JSONconfig > COMPARE_FIGURE_CONFIG > cwd runner.yaml/yml/json > Skill资源根同名，选择第一份、不合并，不扫描父目录/HOME、不自动混入runner.local.*；后者可显式/env选取，none禁用发现。不存在的显式/env路径、非文件和已选坏语法均报错。统一Run处理覆盖CLI/JSON/tools.run，run --environment继承同规则及显式mode优先，独立compile/docs/compare/tool/environment不读取。相对路径仍按进程cwd，任务原图/Markdown与输出目录仍显式传。--check报告config_path而不输出配置正文、不调用模型、不验证密钥连通性。SKILL起始要求Agent先查现有配置，不重复问model/URL/key；README/install/usage/example和新docs/configuration.md同步，指南随源码Skill导出，保留用户预算128/131072/256000/300dpi，不改真实配置。
+
+验证：新优先级/none/坏路径/语法测试与真实Run --check继承latex PASS24.991s；runner/app/distribution完整回归PASS254.336s/83.269s/1.745s，相关vet与build成功，最终run --environment显式mode+坏路径专项PASS0.009s；文档链接和工作流语法、diffcheck通过。导出728文件全部manifestSHA成功，新指南/配置发现实现/Skill正文/示例与源码一致，无私有配置；从解压包独立Go构建，另一cwd自带runner.yaml自动继承latex的公开CLI实跑成功，证据build/config-discovery-validation/result.json。导出第一次因PATH旧Go尝试离线下载失败，改用现有Go1.25.11后通过；自检原误要求规范化Skill frontmatter逐字相同，修正为正文原样+manifestSHA后通过，无产品错误被隐藏。全部临时脱敏配置，无真实模型或密钥输出，本轮仅本地实现及构建，不覆盖已发布v0.3.0。
+
 ## 发布策略：标签自动打包，CI手动运行
 
 用户认为无需每次提交运行CI，要求仅推送标签时自动Release。ci.yml已移除push/PR/workflow_call，仅保留workflow_dispatch手动完整检查；release.yml移除复用CI的checks job与needs依赖，继续保留v*标签触发、标签与VERSION一致校验、源码ZIP导出、SHA256校验及Release附件发布。测试仍可在本地或GitHub手动运行。既有v0.3.0已由07b98b0成功发布，Release运行45571780693成功，源码ZIP和.sha256均已上传；新策略只影响后续提交/标签，不移动或重写已有Release。

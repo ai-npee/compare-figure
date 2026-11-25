@@ -68,13 +68,15 @@ build/compare-figure document-search --query Dpolyline3d
 
 Windows 构建输出名改为 `../build/compare-figure.exe`。编译结果的实际路径以 JSON 响应为准。
 
-自动 runner 的配置从 [注释示例](examples/runner.yaml.example) 复制，密钥建议通过环境变量传入。真实配置、缓存和运行数据不进入源码 Skill 包。当前 Agent 绘图不需要填写这份模型配置。
+自动 runner 的配置从 [注释示例](examples/runner.yaml.example) 复制，密钥建议通过环境变量传入。运行前先看 [配置发现与字段指南](docs/configuration.md)：已有配置按显式路径、`COMPARE_FIGURE_CONFIG`、当前目录、Skill/resource root 的顺序只选一个；没有配置时才复制示例。`run --check` 可先验证而不调用模型。真实配置、缓存和运行数据不进入源码 Skill 包。当前 Agent 绘图不需要填写这份模型配置。
 
 ```bash
 cp examples/runner.yaml.example runner.yaml
-# 配置模型后，按参考图启动自动绘图
-build/compare-figure run --original reference.png --out runs/figure-001 --config runner.yaml
-# 原创或重绘图稿均可单独编译
+# 配置模型后，先检查；通过后再去掉 --check 正式启动
+build/compare-figure run --original reference.png --out runs/figure-001 --check
+build/compare-figure run --original reference.png --out runs/figure-001
+# 也可显式关闭文件配置：--config none
+# 原创或重绘图稿均可单独编译（compile 不读取 runner 配置）
 build/compare-figure compile --source figure.tex --out work/compiled
 ```
 

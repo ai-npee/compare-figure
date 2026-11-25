@@ -1,4 +1,7 @@
-# 复制为 runner.yaml 后填写接入信息；runner.yaml 已加入 Git 忽略。
+# 这是脱敏示例，不会自动加载；复制为 runner.yaml 后才是 runner 输入配置。
+# 自动发现顺序和 --config none 说明见 docs/configuration.md。
+# runner.local.yaml 仅在 --config/COMPARE_FIGURE_CONFIG 明确指定时使用。
+# 示例不是状态文件：run.json/result.json/agent-state 属于运行状态。
 # Go 官方下载（Go 1.25+）：https://go.dev/dl/
 base_url: https://api.openai.com/v1
 model: your-vision-tool-model
@@ -39,6 +42,7 @@ figure_check:
 docs:
   # cache_dir 默认当前Skill目录下 build/doc-cache；COMPARE_FIGURE_CACHE 可覆写。
   frequent:
+    # 通过 document_search 工具主动 frequent/read 获取更多内容
     prompt_enabled: true  # 新会话上下文后附上过去高频查阅段落；续跑不重复注入
     prompt_max_chars: 2048  # 摘要字符硬上限2048；0关闭
     prompt_lines: 8  # 最多8条摘要，可设为4；0关闭
