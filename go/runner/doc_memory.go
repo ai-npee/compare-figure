@@ -13,9 +13,9 @@ func documentationMemory(ctx context.Context, config, options Object) (string, e
 	if !Bool(memory, "prompt_enabled", true) {
 		return "", nil
 	}
-	maxChars := min(2048, max(0, int(Num(memory, "prompt_max_chars", 2048))))
+	maxChars := min(4096, max(0, int(Num(memory, "prompt_max_chars", 4096))))
 	lines := min(8, max(0, int(Num(memory, "prompt_lines", 8))))
-	lineChars := min(512, max(16, int(Num(memory, "line_chars", 256))))
+	lineChars := min(1024, max(16, int(Num(memory, "line_chars", 1024))))
 	if maxChars == 0 || lines == 0 {
 		return "", nil
 	}

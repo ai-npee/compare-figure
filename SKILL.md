@@ -66,7 +66,7 @@ Supply a bare JSON tool object (`{"mode":"search","query":"Dpolyline3d"}`) or an
 
 `mode:read` accepts source files with 1-based start_line/end_line, or a PDF doc (also accepted in query) with page for text. `mode:view` displays a PDF whole page or a percentage crop. Search returns complete paragraph snippets with merged overlapping hits; snippet_chars controls each hit and max_chars controls the result budget. Inspect exact API signatures via source read before writing code.
 
-Use `mode:frequent` to consult previously used paragraphs, with limit, line_chars and max_chars (default 8 entries, 256 characters per line, 4096 total). The output gives a stable entry_id and original document range; pass entry_id for precise selection. Without doc, start_line/end_line select current ranking rows; with doc they select source ranges. Each explicit tool lookup contributes frequency only for paragraphs actually returned. The short automatic excerpt appended after a fresh task's context does not increase counts. `docs.frequent` in the runner YAML controls that initial excerpt (default at most 8 lines / 2048 characters); more detail remains available through the tool. Shared cache lives under build/doc-cache unless configured otherwise; it is excluded from Skill exports and expires when the knowledge-base fingerprint changes.
+Use `mode:frequent` to consult previously used paragraphs, with limit, line_chars and max_chars (pass line_chars:1024 and max_chars:4096 for wider excerpts; the interactive tool's default line_chars remains 256). The output gives a stable entry_id and original document range; pass entry_id for precise selection. Without doc, start_line/end_line select current ranking rows; with doc they select source ranges. Each explicit tool lookup contributes frequency only for paragraphs actually returned. The short automatic excerpt appended after a fresh task's context does not increase counts. `docs.frequent` in the runner YAML controls that initial excerpt (default at most 8 lines / 4096 characters total, up to 1024 characters per line); more detail remains available through the tool. Shared cache lives under build/doc-cache unless configured otherwise; it is excluded from Skill exports and expires when the knowledge-base fingerprint changes.
 
 ## Browse saved sessions
 
@@ -75,6 +75,8 @@ Open the packaged viewer.html in a Chromium-based browser and choose the runner 
 ## Standalone inputs, physical size and Markdown context
 
 This is a standalone figure tool. It does not read parsing-engine indexes, bounding-box caches or original source PDFs to infer the reference size. Use a single image, optional sizes.csv, and optional Markdown.
+
+Local image lookup uses the selected original image's directory first, so sibling images can be viewed by basename. Full local Markdown image references are resolved against the source document, including URL-encoded paths and explicitly linked `../` images outside the conventional `images/` tree. `--images-dir` is only a fallback, not required for a normal Markdown-linked figure. Never fetch remote image URLs or guess arbitrary paths outside the configured roots or explicit Markdown references.
 
 For the common directory Book.md plus images/Book/figure.jpg and images/Book/sizes.csv, select an image with:
 

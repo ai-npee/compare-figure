@@ -133,6 +133,30 @@ func ResolveMarkdown(sourceMD, imageRef, original, imagesDir, contextText string
 	return resolvedOriginal, resolvedRef, resolvedImages, resolvedContext, nil
 }
 
+// MarkdownImagePaths exposes only resolvable local references actually present
+// in the source document; arbitrary paths outside the image roots stay blocked.
+func MarkdownImagePaths(sourceMD, imagesDir string) (map[string]any, error) {
+	path, err := filepath.Abs(sourceMD)
+	if err != nil {
+		return nil, err
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	refs, _ := parseMarkdownImages(string(data))
+	out := map[string]any{}
+	for _, ref := range refs {
+		if isExternalImageRef(ref.decoded) {
+			continue
+		}
+		if resolved := resolveMarkdownImage(filepath.Dir(path), imagesDir, ref.decoded); resolved != "" {
+			out[strings.TrimPrefix(normalizeImageRef(ref.raw), "./")] = resolved
+		}
+	}
+	return out, nil
+}
+
 func isExternalImageRef(ref string) bool {
 	lower := strings.ToLower(strings.TrimSpace(ref))
 	return strings.HasPrefix(lower, "http://") || strings.HasPrefix(lower, "https://") || strings.HasPrefix(lower, "data:")

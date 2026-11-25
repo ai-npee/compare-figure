@@ -1,5 +1,13 @@
 # 开发记录
 
+## 图片引用目录优先与高频摘要扩容
+
+用户要求开场高频摘要从总2048/每行256扩大为总4096/每行1024、8条不变，runner默认和硬上限及documents.FrequentSnippet两层同步更新，仍尊重显式小预算，仍被动不计频。最多8条受总4096预算限制，不保证每条都达到1024或每次都显示8条。主动document_search frequent的每行默认仍为256，可显式传line_chars1024；文档区分自动摘要与主动工具，避免未修改上游却声称工具默认也变更。
+
+图5.3报错源于启动选图能按Markdown目录定位images/...，旧view_image却总先剥images/并拼images-dir，传入上级目录便找错。用户最终确认默认应使用选中原图所在目录，images-dir只作为回退。自动run在复制reference到media前保留真实原图目录；模型看同目录其他图可直接用裸文件名，Markdown目录作为额外根，显式images-dir最后回退。完整源Markdown经同一个parseMarkdownImages/resolveMarkdownImage建立已存在的本地引用映射，普通链接/其他目录/百分号编码/明确../引用也能查看；不允许模型任意越出图片根，不下载远程图片。半自动tool入口同样传入这组根与引用映射；根重叠递归搜索按实际路径去重，真实重名继续提示。新行为不改输入指纹算法、原会话文本或参考书稿。
+
+最终验证：新的source目录优先/Markdown原引用/其他目录映射/URL编码上层引用测试通过；runner235.837s与documents21.103s回归通过，相关vet/build成功，最终Markdown映射/被动摘要专项0.004s通过。公开tool以用户图5.3真实资料、保留原来宽images-dir，原图完整引用/裸名以及同目录另一图完整引用/裸名四次均生成看图图像，证据runs/image-reference-validation/result.json，无API请求、不改旧session。半自动持久工具绑定/MarkdownCSV入口与可搬移源码导出专项app1.508s、distribution0.190s通过；文档链接和diffcheck通过。尝试全drawing时宿主TeX缺standalone.cls导致真实编译子测试失败，未因此修改环境或宣称全仓通过。新增测试最初误删辅助函数声明、漏建嵌套夹具目录，均已修复并重新执行；图片路径回归也检出原images/前缀拼接遗漏，已修复后真实图验收。默认程序已重建，未调用付费模型、未改私有配置、未重打已有发布标签。
+
 ## 配置发现与Agent入口
 
 用户指出Agent总不知道已有配置且默认读取位置说明缺失。核实旧LoadConfig空路径只返回空对象、run只读显式--config，SKILL仅让复制example，未规定先发现再问模型信息。新增runner.ResolveConfigPath：显式--config/JSONconfig > COMPARE_FIGURE_CONFIG > cwd runner.yaml/yml/json > Skill资源根同名，选择第一份、不合并，不扫描父目录/HOME、不自动混入runner.local.*；后者可显式/env选取，none禁用发现。不存在的显式/env路径、非文件和已选坏语法均报错。统一Run处理覆盖CLI/JSON/tools.run，run --environment继承同规则及显式mode优先，独立compile/docs/compare/tool/environment不读取。相对路径仍按进程cwd，任务原图/Markdown与输出目录仍显式传。--check报告config_path而不输出配置正文、不调用模型、不验证密钥连通性。SKILL起始要求Agent先查现有配置，不重复问model/URL/key；README/install/usage/example和新docs/configuration.md同步，指南随源码Skill导出，保留用户预算128/131072/256000/300dpi，不改真实配置。

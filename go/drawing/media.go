@@ -8,6 +8,7 @@ import (
 	"image/jpeg"
 	"image/png"
 	"math"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -145,21 +146,72 @@ func (h *Harness) viewPDF(ctx context.Context, a map[string]any) (string, string
 	note += h.budgetNote("view_pdf", key, h.pdfViews[key], int(number(h.Options["view_pdf_max"], 0)))
 	return note + ") attached.", out, nil
 }
+func normalizeLocalImageRef(ref string) string {
+	ref = strings.Trim(strings.TrimSpace(ref), "<>")
+	if i := strings.IndexAny(ref, "?#"); i >= 0 {
+		ref = ref[:i]
+	}
+	if decoded, err := url.PathUnescape(ref); err == nil {
+		ref = decoded
+	}
+	return strings.TrimPrefix(strings.ReplaceAll(ref, "\\", "/"), "./")
+}
+
 func (h *Harness) imagePath(rel string) (string, error) {
+	rel = normalizeLocalImageRef(rel)
 	if filepath.IsAbs(rel) {
 		return "", fmt.Errorf("只允许相对路径: %s", rel)
+	}
+	if strings.Contains(rel, ":") {
+		return "", fmt.Errorf("只允许本地图片相对路径: %s", rel)
+	}
+	// Full references are resolved by the same parser that selected the input.
+	// They may point outside a conventional images/ directory, but must appear
+	// explicitly in the supplied Markdown, never be arbitrary model paths.
+	if strings.Contains(rel, "/") {
+		if refs, ok := h.Options["image_references"].(map[string]any); ok {
+			if target, ok := refs[rel].(string); ok {
+				if st, err := os.Stat(target); err == nil && st.Mode().IsRegular() {
+					return target, nil
+				}
+			}
+		}
 	}
 	norm := filepath.ToSlash(strings.TrimPrefix(strings.TrimPrefix(rel, "./"), "images/"))
 	cur := filepath.ToSlash(strings.TrimPrefix(strings.TrimPrefix(h.currentImage, "./"), "images/"))
 	subject := filepath.Dir(cur)
-	candidates := []string{}
-	if subject != "." && !strings.HasPrefix(norm, subject+"/") {
-		candidates = append(candidates, filepath.Join(h.imagesDir, filepath.FromSlash(subject), filepath.FromSlash(norm)))
+	roots := []string{h.imageSourceDir, h.imageMarkdownDir, h.imagesDir}
+	uniqueRoots := []string{}
+	for _, root := range roots {
+		if root != "" {
+			found := false
+			for _, prior := range uniqueRoots {
+				if filepath.Clean(prior) == filepath.Clean(root) {
+					found = true
+					break
+				}
+			}
+			if !found {
+				uniqueRoots = append(uniqueRoots, root)
+			}
+		}
 	}
-	candidates = append(candidates, filepath.Join(h.imagesDir, filepath.FromSlash(norm)))
+	roots = uniqueRoots
+	candidates := []string{}
+	for _, root := range roots {
+		candidates = append(candidates, filepath.Join(root, filepath.FromSlash(rel)))
+		candidates = append(candidates, filepath.Join(root, filepath.FromSlash(norm)))
+		if strings.HasPrefix(filepath.ToSlash(rel), "images/") {
+			candidates = append(candidates, filepath.Join(root, filepath.FromSlash(filepath.ToSlash(rel))))
+			candidates = append(candidates, filepath.Join(root, filepath.FromSlash(strings.TrimPrefix(filepath.ToSlash(rel), "images/"))))
+		}
+		if subject != "." && !strings.HasPrefix(norm, subject+"/") {
+			candidates = append(candidates, filepath.Join(root, filepath.FromSlash(subject), filepath.FromSlash(norm)))
+		}
+	}
 	for _, p := range candidates {
 		real, e := filepath.EvalSymlinks(p)
-		if e == nil && within(h.imagesDir, real) {
+		if e == nil && withinAny(roots, real) {
 			if st, e := os.Stat(real); e == nil && !st.IsDir() {
 				return real, nil
 			}
@@ -167,9 +219,13 @@ func (h *Harness) imagePath(rel string) (string, error) {
 	}
 	if !strings.Contains(norm, "/") {
 		matches := []string{}
-		root, err := filepath.EvalSymlinks(h.imagesDir)
-		if err == nil {
-			_ = filepath.WalkDir(root, func(path string, entry os.DirEntry, walkErr error) error {
+		seenMatches := map[string]bool{}
+		for _, root := range roots {
+			base, err := filepath.EvalSymlinks(root)
+			if err != nil {
+				continue
+			}
+			_ = filepath.WalkDir(base, func(path string, entry os.DirEntry, walkErr error) error {
 				if walkErr != nil {
 					return nil
 				}
@@ -178,7 +234,8 @@ func (h *Harness) imagePath(rel string) (string, error) {
 				}
 				if !entry.IsDir() && entry.Name() == filepath.Base(norm) {
 					resolved, e := filepath.EvalSymlinks(path)
-					if e == nil && within(root, resolved) {
+					if e == nil && withinAny(roots, resolved) && !seenMatches[resolved] {
+						seenMatches[resolved] = true
 						matches = append(matches, resolved)
 					}
 				}
@@ -192,8 +249,17 @@ func (h *Harness) imagePath(rel string) (string, error) {
 			return matches[0], nil
 		}
 	}
-	return "", fmt.Errorf("文件不存在: %s（%s）", rel, h.imagesDir)
+	return "", fmt.Errorf("文件不存在: %s（图片根目录: %s）", rel, strings.Join(roots, ", "))
 }
+func withinAny(roots []string, path string) bool {
+	for _, root := range roots {
+		if within(root, path) {
+			return true
+		}
+	}
+	return false
+}
+
 func within(root, path string) bool {
 	if resolved, err := filepath.EvalSymlinks(root); err == nil {
 		root = resolved

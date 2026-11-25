@@ -37,6 +37,8 @@ build/compare-figure run --config PATH --original reference.png --out work/figur
 
 `--check` 校验输入、配置解析和实际编译路线，JSON 的 `config_path` 会报告选中的配置绝对路径（没有配置时为空），不输出配置内容、不发模型请求，也不验证模型名或 API 密钥是否可用。检查通过后再去掉 `--check` 正式运行。任务输入仍由 `--original`，或 `--source-md` + `--image-ref`，以及 `--out` 指定；不要声称原图或任务输出目录能从 runner YAML 配置取得。
 
+使用 `--source-md` 时，图片解析优先以选中原图所在目录为根，因此模型查看同一目录的其他图片可以直接使用文件名；随后尝试 Markdown 文件所在目录（可解析 `images/...` 等原始链接），最后才使用 `--images-dir` 指定的目录作为回退。没有 `--images-dir` 时，启动选图仍按 Markdown 相对链接查找，默认图片根为 Markdown 目录下的 `images/`。通常保留 Markdown 中的原始 `images/...` 引用即可，不需要手动把 `--images-dir` 改成精确的子目录。实际出现在源 Markdown 中的其他本地图片引用也会按书稿位置解析，包括其他目录名、URL 编码空格和 `../` 相对链接；不会因此开放任意外部路径或远程图片下载。
+
 跨 cwd 使用时，配置文件可显式给绝对路径：
 
 ```bash
@@ -128,12 +130,12 @@ docs:
   cache_dir: work/doc-cache
   frequent:
     prompt_enabled: true
-    prompt_max_chars: 2048
+    prompt_max_chars: 4096
     prompt_lines: 8
-    line_chars: 256
+    line_chars: 1024
 ```
 
-`docs.frequent` 只控制新 runner 会话开头的 `document_search` 高频摘要；主动调用工具仍使用 `document_search`（旧 `luadraw_doc` 兼容）。缓存可由 CLI/环境单独指定。
+`docs.frequent` 只控制新 runner 会话开头的 `document_search` 高频摘要；默认最多 8 条、每行 1024 字符、总预算 4096 字符。实现硬上限同样为每行 1024、总量 4096；显式设置更小值仍会生效，设置 0 可关闭对应摘要。主动调用工具仍使用 `document_search`（旧 `luadraw_doc` 兼容）。缓存可由 CLI/环境单独指定。
 
 ## 不要混淆的边界
 

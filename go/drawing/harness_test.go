@@ -13,6 +13,50 @@ import (
 	"time"
 )
 
+func TestImagePathUsesSourceDirectoryBeforeFallback(t *testing.T) {
+	dir := t.TempDir()
+	same := filepath.Join(dir, "subject")
+	markdown := filepath.Join(dir, "book")
+	fallback := filepath.Join(dir, "fallback")
+	for _, d := range []string{same, markdown, filepath.Join(markdown, "images", "chapter"), fallback} {
+		if err := os.MkdirAll(d, 0755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	ref := filepath.Join(same, "target.png")
+	other := filepath.Join(same, "other.png")
+	mdOther := filepath.Join(markdown, "images", "chapter", "else.png")
+	fallbackOnly := filepath.Join(fallback, "fallback.png")
+	for _, p := range []string{ref, other, mdOther, fallbackOnly} {
+		if err := os.WriteFile(p, []byte("x"), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := os.WriteFile(filepath.Join(fallback, "other.png"), []byte("fallback"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	external := filepath.Join(dir, "shared picture.png")
+	if err := os.WriteFile(external, []byte("linked"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	h := &Harness{root: dir, imagesDir: fallback, imageSourceDir: same, imageMarkdownDir: markdown, currentImage: ref, Options: map[string]any{"image_references": map[string]any{"../shared picture.png": external}}}
+	for _, tc := range []struct{ in, want string }{{"other.png", other}, {"images/chapter/else.png", mdOther}, {"fallback.png", fallbackOnly}, {"../shared%20picture.png#preview", external}, {"./images/chapter/else.png", mdOther}} {
+		got, err := h.imagePath(tc.in)
+		if err != nil || got != tc.want {
+			t.Fatalf("%s => %s, %v; want %s", tc.in, got, err, tc.want)
+		}
+	}
+	unlinked := filepath.Join(dir, "not-linked.png")
+	if err := os.WriteFile(unlinked, []byte("unlinked"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	for _, denied := range []string{"../not-linked.png", external, "https://example.com/image.png"} {
+		if got, err := h.imagePath(denied); err == nil {
+			t.Fatalf("unexpected external path: %s => %s", denied, got)
+		}
+	}
+}
+
 func testHarness(t *testing.T, opts map[string]any) *Harness {
 	t.Helper()
 	dir := t.TempDir()

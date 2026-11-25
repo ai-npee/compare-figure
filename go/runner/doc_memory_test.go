@@ -22,6 +22,18 @@ func TestDocumentationMemoryBudgetsAndDisabled(t *testing.T) {
 			t.Fatalf("line too long %q", line)
 		}
 	}
+	large := boundedDocumentationMemory(strings.Join([]string{
+		strings.Repeat("a", 900),
+		strings.Repeat("b", 900),
+		strings.Repeat("c", 900),
+	}, "\n"), 8, 1024, 4096)
+	largeLines := strings.Split(large, "\n")
+	if len([]rune(large)) <= 2048 || len([]rune(largeLines[0])) <= 512 {
+		t.Fatalf("new default-sized budget was truncated at the old limit: total=%d first_line=%d", len([]rune(large)), len([]rune(largeLines[0])))
+	}
+	if len(largeLines) != 3 || len([]rune(large)) > 4096 {
+		t.Fatalf("new budget not respected: lines=%d total=%d", len(largeLines), len([]rune(large)))
+	}
 	empty, err := documentationMemory(context.Background(), Object{"docs": Object{"frequent": Object{"prompt_enabled": false}}}, Object{"luadraw_root": "not-a-real-root"})
 	if err != nil || empty != "" {
 		t.Fatalf("disabled memory touched library: %s %v", empty, err)
@@ -50,7 +62,7 @@ func TestDocumentationMemoryUsesRecordedParagraphs(t *testing.T) {
 		t.Fatal(err)
 	}
 	options := Object{"resource_root": root, "doc_cache_dir": cache, "drawing_mode": "luadraw"}
-	before, err := docs.FrequentSnippet(context.Background(), 8, 256, 2048)
+	before, err := docs.FrequentSnippet(context.Background(), 8, 1024, 4096)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -58,7 +70,7 @@ func TestDocumentationMemoryUsesRecordedParagraphs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	after, err := docs.FrequentSnippet(context.Background(), 8, 256, 2048)
+	after, err := docs.FrequentSnippet(context.Background(), 8, 1024, 4096)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,7 +80,7 @@ func TestDocumentationMemoryUsesRecordedParagraphs(t *testing.T) {
 	if !strings.Contains(got, "Dcircle") || !strings.Contains(got, "memory.tex") {
 		t.Fatalf("recorded reference missing: %q", got)
 	}
-	if len([]rune(got)) > 2048 || len(strings.Split(got, "\n")) > 8 {
+	if len([]rune(got)) > 4096 || len(strings.Split(got, "\n")) > 8 {
 		t.Fatalf("default prompt budgets exceeded: %s", got)
 	}
 }

@@ -216,7 +216,7 @@ func fit(s string, n int) string {
 }
 
 // FrequentSnippet is passive: it never increments frequency, renders images, or
-// extracts PDFs. Its complete output (including locations) is <=2048 characters.
+// extracts PDFs. Its complete output (including locations) is <=4096 characters.
 func (d *Docs) FrequentSnippet(ctx context.Context, limit, lineChars, maxChars int) (string, error) {
 	if d.library == nil {
 		return "", nil
@@ -228,10 +228,13 @@ func (d *Docs) FrequentSnippet(ctx context.Context, limit, lineChars, maxChars i
 		limit = 256
 	}
 	if lineChars <= 0 {
-		lineChars = 256
+		lineChars = 1024
 	}
-	if maxChars <= 0 || maxChars > 2048 {
-		maxChars = 2048
+	if lineChars > 1024 {
+		lineChars = 1024
+	}
+	if maxChars <= 0 || maxChars > 4096 {
+		maxChars = 4096
 	}
 	response, err := d.library.Execute(ctx, Request{Mode: "frequent", Passive: true, Limit: limit, LineChars: lineChars, MaxChars: maxChars})
 	if err != nil {

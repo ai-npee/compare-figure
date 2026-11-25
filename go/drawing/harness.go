@@ -24,17 +24,18 @@ import (
 
 // Harness is an independent LuaDraw drawing session and its eleven tools.
 type Harness struct {
-	Root, Reference            string
-	Options                    map[string]any
-	MinOverlap, MaxScaleDev    float64
-	State                      map[string]any
-	Context                    string
-	Timeout                    time.Duration
-	root, reference, imagesDir string
-	currentImage               string
-	views, pdfViews            map[string]int
-	warned                     map[string]bool
-	docs                       *documents.Docs
+	Root, Reference                  string
+	Options                          map[string]any
+	MinOverlap, MaxScaleDev          float64
+	State                            map[string]any
+	Context                          string
+	Timeout                          time.Duration
+	root, reference, imagesDir       string
+	imageSourceDir, imageMarkdownDir string
+	currentImage                     string
+	views, pdfViews                  map[string]int
+	warned                           map[string]bool
+	docs                             *documents.Docs
 }
 
 func New(root, reference, contextText string, threshold float64, timeout time.Duration, options map[string]any) (*Harness, error) {
@@ -62,7 +63,7 @@ func New(root, reference, contextText string, threshold float64, timeout time.Du
 	}
 	h := &Harness{Root: abs, Reference: ref, root: abs, reference: ref, Context: contextText, Timeout: timeout, Options: options,
 		MinOverlap: threshold, MaxScaleDev: number(options["max_scale_dev"], .1),
-		currentImage: stringValue(options["current_img"], filepath.Base(ref)), imagesDir: stringValue(options["images_dir"], filepath.Dir(ref)),
+		currentImage: stringValue(options["current_img"], filepath.Base(ref)), imagesDir: stringValue(options["images_dir"], filepath.Dir(ref)), imageSourceDir: stringValue(options["image_source_dir"], filepath.Dir(ref)), imageMarkdownDir: stringValue(options["image_markdown_dir"], ""),
 		views: map[string]int{}, pdfViews: map[string]int{}, warned: map[string]bool{}, State: newState()}
 	if _, ok := options["accept_min_submits"]; !ok {
 		options["accept_min_submits"] = 8
@@ -93,7 +94,7 @@ func (h *Harness) Definitions() []map[string]any {
 		toolSchema("compare_figure", "Compare the original image with a compiled figure. Returns a four-panel overlay (gray/R/G/B) or one selected panel; supports targeted crop and zoom for detailed re-checks. This is visual evidence, not semantic proof.", map[string]any{"pdf_path": prop("string", "Workspace-relative compiled PDF path; defaults to the latest successful compile."), "detail": map[string]any{"type": "string", "enum": []string{"all", "gray", "r", "g", "b", "rg", "rb", "gb"}, "description": "all returns a 2x2 gray/R/G/B board; a channel or channel combination returns that panel"}, "worst_region": prop("boolean", "Return only the automatically located weakest comparison region instead of the full figure"), "left": prop("number", "Crop left percentage, 0-100."), "top": prop("number", "Crop top percentage, 0-100."), "right": prop("number", "Crop right percentage, 0-100."), "bottom": prop("number", "Crop bottom percentage, 0-100."), "zoom": prop("integer", "Target output width in pixels; 0 keeps cropped native width.")}),
 		toolSchema("submit", "Submit the exact editable LuaDraw source that was successfully compiled and compared. Use {path:'figure.lua'}; never submit generated TikZ as the editable source.", map[string]any{"path": prop("string", "Workspace-relative editable LuaDraw source; must equal the last successful compile."), "code": prop("string", "Final LuaDraw source inline, only when not using path."), "merges": prop("string", "Image paths (as in the markdown) of page-boundary continuations absorbed into this combined figure.")}),
 		toolSchema("image_context", "TEXT context (no pixels): show the markdown lines around an image ref (expandable up/down window, like get_more_context) plus the previous/next image refs with their line numbers. Use it to detect cross-page continuations; use view_image to actually LOOK at an image.", map[string]any{"image": prop("string", "Image ref as in the markdown (default: the image this session is drawing). A bare file name is also accepted (resolved inside this document's image folder)."), "up": prop("integer", "Context lines above (default 10)."), "down": prop("integer", "Context lines below (default 10).")}),
-		toolSchema("view_image", "LOOK at an image (pixels). path is the image as it appears in the markdown (images/<subject>/foo.jpg) or just its file name (foo.jpg); it is joined to this document's image folder — a wrong name is reported as an error. Compiled PDFs are NOT images: inspect them with view_pdf. Optionally crop a region by percentages (left/top/right/bottom, 0-100) and scale it up for detail inspection. For TEXT context around an image use image_context instead.", map[string]any{"path": prop("string", "Image file name (foo.jpg) or the markdown ref (images/<subject>/foo.jpg)."), "left": prop("number", "Crop left in percent (0-100), default 0."), "top": prop("number", "Crop top in percent (0-100), default 0."), "right": prop("number", "Crop right in percent (0-100), default 100."), "bottom": prop("number", "Crop bottom in percent (0-100), default 100."), "zoom": prop("integer", "Target width in pixels for the returned image (e.g. 1400 for detail view). Default: fit to 1280.")}, "path"),
+		toolSchema("view_image", "LOOK at an image (pixels). path is the image as it appears in the markdown (images/<subject>/foo.jpg) or just its file name (foo.jpg); it first searches the selected original image's directory, then the Markdown directory, then the optional images-dir fallback — a wrong name is reported as an error. Compiled PDFs are NOT images: inspect them with view_pdf. Optionally crop a region by percentages (left/top/right/bottom, 0-100) and scale it up for detail inspection. For TEXT context around an image use image_context instead.", map[string]any{"path": prop("string", "Image file name (foo.jpg) or the markdown ref (images/<subject>/foo.jpg)."), "left": prop("number", "Crop left in percent (0-100), default 0."), "top": prop("number", "Crop top in percent (0-100), default 0."), "right": prop("number", "Crop right in percent (0-100), default 100."), "bottom": prop("number", "Crop bottom in percent (0-100), default 100."), "zoom": prop("integer", "Target width in pixels for the returned image (e.g. 1400 for detail view). Default: fit to 1280.")}, "path"),
 	}
 	mode, _ := render.Mode(h.Options)
 	for _, definition := range tools {

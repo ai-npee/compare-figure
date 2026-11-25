@@ -7,6 +7,33 @@ import (
 	"testing"
 )
 
+func TestMarkdownImagePathsIncludesAllLocalReferences(t *testing.T) {
+	md, images, root := writeMarkdownFixture(t, "![](images/book/target.png)\n[see](../shared%20image.png)\n![](other/sibling.png)\n![](missing.png)\n![](https://example.com/image.png)\n")
+	local := filepath.Join(images, "target.png")
+	outside := filepath.Join(root, "shared image.png")
+	other := filepath.Join(filepath.Dir(md), "other", "sibling.png")
+	if err := os.MkdirAll(filepath.Dir(other), 0755); err != nil {
+		t.Fatal(err)
+	}
+	for _, p := range []string{local, outside, other} {
+		if err := os.WriteFile(p, []byte("fixture"), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	got, err := MarkdownImagePaths(md, images)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for key, want := range map[string]string{"images/book/target.png": local, "../shared image.png": outside, "other/sibling.png": other} {
+		if got[key] != want {
+			t.Fatalf("%s=%v, want %s", key, got[key], want)
+		}
+	}
+	if len(got) != 3 {
+		t.Fatalf("unexpected local references: %v", got)
+	}
+}
+
 func writeMarkdownFixture(t *testing.T, content string) (string, string, string) {
 	t.Helper()
 	root := t.TempDir()

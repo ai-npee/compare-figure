@@ -56,7 +56,7 @@ d, err = documents.NewConfig(documents.Config{
 | grep | 字面/RE2正则，doc范围，默认区分大小写 | 保留；适配器为未显式设置case_sensitive的grep补true，保持旧行为；显式false可不区分大小写。直接产生真实命中行并计入正文频次，search默认大小写行为不变 |
 | 分页 | limit、offset | 保留；结构化next_offset及warning说明可能还有结果，不承诺总结果数 |
 | 片段预算 | snippet_chars与max_chars；旧search将位置header算入正文预算 | 保留正文预算。当前max_chars约束各result.text的总和；text中的来源header、行号、cache说明和warning在预算外，不能把整段tool text当作严格max_chars上限 |
-| 被动开场摘要 | 8行/2048字符上限，不计频 | 保留。完整摘要包括位置、ID、次数也≤2048字符；不主动渲染、不触发PDF抽取 |
+| 被动开场摘要 | 8行/每行1024、总计4096字符上限，不计频 | 保留。完整摘要包括位置、ID、次数也≤4096字符；不主动渲染、不触发PDF抽取 |
 | 主动frequent | 排名区间、doc/行范围、entry_id前缀 | 保留；主动返回项计频，passive=true不计频；旧负limit表示默认8条的调用也兼容 |
 | 正文频次 | read/search/view及主动frequent，稳定段落ID | 保留；grep真实命中也作为条目。多源ID包含source，文件内容变更后只隐藏该文件旧条目，不清空整个库的未变文件 |
 | 导航频次 | list/find把整个目录输出保存成伪段落 | 有意不保留。上游只累计真实文档段落，不把目录列表和空匹配混入高频知识 |

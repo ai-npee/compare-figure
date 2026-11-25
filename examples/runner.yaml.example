@@ -44,6 +44,6 @@ docs:
   frequent:
     # 通过 document_search 工具主动 frequent/read 获取更多内容
     prompt_enabled: true  # 新会话上下文后附上过去高频查阅段落；续跑不重复注入
-    prompt_max_chars: 2048  # 摘要字符硬上限2048；0关闭
+    prompt_max_chars: 4096  # 摘要字符硬上限4096；0关闭
     prompt_lines: 8  # 最多8条摘要，可设为4；0关闭
-    line_chars: 256  # 每行字符限制；需要更多信息用luadraw_doc frequent/read
+    line_chars: 1024  # 每行字符限制；需要更多信息用document_search frequent/read

@@ -116,9 +116,9 @@ return err
 - 默认位置为Skill根的 `build/doc-cache`，CLI显式 `--cache-dir` / JSON `cache_dir` 优先；否则 `COMPARE_FIGURE_CACHE` 可覆盖默认目录。Go `NewDocs` 请显式传cacheRoot以取得相同位置策略。
 - 相同cache目录可跨进程/会话共享；JSONL同一进程还复用内存对象。并行图片请求应各自指定out目录，避免默认预览覆盖；仅文字查询可以共用缓存。
 - 索引和频次采用 doc-library 的根／配置命名空间与逐文件 SHA 校验；同大小、同 mtime 的内容改写也会失效。旧 v4 缓存及 entry_id 不直接迁移，首次查询会重建。
-- 高频最多256条，每条正文最多2048字符。主动 search/read/view/grep/frequent 只为实际返回的文档正文计数；list/find 目录导航及被动摘要不计数。
-- 默认frequent为8条、每行256字符、总正文预算4096；支持短 `entry_id` 或排名范围选择。排名累计次数，无时间衰减。
-- 当前Agent原创绘图没有自动runner开场注入：请主动先调用frequent；自动runner的新任务开场摘要默认8行/2048字符，配置docs.frequent可关闭，语义不变。
+- 高频最多256条，每条正文最多1024字符。主动 search/read/view/grep/frequent 只为实际返回的文档正文计数；list/find 目录导航及被动摘要不计数。
+- 默认frequent为8条、每行256字符、总正文预算4096；需要更长条目可传 `line_chars:1024`。支持短 `entry_id` 或排名范围选择。排名累计次数，无时间衰减。
+- 当前Agent原创绘图没有自动runner开场注入：请主动先调用frequent；自动runner的新任务开场摘要默认8行、每行1024字符、总预算4096字符，显式更小预算仍生效，配置docs.frequent可关闭，语义不变。
 - 多进程写入由锁和原子替换保护。缓存属于可重建本地状态，不进Git、不附在源码Skill包中；不同项目想隔离历史，指定不同cache目录即可。
 
 所有参数详见 `luadraw-doc --help`。本工具面向本地CLI/JSONL/Go调用，未新增HTTP服务或模型SDK依赖。

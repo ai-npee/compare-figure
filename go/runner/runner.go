@@ -368,6 +368,17 @@ func Run(ctx context.Context, opts Options) (Object, error) {
 	}
 	options["engine"] = engine
 	options["resource_root"] = resourceRoot
+	if opts.Original != "" {
+		options["image_source_dir"] = filepath.Dir(abs(opts.Original))
+	}
+	if opts.SourceMD != "" {
+		options["image_markdown_dir"] = filepath.Dir(abs(opts.SourceMD))
+		paths, pathErr := MarkdownImagePaths(opts.SourceMD, opts.ImagesDir)
+		if pathErr != nil {
+			return nil, pathErr
+		}
+		options["image_references"] = paths
+	}
 	options["helper_path"] = filepath.Join(resourceRoot, "scripts", "luadraw_runtime.lua")
 	options["metadata_path"] = metadataPath
 	luaRoot := opts.LuaDrawRoot

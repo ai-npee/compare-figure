@@ -156,7 +156,7 @@ build/compare-figure compare --original reference.png --pdf candidate.pdf --out 
 
 文档搜索默认只返回用法、源码/例子位置、PDF页码/bbox，不自动附图。模型需要查看时主动调用 `mode:view`，指定检索到的doc和page即可看整页，或附百分比区域和zoom局部重渲染。搜索bbox单位为PDF点，裁切参数为百分比；显式 `include_image:true` 可按需给搜索附图。暖查询不重新抽整套手册。更多请求示例和库接口见 [Go说明](../docs/go-native.md)。
 
-文档库还提供 `list/find/grep/read/frequent`：先列真实路径或按文件名定位，再顺着include关系精读；`read`兼容PDF的 `doc`/`query` + `page`，不自动渲染图片。检索按完整段落合并去重，`snippet_chars`调每条长度、`max_chars`调总预算。高频模式可按当前排名行或稳定 `entry_id` 选择；模型主动查看才贡献计数，自动追加到新会话上下文的摘要不计数。默认摘要最多8行/2048字符，可在示例的 `docs.frequent` 配置中关闭。缓存放本Skill的 `build/doc-cache`，不随包分发。详细参数见 [Go说明](../docs/go-native.md)。
+文档库还提供 `list/find/grep/read/frequent`：先列真实路径或按文件名定位，再顺着include关系精读；`read`兼容PDF的 `doc`/`query` + `page`，不自动渲染图片。检索按完整段落合并去重，`snippet_chars`调每条长度、`max_chars`调总预算。高频模式可按当前排名行或稳定 `entry_id` 选择；模型主动查看才贡献计数，自动追加到新会话上下文的摘要不计数。默认摘要最多8行、每行1024字符、总计4096字符，可在示例的 `docs.frequent` 配置中关闭。缓存放本Skill的 `build/doc-cache`，不随包分发。详细参数见 [Go说明](../docs/go-native.md)。
 
 最终交付的 TeX 内嵌接受的 `\\begin{luadraw}...\\end{luadraw}` 代码，可以单文件编辑，不依赖旁边的Lua或生成TikZ输入；额外保留原接受Lua。`editable_tex`/`submitted_tex` 指向TeX，PDF由该TeX重编。没有LuaLaTeX仍可用独立Lua/texlua生成TikZ，再交给XeLaTeX或pdfLaTeX；PDF阶段仍需要TeX引擎。
 

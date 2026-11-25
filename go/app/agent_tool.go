@@ -165,7 +165,19 @@ func agentToolCLI(ctx context.Context, args []string, in io.Reader, out io.Write
 				return agentError(out, e, 2)
 			}
 		}
-		options := map[string]any{"max_scale_dev": *maxScale, "drawing_mode": selectedMode, "resource_root": resources, "images_dir": imageDirectory, "current_img": imageName, "md_content": *contextText + "\n![](" + imageName + ")\n"}
+		options := map[string]any{"max_scale_dev": *maxScale, "drawing_mode": selectedMode, "resource_root": resources, "images_dir": imageDirectory, "image_source_dir": filepath.Dir(reference), "current_img": imageName, "md_content": *contextText + "\n![](" + imageName + ")\n"}
+		if *sourceMD != "" {
+			mdPath, e := filepath.Abs(*sourceMD)
+			if e != nil {
+				return agentError(out, e, 2)
+			}
+			options["image_markdown_dir"] = filepath.Dir(mdPath)
+			paths, e := runner.MarkdownImagePaths(mdPath, imageDirectory)
+			if e != nil {
+				return agentError(out, e, 2)
+			}
+			options["image_references"] = paths
+		}
 		if *refMM != "" {
 			dimensions, e := parseReferenceMM(*refMM)
 			if e != nil {

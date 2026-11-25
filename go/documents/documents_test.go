@@ -35,6 +35,57 @@ func results(t *testing.T, r map[string]any) []any {
 	return v
 }
 
+func TestFrequentSnippetSupportsExpandedBudgetsAndKeepsSmallerExplicitLimits(t *testing.T) {
+	root := t.TempDir()
+	for i := 0; i < 4; i++ {
+		name := filepath.Join(root, "entry"+string(rune('a'+i))+".tex")
+		body := strings.Repeat(string(rune('a'+i)), 900) + "\n"
+		if err := os.WriteFile(name, []byte(body), 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	d, err := documents.NewConfig(documents.Config{
+		Sources:  []documents.Source{{ID: "fixture", Root: root, Extensions: []string{".tex"}}},
+		CacheDir: t.TempDir(),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i := 0; i < 4; i++ {
+		name := "entry" + string(rune('a'+i)) + ".tex"
+		if _, _, err := d.Execute(context.Background(), map[string]any{
+			"mode": "read", "doc": name, "start_line": 1, "end_line": 1,
+		}, ""); err != nil {
+			t.Fatal(err)
+		}
+	}
+	large, err := d.FrequentSnippet(context.Background(), 8, 1024, 4096)
+	if err != nil {
+		t.Fatal(err)
+	}
+	largeLines := strings.Split(large, "\n")
+	if len([]rune(large)) <= 2048 || len(largeLines) != 4 {
+		t.Fatalf("expanded budget not used: lines=%d total=%d", len(largeLines), len([]rune(large)))
+	}
+	for _, line := range largeLines {
+		if len([]rune(line)) > 1024 || len([]rune(line)) <= 512 {
+			t.Fatalf("expanded line budget not used or exceeded: %d", len([]rune(line)))
+		}
+	}
+	small, err := d.FrequentSnippet(context.Background(), 8, 512, 2048)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len([]rune(small)) > 2048 {
+		t.Fatalf("smaller explicit total budget ignored: %d", len([]rune(small)))
+	}
+	for _, line := range strings.Split(small, "\n") {
+		if len([]rune(line)) > 512 {
+			t.Fatalf("smaller explicit line budget ignored: %d", len([]rune(line)))
+		}
+	}
+}
+
 func TestBackendSourceSelectionAndExplicitLatexConfig(t *testing.T) {
 	root := t.TempDir()
 	for _, dir := range []string{"vendor/luadraw-3.7/luadraw/doc", "vendor/asymptote-3.16/doc", "docs"} {
