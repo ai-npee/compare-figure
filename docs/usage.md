@@ -2,6 +2,8 @@
 
 快速安装、主要功能和使用示例见 [README](../README.md)。以下保留CLI、输入尺寸、会话、工具与验证细节；命令默认从仓库根执行。
 
+自0.3.0起支持 [luadraw／mixed／latex／asymptote四策略](drawing-modes.md)，下方LuaDraw源码示例仅代表默认策略。配置 `drawing.mode` 或 `--drawing-mode` 切换；常规TikZ在latex/mixed模式允许。文档工具通用名为 `document_search`／CLI `document-search`，旧LuaDraw别名保留，底层直接引用独立doc-library，旧缓存文件格式和频次ID不迁移。最新差异见 [兼容矩阵](doc-library-compatibility.md)；下方历史验证数字标记原时点，不作为新版本包数量。
+
 原生 **Go LuaDraw 矢量图 runner 与图形比对工具**。完整会话、模型协议、11个绘图工具、文档检索附图、编译、复核、续跑和交付均在Go中实现。**Skill只导出Go运行版本；Python只用于开发原型和对照测试，不是运行桥接或导出选项。**
 
 生产比较/会话基线为DocVision `20faca6`，绘图固定LuaDraw 3.7。四份原始提示词保留哈希基线，当前绘图使用新增的LuaDraw提示词；来源和许可见 [清单](../docs/upstream.json) 与 [固定依赖](../vendor/dependencies.lock.json)。完整迁移、接口及幂等行为见 [Go说明](../docs/go-native.md)。

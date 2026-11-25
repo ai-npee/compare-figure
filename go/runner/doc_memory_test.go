@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"compare-figure/luadraw"
+	"compare-figure/documents"
 )
 
 func TestDocumentationMemoryBudgetsAndDisabled(t *testing.T) {
@@ -35,20 +35,22 @@ func TestDocumentationMemoryUsesRecordedParagraphs(t *testing.T) {
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		t.Fatal(err)
 	}
+	if err := os.MkdirAll(filepath.Join(root, "files"), 0700); err != nil {
+		t.Fatal(err)
+	}
 	text := "Dcircle constructs a real LuaDraw circle.\nThe radius and center determine its geometry.\n"
 	if err := os.WriteFile(filepath.Join(dir, "memory.tex"), []byte(text), 0600); err != nil {
 		t.Fatal(err)
 	}
-	docs, err := luadraw.NewDocs(root, cache)
+	docs, err := documents.New(root, cache, "luadraw")
 	if err != nil {
 		t.Skipf("documentation environment unavailable: %v", err)
 	}
 	if _, _, err = docs.Execute(context.Background(), map[string]any{"mode": "read", "doc": "doc/src/memory.tex", "start_line": 1, "end_line": 2}, t.TempDir()); err != nil {
 		t.Fatal(err)
 	}
-	options := Object{"luadraw_root": root, "doc_cache_dir": cache}
-	cachePath := filepath.Join(cache, "luadraw-doc-frequency-v1.json")
-	before, err := os.ReadFile(cachePath)
+	options := Object{"resource_root": root, "doc_cache_dir": cache, "drawing_mode": "luadraw"}
+	before, err := docs.FrequentSnippet(context.Background(), 8, 256, 2048)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -56,11 +58,11 @@ func TestDocumentationMemoryUsesRecordedParagraphs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	after, readErr := os.ReadFile(cachePath)
-	if readErr != nil {
-		t.Fatal(readErr)
+	after, err := docs.FrequentSnippet(context.Background(), 8, 256, 2048)
+	if err != nil {
+		t.Fatal(err)
 	}
-	if string(before) != string(after) {
+	if before != after {
 		t.Fatal("passive prompt memory changed frequency counters")
 	}
 	if !strings.Contains(got, "Dcircle") || !strings.Contains(got, "memory.tex") {

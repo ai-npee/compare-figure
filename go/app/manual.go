@@ -10,7 +10,8 @@ import (
 
 const manualHelp = `Usage:
   compare-figure compile [figure.lua] --source figure.lua [--out DIR] [options]
-  compare-figure docs [QUERY] --query QUERY [options]
+  compare-figure document-search [QUERY] --mode search|read|view|list|find|grep|frequent [options]
+  compare-figure docs [QUERY] --query QUERY [options] (alias: doc)
   compare-figure luadraw-doc --query QUERY [options]
   compare-figure luadraw-doc --request FILE | --stdin | --jsonl [options]
 
@@ -39,6 +40,8 @@ Compile options:
   --luadraw-root DIR         LuaDraw distribution root
 
 Docs options:
+  --drawing-mode luadraw|mixed|latex|asymptote
+  --doc-source SOURCE        Filter the selected documentation source
   --query TEXT               Search query (required for search mode)
   --mode search|read|view|list|find|grep|frequent  Manual operation (default search)
   --doc PATH                 Document or directory path for read/list/view
@@ -76,7 +79,7 @@ func manualCLI(ctx context.Context, command string, args []string, in io.Reader,
 	}
 	fs := flag.NewFlagSet(command, flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
-	var source, query, mode, doc, entryID, outDir, engine, resourceRoot, drawRoot, cacheDir string
+	var source, query, mode, doc, entryID, outDir, engine, resourceRoot, drawRoot, cacheDir, drawingMode, docSource string
 	var page, zoom, limit, offset, startLine, endLine, snippetChars, maxChars, lineChars int
 	var left, top, right, bottom float64
 	var includeImage, inlineImages, regex, recursive bool
@@ -89,6 +92,8 @@ func manualCLI(ctx context.Context, command string, args []string, in io.Reader,
 	fs.BoolVar(&recursive, "recursive", false, "list nested directories")
 	fs.StringVar(&outDir, "out", "", "output directory")
 	fs.StringVar(&engine, "engine", "auto", "compiler engine")
+	fs.StringVar(&drawingMode, "drawing-mode", "", "luadraw/mixed/latex/asymptote")
+	fs.StringVar(&docSource, "doc-source", "", "documentation source ID")
 	fs.StringVar(&resourceRoot, "resource-root", "", "runtime resources")
 	fs.StringVar(&drawRoot, "luadraw-root", "", "LuaDraw distribution")
 	fs.StringVar(&cacheDir, "cache-dir", "", "documentation cache")
@@ -136,7 +141,7 @@ func manualCLI(ctx context.Context, command string, args []string, in io.Reader,
 		if source == "" {
 			return writeError(out, fmt.Errorf("compile requires --source PATH or a positional LuaDraw source"), 2)
 		}
-		request := map[string]any{"operation": "compile", "source": source, "out_dir": outDir, "include_image": includeImage, "inline_images": inlineImages, "resource_root": resourceRoot, "luadraw_root": drawRoot, "options": map[string]any{"engine": engine}}
+		request := map[string]any{"operation": "compile", "source": source, "out_dir": outDir, "include_image": includeImage, "inline_images": inlineImages, "resource_root": resourceRoot, "luadraw_root": drawRoot, "drawing_mode": drawingMode, "options": map[string]any{"engine": engine, "drawing_mode": drawingMode}}
 		return callManualService(ctx, request, out)
 	}
 	if query == "" && len(pos) > 0 {
@@ -159,14 +164,14 @@ func manualCLI(ctx context.Context, command string, args []string, in io.Reader,
 	if (mode == "read" || mode == "view") && doc == "" {
 		return writeError(out, fmt.Errorf("docs %s requires --doc PATH", mode), 2)
 	}
-	arguments := map[string]any{"mode": mode, "query": query, "doc": doc, "include_image": includeImage, "regex": regex, "recursive": recursive, "entry_id": entryID}
+	arguments := map[string]any{"mode": mode, "query": query, "doc": doc, "source": docSource, "include_image": includeImage, "regex": regex, "recursive": recursive, "entry_id": entryID}
 	values := map[string]any{"page": page, "zoom": zoom, "limit": limit, "offset": offset, "start-line": startLine, "end-line": endLine, "snippet-chars": snippetChars, "max-chars": maxChars, "line-chars": lineChars, "left": left, "top": top, "right": right, "bottom": bottom}
 	fs.Visit(func(f *flag.Flag) {
 		if value, ok := values[f.Name]; ok {
 			arguments[strings.ReplaceAll(f.Name, "-", "_")] = value
 		}
 	})
-	request := map[string]any{"operation": "docs", "out_dir": outDir, "resource_root": resourceRoot, "luadraw_root": drawRoot, "cache_dir": cacheDir, "inline_images": inlineImages, "arguments": arguments}
+	request := map[string]any{"operation": "document_search", "drawing_mode": drawingMode, "out_dir": outDir, "resource_root": resourceRoot, "luadraw_root": drawRoot, "cache_dir": cacheDir, "inline_images": inlineImages, "arguments": arguments}
 	return callManualService(ctx, request, out)
 }
 

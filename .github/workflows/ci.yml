@@ -35,6 +35,7 @@ jobs:
           set -euo pipefail
           sudo apt-get update
           sudo apt-get install --no-install-recommends -y \
+            asymptote \
             lua5.4 \
             poppler-utils \
             texlive-fonts-recommended \
@@ -125,6 +126,7 @@ jobs:
           )
           "$skill/build/compare-figure" --help >/dev/null
           "$skill/build/compare-figure" luadraw-doc --mode list --doc files --limit 1 >/dev/null
+          "$skill/build/compare-figure" document-search --drawing-mode mixed --mode list --doc-source asymptote --limit 1 >/dev/null
 
   node:
     name: Viewer test (Node ${{ matrix.node-version }})

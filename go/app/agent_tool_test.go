@@ -44,7 +44,7 @@ func TestAgentToolCLIPersistsReferenceBinding(t *testing.T) {
 		t.Fatal(err)
 	}
 	var out bytes.Buffer
-	code := agentToolCLI(context.Background(), []string{"--workspace", workspace, "--original", first, "--name", "write_file", "--threshold", "17", "--source-md", sourceMD, "--image-ref", "images/first.png", "--images-dir", filepath.Dir(first), "--args", argsJSON}, nil, &out)
+	code := agentToolCLI(context.Background(), []string{"--workspace", workspace, "--original", first, "--name", "write_file", "--threshold", "17", "--drawing-mode", "mixed", "--source-md", sourceMD, "--image-ref", "images/first.png", "--images-dir", filepath.Dir(first), "--args", argsJSON}, nil, &out)
 	if code != 0 {
 		t.Fatal(code, out.String())
 	}
@@ -53,8 +53,8 @@ func TestAgentToolCLIPersistsReferenceBinding(t *testing.T) {
 		t.Fatal(err)
 	}
 	var stored agentRecord
-	if err = json.Unmarshal(stateData, &stored); err != nil || stored.Threshold != .17 {
-		t.Fatalf("threshold 17 did not persist as ratio 0.17: %#v err=%v", stored, err)
+	if err = json.Unmarshal(stateData, &stored); err != nil || stored.Threshold != .17 || stored.Options["drawing_mode"] != "mixed" {
+		t.Fatalf("threshold or drawing mode did not persist: %#v err=%v", stored, err)
 	}
 	out.Reset()
 	code = agentToolCLI(context.Background(), []string{"--workspace", workspace, "--original", first, "--name", "read_file", "--threshold", "50", "--max-scale-dev", ".2", "--context", "updated context", "--args", `{"path":"note.md"}`}, nil, &out)
@@ -70,8 +70,22 @@ func TestAgentToolCLIPersistsReferenceBinding(t *testing.T) {
 		t.Fatalf("explicit thresholds not applied: %#v", state)
 	}
 	storedData, err := os.ReadFile(filepath.Join(workspace, agentStateName))
-	if err != nil || json.Unmarshal(storedData, &stored) != nil || stored.Threshold != .5 || stored.Context != "updated context" || stored.Options["max_scale_dev"] != .2 {
+	if err != nil || json.Unmarshal(storedData, &stored) != nil || stored.Threshold != .5 || stored.Context != "updated context" || stored.Options["max_scale_dev"] != .2 || stored.Options["drawing_mode"] != "mixed" {
 		t.Fatalf("persisted override mismatch: %#v err=%v", stored, err)
+	}
+	out.Reset()
+	code = agentToolCLI(context.Background(), []string{"--workspace", workspace, "--drawing-mode", "latex", "--name", "read_file", "--args", `{"path":"note.md"}`}, nil, &out)
+	if code != 2 || !strings.Contains(out.String(), "cannot reuse this state") {
+		t.Fatalf("mixed workspace accepted a LaTeX strategy override: code=%d out=%s", code, out.String())
+	}
+	delete(stored.Options, "drawing_mode")
+	if err = saveAgentRecord(filepath.Join(workspace, agentStateName), &stored); err != nil {
+		t.Fatal(err)
+	}
+	out.Reset()
+	code = agentToolCLI(context.Background(), []string{"--workspace", workspace, "--drawing-mode", "mixed", "--name", "read_file", "--args", `{"path":"note.md"}`}, nil, &out)
+	if code != 2 || !strings.Contains(out.String(), "mode luadraw") {
+		t.Fatalf("legacy LuaDraw state accepted a mixed override: code=%d out=%s", code, out.String())
 	}
 	out.Reset()
 	code = agentToolCLI(context.Background(), []string{"--workspace", workspace, "--name", "image_context", "--args", `{"image":"images/first.png"}`}, nil, &out)

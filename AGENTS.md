@@ -1,6 +1,6 @@
 # compare-figure
 
-图形比对与独立原生Go LuaDraw矢量图阶段。生产比较/会话基线固定DocVision `20faca6aaaf8d9469b3ee68e5ff7477437b7a0d7`；当前完整Go runner强制LuaDraw3.7，提供真实宿主检测、两阶段回退、文档附图、11工具、三协议会话、复核与幂等续跑。
+图形比对与独立原生Go矢量绘图阶段。生产比较/会话基线固定DocVision `20faca6aaaf8d9469b3ee68e5ff7477437b7a0d7`；当前Go runner提供luadraw/mixed/latex/asymptote四策略，默认LuaDraw3.7，支持真实宿主检测、LuaDraw两阶段回退、通用文档附图、11工具、三协议会话、复核与幂等续跑。
 
 ## 快速开始
 
@@ -10,7 +10,10 @@ Python模块和测试仅放dev/python，使用conda base（本机/home/lingnc/mi
 
 ## 状态与范围
 
-- 远端CI首轮45370931894：Go test/vet/源码ZIP导出校验及解压构建均成功，Node22/24因查看器测试假设中文/英文混合路径固定顺序而失败；本地en_US环境已精确复现。修复仅测试按路径集合验证存在性，保留最新数值轮次排序断言，CI两Node版本均覆盖C/en_US/zh_CN三环境，本地通过。已授权推送main，需确认修复后远端CI成功，不把测试错误称Go构建失败；远程origin现ai-npee/compare-figure，临时http.proxy使用已有localhost7897，不写全局配置。
+- 当前新需求覆盖下方历史“强制LuaDraw”政策：四绘图库策略luadraw（默认）、mixed（模型按图选LuaDraw/Asymptote/原生LaTeX）、latex（仅常规TeX绘图）、asymptote（Asy）。配置drawing.mode与CLI/JSON drawing_mode；TeX engine仍独立。编译/工具/runner/复核/接受态/可编辑源码交付与fingerprint贯通，模式变更不得静默重用旧成品，原比较/尺寸/退让回执保持。新增CTAN Asymptote3.16官方文档及.asy示例到vendor/asymptote-3.16，出处/许可/SHA见docs/asymptote-upstream.json；旧LuaDraw245文件原样不改。用户已sudo apt补齐asy依赖，宿主TeXLive3.09真实2D/静态3D/.asy与嵌入TeX编译、独立交付重编均通过；不改共享环境。用户已确认仅打包官方文档示例、不附Asy程序/运行库。0.3.0全仓Go test/vet、Linux构建、Windows交叉编译（未Windows实跑）、新三策略工具compile/compare/submit/二次无模型Deliver、旧LuaDraw回归、真实CLI预览与652文件源码包manifest/依赖/解压构建/文档筛选均通过，未调用模型。固定.render-NAME槽复用及失败清旧PDF，AsyHome/TeX缓存工作目录；core docs通过上游依赖，旧grep缺省大小写语义补齐。最终包SHA 0cf0025481114d4acba23a837efb3453fe3ddf983173788246dc16e4c8a4e4c2。推送和远端CI的实际运行编号与结果记录到build/task-state/current-requirements.md，不以本地验证替代远端成功。
+- 文档工具新document_search/CLI document-search，旧luadraw_doc/luadraw-doc保留兼容；复用独立doc-library上游GitHub固定提交，不复制其核心或本地相邻replace。上游module仍doc-library时采用remote replace固定pseudo；构建可下载模块，源码包独立构建不得依赖邻目录。用户要求旧功能应为新库子集，逐项search/read/view/list/find/grep/frequent、预算分页/路径边界/PDF裁图/源码行/缓存/主动与被动频次差异验收，矩阵docs/doc-library-compatibility.md。缓存物理布局可重建不承诺旧文件兼容，不实现暂缓SyncTeX映射。
+
+- 远端CI首轮45370931894：Go test/vet/源码ZIP导出校验及解压构建均成功，Node22/24因查看器测试假设中文/英文混合路径固定顺序而失败；本地en_US环境已精确复现。修复仅测试按路径集合验证存在性，保留最新数值轮次排序断言，CI两Node版本均覆盖C/en_US/zh_CN三环境，本地通过。已授权推送main，修复820376c对应运行45376474460已全success；不把测试错误称Go构建失败；远程origin现ai-npee/compare-figure，临时http.proxy使用已有localhost7897，不写全局配置。
 
 - 安装入口install.md：独立流程包含Release校验/clone、Agent技能目录注册、Go/LuaTeX/Poppler依赖、Linux/Windows构建验证、默认当前Agent绘图及可选自动runner；README仅保留一句安装链接，install.md随源码Skill导出。用户已明确授权推送main（不含发布标签）；首次git push因连接GitHub过慢超时，安装文档验证提交后重试，结果以实际远端输出记录。
 

@@ -1,5 +1,15 @@
 # 开发记录
 
+## 0.3.0：四绘图库策略与独立文档依赖
+
+用户要求支持luadraw、mixed、latex、asymptote四策略，默认保持LuaDraw。drawing.mode/CLI与JSON drawing_mode贯穿编译、runner、工具会话、提示、恢复及接受态交付，TeX engine仍独立。mixed让模型根据图选择LuaDraw/Asymptote/常规TeX；纯latex允许TikZ/PGFPlots等已安装库，纯模式拒绝其他语言。新go/render分派编译，原LuaDraw优先LuaLaTeX及独立Lua回退保留，比较/尺寸/提交门槛与回执未改。Asy调用系统asy，.asy可直接产静态PDF，内嵌asy TeX显式执行TeX→Asy→TeX；交付保留实际源码与独立TeX/PDF，不把一次普通TeX命令声称完整Asy编译。
+
+Asymptote官方CTAN3.16资料固定vendor/asymptote-3.16，原发行ZIP36765144字节、SHA21462c4a48664b4066201f15616b537377a8085b95021ec84a68b52919ca3a22；精选337payload含325 .asy、PDF/Texinfo与许可约3.20MB，出处、逐文件SHA和原许可保留。用户已确认不打包Asy程序/运行库，只保留文档源例，编译依赖系统安装的asy。用户sudo apt补依赖后本机PATH中的TeXLive Asy3.09可用，CTAN资料版本与宿主程序版本分别记录。旧LuaDraw245文件和四上游提示原字节保留；仅新增LuaDraw专用模板把知识工具改名document_search，非Lua策略提示在runner中生成。
+
+文档核心移除本地旧docs/doc_files/doc_frequency约两千行，直接固定上游doc-library提交a705bca4420cd2126b6072a1c7b6450f2b9cc84c；上游module仍doc-library，因此require+remote replacement到github.com/LingNc/doc-library对应pseudo版，经GitHub/sumdb下载校验，不保留核心副本或相邻目录replace。go/documents薄适配选择资源/旧参数/文本展示及裁图像素，go/luadraw.NewDocs是兼容代理。通用document_search和CLI document-search支持结构化结果、多源/Asy/PDF/TeX/Lua/Texinfo文本；旧工具名/CLI、七操作、PDF页/区域/bbox、源码行及共享频次继续验证。功能差异矩阵docs/doc-library-compatibility.md明确缓存ID重建、结果正文预算不含位置header、目录导航不计正文频次、极窄裁图受上游整页5000px约束等；grep缺省区分大小写已补齐旧行为。未声称逐字符wire兼容或Texinfo语义解析，暂缓SyncTeX精确映射不实现。
+
+已验证：render实际nativeTeX片段/完整文档、Asy2D与静态3D、内嵌Asy TeX及独立交付重编均通过；drawing三新策略真实write/compile/compare/submit/Deliver和二次无模型交付通过，旧LuaDraw全工具回归通过。编译中间区重用固定.render-NAME，失败不返回旧PDF；TeX和Asy配置缓存在工作目录，不改HOME。三维CLI输出与已查看预览在build/backend-validation；文档真实页14裁图/七模式/缓存暖0miss、SHA同mtime失效、频次并发/race通过。包内新资源/许可证逐字节、旧LuaDraw不变与独立导出构建已专项验证；最终全仓Go test/vet通过（app82.8s、runner204.5s、render80.3s等全部包成功）、Linux构建与Windows amd64交叉构建通过（Windows未执行）；viewer/导出参数测试、YAML与嵌入Bash语法、文档相对链接检查通过。直接执行最终CI源码包步骤，652文件逐SHA、VERSION/SKILL/manifest一致、解压独立构建与mixed Asy来源检索通过；包内无本机二进制、重复doc-library核心或相邻路径依赖。最终ZIP SHA256为0cf0025481114d4acba23a837efb3453fe3ddf983173788246dc16e4c8a4e4c2，证据build/backend-final-ci-validation-r2/export-step.log；Skill YAML头由导出器规范化，额外校验头部语义与正文一致而非要求头部字节格式不变。推送与远端CI编号/状态写入build/task-state/current-requirements.md。不使用付费模型或修改外部书稿。
+
 ## 首次远端CI：跨语言路径排序断言修复
 
 用户反馈构建失败，实际Actions运行45370931894（提交966db5d）中Go测试/vet/源码导出、ZIP验证与独立构建均成功，失败的是Node22/24的scripts/test_viewer.mjs第49行：中文预览与英文compare路径经localeCompare排序，在GitHub英文环境与本地中文环境下顺序不同。用LANG/LC_ALL=en_US.UTF-8在本地精确复现，确认是测试错误地依赖混合语言路径位置。

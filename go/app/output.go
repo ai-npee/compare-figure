@@ -34,12 +34,9 @@ func retainDocumentImage(target, generated string) (string, error) {
 	if err = cf.AtomicWrite(stable, data, 0644); err != nil {
 		return "", err
 	}
-	// Verify the precise owned file before deleting. Never sweep a user directory.
-	name := filepath.Base(source)
-	if filepath.Dir(source) == directory && strings.HasPrefix(name, "luadraw-p") && strings.HasSuffix(name, ".png") {
-		if err = os.Remove(source); err != nil {
-			return "", err
-		}
+	// The library returns a newly created private image path for this request.
+	if err = os.Remove(source); err != nil {
+		return "", err
 	}
 	return stable, nil
 }

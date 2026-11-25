@@ -2,7 +2,10 @@
   "repository": "https://github.com/LingNc/DocVision",
   "revision": "20faca6aaaf8d9469b3ee68e5ff7477437b7a0d7",
   "extensions": {
-    "drawing_backend": "LuaDraw 3.7",
+    "drawing_backend": "Configurable luadraw/mixed/latex/asymptote; default LuaDraw 3.7",
+    "mode_policy_source": "go/runner/runner.go",
+    "asymptote_resources": "docs/asymptote-upstream.json",
+    "documentation_dependency": "docs/doc-library-compatibility.md",
     "active_prompts": ["prompts/luadraw_figure.system.md", "prompts/luadraw_figure.user.md"],
     "prompt_policy": "New LuaDraw requirement requested after exact production migration; original four prompts remain unchanged",
     "runtime_vendor_lock": "vendor/dependencies.lock.json",

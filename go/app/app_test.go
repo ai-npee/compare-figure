@@ -16,6 +16,26 @@ import (
 	"testing"
 )
 
+func TestFlatDocumentSearchEnvelopeSanitizesOnlyOuterFields(t *testing.T) {
+	resources, err := distribution.FindRoot("")
+	if err != nil {
+		t.Skip(err)
+	}
+	svc := &service{resources: resources}
+	flat := map[string]any{"operation": "docs", "request_id": "flat-1", "drawing_mode": "latex", "mode": "list", "limit": float64(1), "out_dir": filepath.Join(t.TempDir(), "flat"), "resource_root": resources, "cache_dir": filepath.Join(t.TempDir(), "cache"), "inline_images": false}
+	result, err := svc.handle(context.Background(), flat)
+	if err != nil {
+		t.Fatalf("flat docs envelope was not sanitized: %v", err)
+	}
+	if result.(map[string]any)["ok"] != true {
+		t.Fatal(result)
+	}
+	nested := map[string]any{"operation": "document_search", "drawing_mode": "latex", "out_dir": filepath.Join(t.TempDir(), "nested"), "arguments": map[string]any{"mode": "list", "unknown_option": true}}
+	if _, err := svc.handle(context.Background(), nested); err == nil || !strings.Contains(err.Error(), "unknown field") {
+		t.Fatalf("nested unknown argument was ignored: %v", err)
+	}
+}
+
 func TestNativeJSONLContinuesAndReturnsImageContract(t *testing.T) {
 	base := t.TempDir()
 	path := filepath.Join(base, "reference.png")

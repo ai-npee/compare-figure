@@ -28,6 +28,7 @@ dist/
 *.pdf.sha256
 # Pinned upstream manuals are reference dependencies, not generated previews.
 !vendor/luadraw-3.7/luadraw/doc/*.pdf
+!vendor/asymptote-3.16/doc/*.pdf
 !vendor/luadraw-3.7/luadraw/doc/src/tkz/*.jpg
 !vendor/luadraw-3.7/luadraw/doc/src/tkz/*.png
 .DS_Store

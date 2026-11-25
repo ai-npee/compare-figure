@@ -1,6 +1,8 @@
-# 独立 LuaDraw 文档索引工具
+# 文档检索工具与 LuaDraw 兼容入口
 
-该工具面向原创图形绘制 Agent、其他 Skill 和外部程序。它只检索随包固定的 LuaDraw 官方手册、Lua 源码和示例，不要求参考图、Markdown 书稿、自动绘图会话或模型密钥；它不是通用 LuaLaTeX 文档索引。
+文档索引、段落、PDF 抽取与频次现由独立 [doc-library](https://github.com/LingNc/doc-library) 固定上游依赖提供。`document_search`／CLI `document-search` 是通用入口，旧 `luadraw_doc`、`luadraw-doc` 和 Go `luadraw.NewDocs` 保留。默认仍检索 LuaDraw；`--drawing-mode asymptote` 检索 Asymptote，`--drawing-mode mixed` 同时提供两者，`--doc-source luadraw|asymptote` 可筛选来源。下方旧命令示例仍适用，也可将命令名换为 `document-search`。
+
+该工具不要求参考图、Markdown 书稿、自动绘图会话或模型密钥。新增 Go `documents.New(resourceRoot,cacheDir,mode)` 与 `NewConfig` 可配置多个文档根；结构化 `ExecuteResponse` 包含 results/cache/provenance。模式配置见 [绘图库说明](drawing-modes.md)，完整功能对照、输出和缓存差异见 [兼容矩阵](doc-library-compatibility.md)。默认资料不是任意 TeX 包的手册全集。
 
 ## 原创图工作方式
 
@@ -18,7 +20,7 @@ Skill 只附 Go 源码。安装 Go 1.25+（[下载](https://go.dev/dl/)、[安�
 go -C go build -o ../build/compare-figure ./cmd/compare-figure
 ```
 
-Windows 输出名使用 `../build/compare-figure.exe`。文档索引的当前初始化会检查 Poppler 的 `pdftotext`、`pdfinfo` 和 `pdftoppm`；文档读取不要求 LuaLaTeX 或模型密钥。绘图编译另外需要 Lua/TeX；默认探测 LuaLaTeX，回退 Lua/texlua→TikZ→XeLaTeX/pdfLaTeX。不要将文档依赖检查描述为完全无外部依赖。
+Windows 输出名使用 `../build/compare-figure.exe`。首次构建会下载固定 doc-library 等 Go 模块，之后运行不需要旁边的独立仓库。文本源码查询不需 Poppler；PDF 文字检索／读页需 `pdftotext`，显式图片预览需 `pdftoppm`。文档读取不要求 LuaLaTeX、Asymptote 或模型密钥。绘图编译按所选策略另需相应程序；LuaDraw 保留原两路线。
 
 从其他项目调用时使用可执行程序的绝对路径。资源自动从 Skill 根定位，或用 `--resource-root` 指定 Skill 根；`--luadraw-root` 指定固定库根。文档内容只能在库根内访问，不开放任意宿主文件。
 
@@ -113,8 +115,8 @@ return err
 
 - 默认位置为Skill根的 `build/doc-cache`，CLI显式 `--cache-dir` / JSON `cache_dir` 优先；否则 `COMPARE_FIGURE_CACHE` 可覆盖默认目录。Go `NewDocs` 请显式传cacheRoot以取得相同位置策略。
 - 相同cache目录可跨进程/会话共享；JSONL同一进程还复用内存对象。并行图片请求应各自指定out目录，避免默认预览覆盖；仅文字查询可以共用缓存。
-- 索引v4缓存官方文档文字/位置，资源和算法指纹变化时重建；高频缓存按指纹失效，不保留过期段落坐标。
-- 高频最多256条，每条正文最多2048字符。模型主动search/read/view/list/find/grep/frequent查看实际返回内容时增加计数；自动摘要不计数。
+- 索引和频次采用 doc-library 的根／配置命名空间与逐文件 SHA 校验；同大小、同 mtime 的内容改写也会失效。旧 v4 缓存及 entry_id 不直接迁移，首次查询会重建。
+- 高频最多256条，每条正文最多2048字符。主动 search/read/view/grep/frequent 只为实际返回的文档正文计数；list/find 目录导航及被动摘要不计数。
 - 默认frequent为8条、每行256字符、总正文预算4096；支持短 `entry_id` 或排名范围选择。排名累计次数，无时间衰减。
 - 当前Agent原创绘图没有自动runner开场注入：请主动先调用frequent；自动runner的新任务开场摘要默认8行/2048字符，配置docs.frequent可关闭，语义不变。
 - 多进程写入由锁和原子替换保护。缓存属于可重建本地状态，不进Git、不附在源码Skill包中；不同项目想隔离历史，指定不同cache目录即可。

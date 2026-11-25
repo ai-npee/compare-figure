@@ -52,8 +52,25 @@ func TestManualCLIPositionalArgumentsAndOptionReordering(t *testing.T) {
 		}
 	}
 	var out bytes.Buffer
-	if code := manualCLI(context.Background(), "compile", []string{"not-present.lua", "--engine", "bad"}, nil, &out); code != 2 || !strings.Contains(out.String(), "LuaDraw source not found") {
+	if code := manualCLI(context.Background(), "compile", []string{"not-present.lua", "--engine", "bad"}, nil, &out); code != 2 || !strings.Contains(out.String(), "open not-present.lua") {
 		t.Fatalf("compile options after positional: code=%d output=%s", code, out.String())
+	}
+}
+
+func TestDocumentSearchCLIMixedAsymptoteSourceFilter(t *testing.T) {
+	resources := docsTestResources(t)
+	var out bytes.Buffer
+	args := []string{"--drawing-mode", "mixed", "--doc-source", "asymptote", "--mode", "list", "--limit", "1", "--resource-root", resources, "--cache-dir", filepath.Join(t.TempDir(), "cache"), "--include-image=false"}
+	if code := manualCLI(context.Background(), "docs", args, nil, &out); code != 0 {
+		t.Fatalf("document-search smoke failed: %d %s", code, out.String())
+	}
+	var result map[string]any
+	if err := json.Unmarshal(out.Bytes(), &result); err != nil {
+		t.Fatal(err, out.String())
+	}
+	rows, ok := result["results"].([]any)
+	if !ok || len(rows) == 0 || rows[0].(map[string]any)["source"] != "asymptote" {
+		t.Fatalf("doc-source filter did not select asymptote: %#v", result)
 	}
 }
 
@@ -76,7 +93,7 @@ func TestManualCLIDocsReadRealSourceWithoutModel(t *testing.T) {
 	if err := json.Unmarshal(out.Bytes(), &result); err != nil {
 		t.Fatal(err, out.String())
 	}
-	if result["ok"] != true || !strings.Contains(result["text"].(string), "LuaDraw") {
+	if result["ok"] != true || !strings.Contains(result["text"].(string), "luadraw_base.lua") {
 		t.Fatal(result)
 	}
 }

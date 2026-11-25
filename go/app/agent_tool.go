@@ -19,6 +19,7 @@ import (
 	"compare-figure/distribution"
 	"compare-figure/drawing"
 	"compare-figure/measurement"
+	"compare-figure/render"
 	"compare-figure/runner"
 )
 
@@ -54,6 +55,7 @@ func agentToolCLI(ctx context.Context, args []string, in io.Reader, out io.Write
 	maxScale := fs.Float64("max-scale-dev", .1, "maximum size deviation")
 	resourceRoot := fs.String("resource-root", "", "Go runtime resource root")
 	luaDrawRoot := fs.String("luadraw-root", "", "LuaDraw distribution root")
+	drawingMode := fs.String("drawing-mode", "", "luadraw/mixed/latex/asymptote")
 	timeout := fs.Duration("timeout", 180*time.Second, "tool timeout")
 	if err := fs.Parse(args); err != nil {
 		if err == flag.ErrHelp {
@@ -112,6 +114,22 @@ func agentToolCLI(ctx context.Context, args []string, in io.Reader, out io.Write
 		return agentError(out, err, 2)
 	}
 	first := os.IsNotExist(err)
+	selectedMode := ""
+	if first || provided["drawing-mode"] {
+		selectedMode, err = render.NormalizeMode(*drawingMode)
+		if err != nil {
+			return agentError(out, err, 2)
+		}
+	}
+	if !first && provided["drawing-mode"] {
+		savedMode, modeErr := render.NormalizeMode(runner.Str(record.Options, "drawing_mode", "luadraw"))
+		if modeErr != nil {
+			return agentError(out, fmt.Errorf("stored drawing mode: %w", modeErr), 2)
+		}
+		if selectedMode != savedMode {
+			return agentError(out, fmt.Errorf("workspace uses drawing mode %s; requested mode %s cannot reuse this state; choose a new --workspace", savedMode, selectedMode), 2)
+		}
+	}
 	if first && *sourceMD != "" {
 		var resolveErr error
 		*originalArg, *imageRef, *imagesDir, *contextText, resolveErr = runner.ResolveMarkdown(*sourceMD, *imageRef, *originalArg, *imagesDir, *contextText)
@@ -147,7 +165,7 @@ func agentToolCLI(ctx context.Context, args []string, in io.Reader, out io.Write
 				return agentError(out, e, 2)
 			}
 		}
-		options := map[string]any{"max_scale_dev": *maxScale, "resource_root": resources, "images_dir": imageDirectory, "current_img": imageName, "md_content": *contextText + "\n![](" + imageName + ")\n"}
+		options := map[string]any{"max_scale_dev": *maxScale, "drawing_mode": selectedMode, "resource_root": resources, "images_dir": imageDirectory, "current_img": imageName, "md_content": *contextText + "\n![](" + imageName + ")\n"}
 		if *refMM != "" {
 			dimensions, e := parseReferenceMM(*refMM)
 			if e != nil {
@@ -181,6 +199,11 @@ func agentToolCLI(ctx context.Context, args []string, in io.Reader, out io.Write
 	}
 	if record.Options == nil {
 		record.Options = map[string]any{}
+	}
+	if first || provided["drawing-mode"] {
+		record.Options["drawing_mode"] = selectedMode
+	} else if _, ok := record.Options["drawing_mode"]; !ok {
+		record.Options["drawing_mode"] = "luadraw"
 	}
 	if provided["threshold"] {
 		record.Threshold = *threshold / 100
@@ -356,7 +379,7 @@ func agentToolCLI(ctx context.Context, args []string, in io.Reader, out io.Write
 
 func knownAgentTool(name string) bool {
 	switch name {
-	case "write_file", "edit_file", "read_file", "grep", "compile", "view_pdf", "compare_figure", "submit", "image_context", "view_image", "luadraw_doc":
+	case "write_file", "edit_file", "read_file", "grep", "compile", "view_pdf", "compare_figure", "submit", "image_context", "view_image", "luadraw_doc", "document_search":
 		return true
 	default:
 		return false

@@ -19,6 +19,8 @@ func docsServiceCLI(ctx context.Context, args []string, in io.Reader, out io.Wri
 	stdin := fs.Bool("stdin", false, "read one JSON request from stdin")
 	jsonl := fs.Bool("jsonl", false, "read JSONL requests from stdin or --request")
 	mode := fs.String("mode", "", "default docs mode")
+	drawingMode := fs.String("drawing-mode", "", "luadraw/mixed/latex/asymptote")
+	docSource := fs.String("doc-source", "", "documentation source ID")
 	query := fs.String("query", "", "default docs query")
 	doc := fs.String("doc", "", "default docs path")
 	entryID := fs.String("entry-id", "", "frequent paragraph ID")
@@ -76,6 +78,8 @@ func docsServiceCLI(ctx context.Context, args []string, in io.Reader, out io.Wri
 		}
 	}
 	set("mode", *mode)
+	set("drawing-mode", *drawingMode)
+	set("doc-source", *docSource)
 	set("query", *query)
 	set("doc", *doc)
 	set("entry-id", *entryID)
@@ -119,7 +123,7 @@ func docsServiceCLI(ctx context.Context, args []string, in io.Reader, out io.Wri
 	inputMode := *requestPath != "" || *stdin || *jsonl
 	if !inputMode {
 		args := cloneDocsDefaults(defaults)
-		return executeDocsRequest(ctx, svc, map[string]any{"operation": "docs", "arguments": args, "out_dir": *outDir, "resource_root": *resourceRoot, "luadraw_root": *drawRoot, "cache_dir": *cacheDir, "inline_images": *inlineImages}, out, 2)
+		return executeDocsRequest(ctx, svc, map[string]any{"operation": "document_search", "drawing_mode": *drawingMode, "arguments": args, "out_dir": *outDir, "resource_root": *resourceRoot, "luadraw_root": *drawRoot, "cache_dir": *cacheDir, "inline_images": *inlineImages}, out, 2)
 	}
 	if *jsonl {
 		scanner := bufio.NewScanner(reader)
@@ -193,19 +197,19 @@ func prepareDocsRequest(object map[string]any, defaults map[string]any) (map[str
 		}
 		operation = strings.ToLower(value)
 	}
-	if operation != "docs" {
-		return nil, fmt.Errorf("luadraw-doc only accepts operation=docs")
+	if operation != "docs" && operation != "document_search" {
+		return nil, fmt.Errorf("document-search only accepts operation=docs or operation=document_search")
 	}
-	request := map[string]any{"operation": "docs"}
+	request := map[string]any{"operation": operation}
 	if id, ok := object["id"]; ok {
 		request["id"] = id
 	}
-	for _, key := range []string{"out_dir", "resource_root", "luadraw_root", "cache_dir", "inline_images"} {
+	for _, key := range []string{"out_dir", "resource_root", "luadraw_root", "cache_dir", "inline_images", "drawing_mode"} {
 		if value, ok := object[key]; ok && value != nil && value != "" {
 			request[key] = value
 		}
 	}
-	for _, key := range []string{"out_dir", "resource_root", "luadraw_root", "cache_dir", "inline_images"} {
+	for _, key := range []string{"out_dir", "resource_root", "luadraw_root", "cache_dir", "inline_images", "drawing_mode"} {
 		if value, ok := request[key]; !ok || value == "" {
 			if fallback, exists := defaults["_"+key]; exists && fallback != "" {
 				request[key] = fallback

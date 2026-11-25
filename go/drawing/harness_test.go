@@ -44,7 +44,7 @@ func TestDefinitionsRetainElevenTools(t *testing.T) {
 	if len(defs) != 11 {
 		t.Fatalf("got %d definitions", len(defs))
 	}
-	expected := []string{"write_file", "edit_file", "read_file", "grep", "compile", "view_pdf", "compare_figure", "submit", "image_context", "view_image", "luadraw_doc"}
+	expected := []string{"write_file", "edit_file", "read_file", "grep", "compile", "view_pdf", "compare_figure", "submit", "image_context", "view_image", "document_search"}
 	for i, d := range defs {
 		fn := d["function"].(map[string]any)
 		if fn["name"] != expected[i] {

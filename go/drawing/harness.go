@@ -17,7 +17,9 @@ import (
 	"unicode/utf8"
 
 	cf "compare-figure"
+	"compare-figure/documents"
 	"compare-figure/luadraw"
+	"compare-figure/render"
 )
 
 // Harness is an independent LuaDraw drawing session and its eleven tools.
@@ -32,7 +34,7 @@ type Harness struct {
 	currentImage               string
 	views, pdfViews            map[string]int
 	warned                     map[string]bool
-	docs                       *luadraw.Docs
+	docs                       *documents.Docs
 }
 
 func New(root, reference, contextText string, threshold float64, timeout time.Duration, options map[string]any) (*Harness, error) {
@@ -50,6 +52,11 @@ func New(root, reference, contextText string, threshold float64, timeout time.Du
 	if options == nil {
 		options = map[string]any{}
 	}
+	mode, modeErr := render.Mode(options)
+	if modeErr != nil {
+		return nil, modeErr
+	}
+	options["drawing_mode"] = mode
 	if timeout <= 0 {
 		timeout = 180 * time.Second
 	}
@@ -62,6 +69,11 @@ func New(root, reference, contextText string, threshold float64, timeout time.Du
 	}
 	if _, ok := options["max_scale_dev"]; !ok {
 		options["max_scale_dev"] = .1
+	}
+	h.State["drawing_mode"] = mode
+	h.State["source_path"] = render.DefaultSource(mode)
+	if mode != "mixed" {
+		h.State["source_language"] = mode
 	}
 	return h, nil
 }
@@ -83,12 +95,32 @@ func (h *Harness) Definitions() []map[string]any {
 		toolSchema("image_context", "TEXT context (no pixels): show the markdown lines around an image ref (expandable up/down window, like get_more_context) plus the previous/next image refs with their line numbers. Use it to detect cross-page continuations; use view_image to actually LOOK at an image.", map[string]any{"image": prop("string", "Image ref as in the markdown (default: the image this session is drawing). A bare file name is also accepted (resolved inside this document's image folder)."), "up": prop("integer", "Context lines above (default 10)."), "down": prop("integer", "Context lines below (default 10).")}),
 		toolSchema("view_image", "LOOK at an image (pixels). path is the image as it appears in the markdown (images/<subject>/foo.jpg) or just its file name (foo.jpg); it is joined to this document's image folder — a wrong name is reported as an error. Compiled PDFs are NOT images: inspect them with view_pdf. Optionally crop a region by percentages (left/top/right/bottom, 0-100) and scale it up for detail inspection. For TEXT context around an image use image_context instead.", map[string]any{"path": prop("string", "Image file name (foo.jpg) or the markdown ref (images/<subject>/foo.jpg)."), "left": prop("number", "Crop left in percent (0-100), default 0."), "top": prop("number", "Crop top in percent (0-100), default 0."), "right": prop("number", "Crop right in percent (0-100), default 100."), "bottom": prop("number", "Crop bottom in percent (0-100), default 100."), "zoom": prop("integer", "Target width in pixels for the returned image (e.g. 1400 for detail view). Default: fit to 1280.")}, "path"),
 	}
-	root := stringValue(h.Options["luadraw_root"], filepath.Join(stringValue(h.Options["resource_root"], "."), "vendor", "luadraw-3.7", "luadraw"))
+	mode, _ := render.Mode(h.Options)
+	for _, definition := range tools {
+		fn := definition["function"].(map[string]any)
+		params := fn["parameters"].(map[string]any)
+		props := params["properties"].(map[string]any)
+		switch fn["name"] {
+		case "write_file":
+			fn["description"] = "Write full editable source inside the workspace. Drawing mode=" + mode + "; allowed source: " + render.SourceDescription(mode) + ". Also allows .cls/.sty/.md. Use edit_file for small changes."
+		case "compile":
+			fn["description"] = "Compile editable source using drawing mode=" + mode + ". " + render.SourceDescription(mode) + ". Default path=" + render.DefaultSource(mode) + ". Never embed the reference raster as a replacement for drawing. Inspect standalone.pdf, compare, then submit the exact source."
+			props["path"] = prop("string", render.SourceDescription(mode)+"; default "+render.DefaultSource(mode))
+		case "submit":
+			fn["description"] = "Submit the exact editable source that was successfully compiled and compared. Mode=" + mode + ". Use path of your original .lua/.asy/.tex source, not generated intermediates."
+			props["path"] = prop("string", "Workspace-relative accepted drawing source; must match the last successful compile")
+			props["code"] = prop("string", "Final editable drawing source inline, only when not using path")
+		}
+	}
+	resourceRoot := stringValue(h.Options["resource_root"], ".")
+	if custom := stringValue(h.Options["luadraw_root"], ""); custom != "" && mode == "luadraw" {
+		resourceRoot = custom
+	}
 	cache := stringValue(h.Options["doc_cache_dir"], "")
 	if cache == "" {
 		cache = luadraw.CacheDirectory(stringValue(h.Options["resource_root"], ""))
 	}
-	docs, e := luadraw.NewDocs(root, cache)
+	docs, e := documents.New(resourceRoot, cache, mode)
 	if e == nil {
 		h.docs = docs
 		tools = append(tools, docs.Definition())
@@ -162,7 +194,7 @@ func (h *Harness) Execute(ctx context.Context, name string, args map[string]any)
 		text, err = h.imageContext(args)
 	case "view_image":
 		text, img, err = h.viewImage(args)
-	case "luadraw_doc":
+	case "document_search", "luadraw_doc":
 		if h.docs == nil {
 			_ = h.Definitions()
 		}
@@ -246,8 +278,8 @@ func (h *Harness) writeFile(a map[string]any) (string, error) {
 		return "REJECTED: path and string content are required.", nil
 	}
 	ext := strings.ToLower(filepath.Ext(rel))
-	if ext != ".lua" && ext != ".tex" && ext != ".cls" && ext != ".sty" && ext != ".md" {
-		return "REJECTED: only .lua .cls .sty .tex .md files are allowed.", nil
+	if ext != ".lua" && ext != ".asy" && ext != ".tex" && ext != ".cls" && ext != ".sty" && ext != ".md" {
+		return "REJECTED: only .lua .asy .cls .sty .tex .md files are allowed.", nil
 	}
 	p, e := h.safe(rel)
 	if e != nil {
@@ -477,7 +509,8 @@ func uniqueStrings(in []string, n int) []string {
 func (h *Harness) compile(ctx context.Context, a map[string]any) (string, error) {
 	rel := strings.TrimSpace(stringValue(a["path"], ""))
 	if rel == "" {
-		rel = "figure.lua"
+		mode, _ := render.Mode(h.Options)
+		rel = render.DefaultSource(mode)
 	}
 	source, e := h.safe(rel)
 	if e != nil {
@@ -485,7 +518,7 @@ func (h *Harness) compile(ctx context.Context, a map[string]any) (string, error)
 	}
 	data, e := os.ReadFile(source)
 	if errors.Is(e, fs.ErrNotExist) {
-		return "NOT FOUND: " + rel + " (write editable LuaDraw source first)", nil
+		return "NOT FOUND: " + rel + " (write editable drawing source first)", nil
 	}
 	if e != nil {
 		return "", e
@@ -508,23 +541,23 @@ func (h *Harness) compile(ctx context.Context, a map[string]any) (string, error)
 	h.State["best_overlap"] = 0.0
 	h.State["scale_dev_at_best"] = 0.0
 	h.State["source_path"] = rel
-	result, e := luadraw.Compile(ctx, source, h.root, h.Options)
+	result, e := render.Compile(ctx, source, h.root, h.Options)
 	if e != nil {
 		h.State["compile_err"] = e.Error()
-		return "COMPILE FAILED. Fix the LuaDraw program and compile again.\n" + e.Error(), nil
+		return "COMPILE FAILED. Fix the drawing source and compile again.\n" + e.Error(), nil
 	}
 	ok := truth(result["ok"])
 	if !ok {
-		err := stringValue(result["error"], stringValue(result["logs"], "Unknown LuaDraw compile error"))
+		err := stringValue(result["error"], stringValue(result["logs"], "Unknown drawing compile error"))
 		h.State["compile_err"] = err
 		if len(err) > 12000 {
 			err = err[len(err)-12000:]
 		}
-		return "COMPILE FAILED. Fix the LuaDraw program and compile again.\n" + err, nil
+		return "COMPILE FAILED. Fix the drawing source and compile again.\n" + err, nil
 	}
 	pdf := stringValue(result["pdf"], "")
 	if pdf == "" {
-		return "", errors.New("LuaDraw compile result has no PDF path")
+		return "", errors.New("Drawing compile result has no PDF path")
 	}
 	canonical := filepath.Join(h.root, "standalone.pdf")
 	if filepath.Clean(pdf) != filepath.Clean(canonical) {
@@ -540,12 +573,14 @@ func (h *Harness) compile(ctx context.Context, a map[string]any) (string, error)
 	h.State["compile_err"] = ""
 	h.State["last_pdf"] = canonical
 	h.State["drawing_backend"] = result["backend"]
+	h.State["source_language"] = result["source_language"]
+	h.State["drawing_mode"] = result["drawing_mode"]
 	h.State["drawing_engine"] = result["engine"]
 	h.State["generated_tex"] = firstValue(result, "wrapper", "tex", "tex_path")
 	h.State["generated_tikz"] = result["generated_tikz"]
 	h.State["luadraw_version"] = stringValue(result["luadraw_version"], "3.7")
 	size, _ := cf.PDFCanvasMM(ctx, canonical)
-	return fmt.Sprintf("COMPILE OK. Artifact: standalone.pdf (1 page), %.1fmm x %.1fmm. LuaDraw %v; backend=%v; engine=%v. Inspect with view_pdf {path:\"standalone.pdf\",page:1}, then compare_figure.", size[0], size[1], h.State["luadraw_version"], h.State["drawing_backend"], h.State["drawing_engine"]), nil
+	return fmt.Sprintf("COMPILE OK. Artifact: standalone.pdf (1 page), %.1fmm x %.1fmm. source=%v; backend=%v; engine=%v. Inspect with view_pdf {path:\"standalone.pdf\",page:1}, then compare_figure.", size[0], size[1], h.State["source_language"], h.State["drawing_backend"], h.State["drawing_engine"]), nil
 }
 
 func (h *Harness) liveThreshold() float64 {
@@ -580,7 +615,7 @@ func fallbackWhy(w []string) string {
 func (h *Harness) compare(ctx context.Context, a map[string]any) (string, string, error) {
 	explicit := strings.TrimSpace(stringValue(a["pdf_path"], ""))
 	if explicit == "" && (!truth(h.State["compile_ok"]) || stringValue(h.State["last_pdf"], "") == "") {
-		return "Comparison unavailable: compile a LuaDraw figure successfully first, or provide pdf_path.", "", nil
+		return "Comparison unavailable: compile a figure successfully first, or provide pdf_path.", "", nil
 	}
 	pdf := stringValue(h.State["last_pdf"], "")
 	if explicit != "" {
@@ -672,28 +707,31 @@ func putMetrics(s map[string]any, m *cf.Metrics) {
 
 func (h *Harness) Deliver(ctx context.Context) (map[string]any, error) {
 	if !h.IsSubmitted() {
-		return nil, errors.New("No accepted LuaDraw source")
+		return nil, errors.New("No accepted drawing source")
 	}
 	snap, ok := h.State["accepted_snapshot"].(map[string]any)
 	if ok && snap["final_code"] == h.State["final_code"] {
 		h.State = cloneMap(snap)
 	}
 	code := stringValue(h.State["final_code"], "")
-	suffix := filepath.Ext(stringValue(h.State["source_path"], "figure.lua"))
-	sourceName := "submitted.lua"
-	if suffix != ".lua" {
+	suffix := strings.ToLower(filepath.Ext(stringValue(h.State["source_path"], "figure.lua")))
+	sourceName := "submitted" + suffix
+	if suffix == ".tex" {
 		sourceName = "submitted.body.tex"
+	}
+	if suffix != ".lua" && suffix != ".asy" && suffix != ".tex" {
+		return nil, errors.New("accepted source has invalid extension")
 	}
 	source := filepath.Join(h.root, sourceName)
 	if err := os.WriteFile(source, []byte(code), 0644); err != nil {
 		return nil, err
 	}
-	compiled, err := luadraw.Compile(ctx, source, h.root, h.Options)
+	compiled, err := render.Compile(ctx, source, h.root, h.Options)
 	if err != nil {
 		return nil, err
 	}
 	if !truth(compiled["ok"]) {
-		return nil, fmt.Errorf("Accepted LuaDraw source could not be rebuilt: %s", stringValue(compiled["error"], "unknown error"))
+		return nil, fmt.Errorf("Accepted drawing source could not be rebuilt: %s", stringValue(compiled["error"], "unknown error"))
 	}
 	copyArtifact := func(src, dst string) error {
 		if src == "" {
@@ -706,7 +744,8 @@ func (h *Harness) Deliver(ctx context.Context) (map[string]any, error) {
 		return os.WriteFile(dst, b, 0644)
 	}
 	tex := filepath.Join(h.root, "submitted.tex")
-	texCode := luadraw.SelfContainedTeX(code, h.Options, sourceName == "submitted.body.tex")
+	language := stringValue(compiled["source_language"], "luadraw")
+	texCode := render.SelfContainedTeX(code, h.Options, suffix == ".tex", language)
 	if err = os.WriteFile(tex, []byte(texCode), 0644); err != nil {
 		return nil, err
 	}
@@ -715,14 +754,14 @@ func (h *Harness) Deliver(ctx context.Context) (map[string]any, error) {
 		texOptions[key] = value
 	}
 	texOptions["output_name"] = "submitted_rebuild"
-	if extra := luadraw.OriginalTeXPreamble(code, sourceName == "submitted.body.tex"); extra != "" {
+	if extra := luadraw.OriginalTeXPreamble(code, sourceName == "submitted.body.tex"); language == "luadraw" && extra != "" {
 		if configured, ok := texOptions["preamble"].(string); ok && configured != "" {
 			texOptions["preamble"] = configured + "\n" + extra
 		} else {
 			texOptions["preamble"] = extra
 		}
 	}
-	texBuild, err := luadraw.Compile(ctx, tex, h.root, texOptions)
+	texBuild, err := render.Compile(ctx, tex, h.root, texOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -743,7 +782,13 @@ func (h *Harness) Deliver(ctx context.Context) (map[string]any, error) {
 		warnings = append(warnings, "Preview failed; vector PDF retained: "+err.Error())
 		preview = ""
 	}
-	result := map[string]any{"submitted": true, "source_language": "luadraw", "luadraw_version": h.State["luadraw_version"], "backend": h.State["drawing_backend"], "engine": h.State["drawing_engine"], "editable_source": source, "editable_lua": source, "editable_tex": tex, "submitted_tex": tex, "submitted_pdf": pdf, "preview": nil, "merges": h.State["merges"], "uncertain": h.State["uncertain"], "best_overlap": h.State["best_overlap"], "scale_dev": h.State["scale_dev_at_best"], "accepted_as_is": h.State["accepted_as_is"], "accept_note": h.State["accept_note"], "submit_attempts": h.State["submit_attempts"], "warnings": warnings, "generated_tikz": h.State["generated_tikz"], "generated_lua": texBuild["generated_lua"]}
+	result := map[string]any{"submitted": true, "source_language": language, "drawing_mode": h.Options["drawing_mode"], "luadraw_version": h.State["luadraw_version"], "backend": h.State["drawing_backend"], "engine": h.State["drawing_engine"], "editable_source": source, "editable_tex": tex, "submitted_tex": tex, "submitted_pdf": pdf, "preview": nil, "merges": h.State["merges"], "uncertain": h.State["uncertain"], "best_overlap": h.State["best_overlap"], "scale_dev": h.State["scale_dev_at_best"], "accepted_as_is": h.State["accepted_as_is"], "accept_note": h.State["accept_note"], "submit_attempts": h.State["submit_attempts"], "warnings": warnings, "generated_tikz": h.State["generated_tikz"], "generated_lua": texBuild["generated_lua"]}
+	if language == "luadraw" {
+		result["editable_lua"] = source
+	}
+	if language == "asymptote" {
+		result["editable_asy"] = source
+	}
 	if preview != "" {
 		result["preview"] = preview
 	}

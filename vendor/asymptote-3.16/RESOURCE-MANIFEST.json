@@ -1,0 +1,1700 @@
+{
+  "upstream": "Asymptote",
+  "version": "3.16",
+  "source_archive_url": "https://mirrors.ctan.org/graphics/asymptote.zip",
+  "downloaded_archive": "build/asymptote-download/asymptote-3.16.zip",
+  "archive_size_bytes": 36765144,
+  "archive_sha256": "21462c4a48664b4066201f15616b537377a8085b95021ec84a68b52919ca3a22",
+  "resource_root": "vendor/asymptote-3.16",
+  "license": "GNU LGPL-3.0-or-later, subject to per-file notices; top-level LICENSE, LICENSE.LESSER and LICENSES-THIRD-PARTY.md retained",
+  "selection": "Official manual PDF and Texinfo source, reference card PDF/TeX, CAD PDF/TeX, FAQ Texinfo/Info, documentation .asy sources, all examples .asy sources, README and license notices. Excludes compiler/C++ tree, binaries, generated PDFs other than selected docs, tests and unrelated bundled dependencies.",
+  "file_count": 337,
+  "selected_size_bytes": 3196494,
+  "files": [
+    {
+      "path": "LICENSE",
+      "size_bytes": 35147,
+      "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+    },
+    {
+      "path": "LICENSE.LESSER",
+      "size_bytes": 7639,
+      "sha256": "a853c2ffec17057872340eee242ae4d96cbf2b520ae27d903e1b2fef1a5f9d1c"
+    },
+    {
+      "path": "LICENSES-THIRD-PARTY.md",
+      "size_bytes": 1011,
+      "sha256": "b260593bdcbae87eaadec3a6527b32409ab3b290f0f9df23b257c3932ed733cc"
+    },
+    {
+      "path": "README",
+      "size_bytes": 3421,
+      "sha256": "e2c2fa0819e9d552ea3f38ff9b506ecc11959e0bd8d4a3ba0c455df2b85065ad"
+    },
+    {
+      "path": "doc/Bode.asy",
+      "size_bytes": 677,
+      "sha256": "b09a3e21618004ce2030f8185480d388498368e2e4d63b5b97ce87a30487aef0"
+    },
+    {
+      "path": "doc/CAD.pdf",
+      "size_bytes": 296939,
+      "sha256": "60f7a14bd494c955720a5808d5c53ed3cade8ea4db8f884b943acaef6448c387"
+    },
+    {
+      "path": "doc/CAD.tex",
+      "size_bytes": 10196,
+      "sha256": "e1928dc9427cd3adb10694cce95f565d875b895a9122949735f13b43793aa8bf"
+    },
+    {
+      "path": "doc/CAD1.asy",
+      "size_bytes": 1391,
+      "sha256": "dcc36561c8e34344181c58dc6d36a877ed50dbff8d2623c45621affccdcbf828"
+    },
+    {
+      "path": "doc/CDlabel.asy",
+      "size_bytes": 518,
+      "sha256": "50b409b5eeba8ed097313c0c87e229d804228f606a1820be7b6d5cd8a32743fc"
+    },
+    {
+      "path": "doc/FAQ/asy-faq.info",
+      "size_bytes": 62718,
+      "sha256": "8904a39c6382177ca593f11bfe9ee307c190610660dc1c09e87b9d93c324c111"
+    },
+    {
+      "path": "doc/FAQ/asy-faq.texi",
+      "size_bytes": 48197,
+      "sha256": "fb9344f160d5b3a0ba404163b5de71b2148990625de3b93e37d1edafbfec7c0b"
+    },
+    {
+      "path": "doc/GaussianSurface.asy",
+      "size_bytes": 464,
+      "sha256": "ab0d27ca3e1a8c1f52d684b943efd2e7cc80a54ab3289bac68d34a0a8892e59d"
+    },
+    {
+      "path": "doc/HermiteSpline.asy",
+      "size_bytes": 324,
+      "sha256": "4837a07841cecedfd815efe805cb5bd73ab7c20e54f09bddeac005576149b1b8"
+    },
+    {
+      "path": "doc/Hobbycontrol.asy",
+      "size_bytes": 521,
+      "sha256": "dc81616bc8470587f1bb7eea23543155f0e0c7836795a2c94d8e30a7dbda2e20"
+    },
+    {
+      "path": "doc/Hobbydir.asy",
+      "size_bytes": 500,
+      "sha256": "6128d599105e1f30f138f694c49d30ffbd595d98ec9f7f3724b6b26e505509b7"
+    },
+    {
+      "path": "doc/asyRefCard.pdf",
+      "size_bytes": 206436,
+      "sha256": "c12b88fd547f95a78890e13651bbe859aa21084c9dd6c66b253cd7ff5233fa74"
+    },
+    {
+      "path": "doc/asyRefCard.tex",
+      "size_bytes": 20053,
+      "sha256": "93a4d54d2f75f58da395057f7226df1d37e47669b8ef5729a3d8967224a1ad34"
+    },
+    {
+      "path": "doc/asymptote.pdf",
+      "size_bytes": 1656329,
+      "sha256": "ea1f2a5af6963da29cf77aa52b1280e29396fe2c9fda11a4cd4049440f3bbf82"
+    },
+    {
+      "path": "doc/asymptote.texi",
+      "size_bytes": 498027,
+      "sha256": "430526985c1240ebb8003c5eb2ff03a80c2038dd6e02dcccdd3d99e22a2b2985"
+    },
+    {
+      "path": "doc/axis3.asy",
+      "size_bytes": 251,
+      "sha256": "3a24787ea6d3627b28307779177cf9887b700bb8a12a46783ea2d8fec3ee1674"
+    },
+    {
+      "path": "doc/basealign.asy",
+      "size_bytes": 1033,
+      "sha256": "a1afb72a2041ad4d716a426a584c7e7b675bb5911160649c83a883a16f085d28"
+    },
+    {
+      "path": "doc/bezier.asy",
+      "size_bytes": 81,
+      "sha256": "37a5c4493f7a8cce2404f8ea0a586d3f6e79e6d3970f54777ca8b56bd0ed39cc"
+    },
+    {
+      "path": "doc/bezier2.asy",
+      "size_bytes": 416,
+      "sha256": "73026266e05ca2167fd83c80b6cb7dc42503729fde1eeca37bcac6ea4069760f"
+    },
+    {
+      "path": "doc/beziercurve.asy",
+      "size_bytes": 234,
+      "sha256": "86616bb0035dfd9f301e23e7ad7b8594991175f9a90deb96686d0a26eec49570"
+    },
+    {
+      "path": "doc/bigdiagonal.asy",
+      "size_bytes": 41,
+      "sha256": "6f6690a3ac7e448dd751fba2e769f3bf7615f3fd539231d035e69dedf348d99b"
+    },
+    {
+      "path": "doc/binarytreetest.asy",
+      "size_bytes": 306,
+      "sha256": "207837485996bb9f8d881bdb3335303733f2407bf12d2c9f39d083bac3ac6f2e"
+    },
+    {
+      "path": "doc/brokenaxis.asy",
+      "size_bytes": 524,
+      "sha256": "97f5892878f9a547b7b2ad0f3d0fedf4bfd76004eba20b271125dc902f08b18c"
+    },
+    {
+      "path": "doc/colons.asy",
+      "size_bytes": 49,
+      "sha256": "15d22cb798c1a2c571da5883a4e7d2ecec97c08dfd8ebd0e0d84f601609c3c59"
+    },
+    {
+      "path": "doc/colors.asy",
+      "size_bytes": 1620,
+      "sha256": "12cdad5c92db286b1dccd5fee228b79ad03d1e4d1f5fc4d07c0b5d4c0f8c7132"
+    },
+    {
+      "path": "doc/colorsurface.asy",
+      "size_bytes": 400,
+      "sha256": "4eb3d26a4b1fe632664c572dafad319384023a2e07b0d5a013a73cfa2d3ad31e"
+    },
+    {
+      "path": "doc/cube.asy",
+      "size_bytes": 243,
+      "sha256": "6c290571abae4a19d52e70b7a93835cb6f2b142b6c881e4c364bca10da178c74"
+    },
+    {
+      "path": "doc/cylinderskeleton.asy",
+      "size_bytes": 86,
+      "sha256": "344a0f651fc6a5fec9f276bf0c47f6f77be709f4c023570e6f8230ee98d05dea"
+    },
+    {
+      "path": "doc/datagraph.asy",
+      "size_bytes": 218,
+      "sha256": "f8b45721e6538d3828d2ab56e3146b44af9bff4025bd20f1376c51bdc2ae6afc"
+    },
+    {
+      "path": "doc/diagonal.asy",
+      "size_bytes": 24,
+      "sha256": "c034840a5d9785991a981453f1c7c1650373000aaaffa20e3f1af0145718d53b"
+    },
+    {
+      "path": "doc/diatom.asy",
+      "size_bytes": 2979,
+      "sha256": "b4e2ba5b15a81c0cf29d53714d4c4ac5db5a3854cb4b255a92125ef1f66780ea"
+    },
+    {
+      "path": "doc/dots.asy",
+      "size_bytes": 49,
+      "sha256": "43a31aa29dd80ab044e608b89905d7f548c3f006cef67295658fa7ef78d51b72"
+    },
+    {
+      "path": "doc/eetomumu.asy",
+      "size_bytes": 1051,
+      "sha256": "52931c3d90dc5689aec4700883fb41d9d7ad98cb868955d8980681b0461d455b"
+    },
+    {
+      "path": "doc/elliptic.asy",
+      "size_bytes": 2034,
+      "sha256": "05f1faf462580cb3d7f7e006602c64f21bcf8a1f58ef7ae9dafd1c5fe2e3f582"
+    },
+    {
+      "path": "doc/errorbars.asy",
+      "size_bytes": 912,
+      "sha256": "fac1165faaba73f2ff50be15b41872ce0a7e16976e9a0f7baac7152c85acc5ae"
+    },
+    {
+      "path": "doc/exp.asy",
+      "size_bytes": 202,
+      "sha256": "35e68c3dd4c0c7591869d435cbbefd6f0e6631a02c12b06d55134085737646f4"
+    },
+    {
+      "path": "doc/extra/intro.asy",
+      "size_bytes": 24230,
+      "sha256": "48a8562df031616b6274571572ee547593dedf2f7b93ccd05b4b90c2d428ce9d"
+    },
+    {
+      "path": "doc/filegraph.asy",
+      "size_bytes": 238,
+      "sha256": "252bf52f43a8a232e285feefdf08e21a6c5e8f16b3dd59faa37e416f3cea1530"
+    },
+    {
+      "path": "doc/fillcontour.asy",
+      "size_bytes": 934,
+      "sha256": "48457bb90454133e25323015590134fc9ada113f10cf46d4545a89082f84885e"
+    },
+    {
+      "path": "doc/flow.asy",
+      "size_bytes": 604,
+      "sha256": "56bcb6fd369694d14d3599ef05cf2d06b6699c2b62fd261770af703afb95413b"
+    },
+    {
+      "path": "doc/flowchartdemo.asy",
+      "size_bytes": 897,
+      "sha256": "3d9b91f43558670f05b8af14294cf8315c4fb98dfdbe6a8a6d5f4f5457d7f1c4"
+    },
+    {
+      "path": "doc/generalaxis.asy",
+      "size_bytes": 277,
+      "sha256": "3ae3017fd21d95e0f235db816346dc934330fe2226b6e1d2a8b720a27cb03316"
+    },
+    {
+      "path": "doc/generalaxis3.asy",
+      "size_bytes": 376,
+      "sha256": "393d1c08445ea48739e99523b836c8a052292d4561a5e5609e7fbf14af85dd0b"
+    },
+    {
+      "path": "doc/graphmarkers.asy",
+      "size_bytes": 754,
+      "sha256": "9d6a74c2a26b00e52315dbd4ab29f382f486d3e86b5e8371aaea10cae86d4533"
+    },
+    {
+      "path": "doc/graphwithderiv.asy",
+      "size_bytes": 219,
+      "sha256": "68c34184d47ca0bd187d21b29f2cc4a77f214a77c38306c1bb9062a034e3ac0e"
+    },
+    {
+      "path": "doc/grid3xyz.asy",
+      "size_bytes": 426,
+      "sha256": "0b132e141959ce1bdf5875ffb97502be332b59ef448c0c134836e4a76acca1ef"
+    },
+    {
+      "path": "doc/hatch.asy",
+      "size_bytes": 279,
+      "sha256": "17a8adcc8cff4e2d3a1563eebed39b8376e5135020c2fd0560f0c139ba9c1bd0"
+    },
+    {
+      "path": "doc/helix.asy",
+      "size_bytes": 423,
+      "sha256": "f3c83016dffc33fb0bbdb6782b79ef3124f2bdad195bc1dd1d776e80def301f5"
+    },
+    {
+      "path": "doc/histogram.asy",
+      "size_bytes": 439,
+      "sha256": "08731718ed0451371a1946f19edef81d8c3e5b02fed7459f63ebeea36087a646"
+    },
+    {
+      "path": "doc/icon.asy",
+      "size_bytes": 378,
+      "sha256": "1fb9e264a0468e15e25c03c0c0c203e15351bbb00c6ccccc82706666d0001e79"
+    },
+    {
+      "path": "doc/image.asy",
+      "size_bytes": 401,
+      "sha256": "161a87d376c1cb723ca3c394ff3745e9914f8b8a1c465b80a0847dbe9e078280"
+    },
+    {
+      "path": "doc/imagecontour.asy",
+      "size_bytes": 922,
+      "sha256": "d40579e8fd6fcad23225b3378f04caadeb7e42b8514a4e425406e71225a35947"
+    },
+    {
+      "path": "doc/irregularcontour.asy",
+      "size_bytes": 357,
+      "sha256": "fcf96d9505bdefe181b178f3b9237ba74b44a7b70d532a86d9ca9d27bc10ed5e"
+    },
+    {
+      "path": "doc/join.asy",
+      "size_bytes": 261,
+      "sha256": "68963d63c4f357186095c999c21f3ba8fb4715d0e5a68bb94226684aa4b40492"
+    },
+    {
+      "path": "doc/join3.asy",
+      "size_bytes": 442,
+      "sha256": "3287ddb786fdbda0f07f01f5a2ee690141f374cd02e19d1f53f375358cd9d429"
+    },
+    {
+      "path": "doc/knots.asy",
+      "size_bytes": 417,
+      "sha256": "4d1f288c1878653be9850a97191ed0f86232db044a9d34e4b7a915a82a3d65df"
+    },
+    {
+      "path": "doc/labelsquare.asy",
+      "size_bytes": 121,
+      "sha256": "70dd0b87ce04cde16f37e0ed5644bb759e8d51982b9ea10edce6c6d9c164e461"
+    },
+    {
+      "path": "doc/leastsquares.asy",
+      "size_bytes": 1008,
+      "sha256": "5f16d73ee7301649fd3c2b4d0492f788c78a2f2d505dce66802116951b38918c"
+    },
+    {
+      "path": "doc/legend.asy",
+      "size_bytes": 396,
+      "sha256": "58e281e2daef0253f133be50ce2b03706d4b6f17b09cae96b24685f1e038aeee"
+    },
+    {
+      "path": "doc/lineargraph.asy",
+      "size_bytes": 373,
+      "sha256": "2871197767969ec7d04c9f21aeb666423d11893f4ef4e1ee5a705db8907d68d7"
+    },
+    {
+      "path": "doc/lineargraph0.asy",
+      "size_bytes": 366,
+      "sha256": "054e214acc06f02ff7c148a38eeb57637782b2b0cb1dd312d2440732c5404675"
+    },
+    {
+      "path": "doc/linetype.asy",
+      "size_bytes": 415,
+      "sha256": "69d92b5b89aecc44650f2b1ee2912f38aa24c44e4db13823aef638ae6f586a1e"
+    },
+    {
+      "path": "doc/log2graph.asy",
+      "size_bytes": 423,
+      "sha256": "aacf6dc0e8a4d7a757df1036a04a201cb0186977dab2da06fb7cf7035ab22c18"
+    },
+    {
+      "path": "doc/loggraph.asy",
+      "size_bytes": 262,
+      "sha256": "b73e3400d430c707e922be400187b1bea501240b3e788ea92fa6b71c30428571"
+    },
+    {
+      "path": "doc/loggrid.asy",
+      "size_bytes": 382,
+      "sha256": "3a7da2770f5bcf670316829d3c392985bc9878038eccd3e95c9d57fcb0165e2a"
+    },
+    {
+      "path": "doc/logimage.asy",
+      "size_bytes": 480,
+      "sha256": "1e1e346d9edef1c7f46504cfcdc9d1b86cd62b3740faa3835293a0e317f6f1bf"
+    },
+    {
+      "path": "doc/logo.asy",
+      "size_bytes": 617,
+      "sha256": "8c9fcaafea75852b5ce1bb60c71586d933feb458fbd9a1a5adc2de46f4545b16"
+    },
+    {
+      "path": "doc/logticks.asy",
+      "size_bytes": 314,
+      "sha256": "2c8ce71d86a6e90663f45cc86082a6bd0474b1c1c9354ee06767e86624ca528d"
+    },
+    {
+      "path": "doc/makepen.asy",
+      "size_bytes": 293,
+      "sha256": "75a39342747a0714a28546bc97496d6ac6cf37bb7a89019488519c13aa034df8"
+    },
+    {
+      "path": "doc/markers1.asy",
+      "size_bytes": 2674,
+      "sha256": "11026e9ceb4a9b689766db26aa5138a1e13f8aa95f4d2f1b8ac381f6f86dad64"
+    },
+    {
+      "path": "doc/markers2.asy",
+      "size_bytes": 877,
+      "sha256": "8cf71102eb63b7fca32c33e2a6ea6329af51b94d61f7dde768e3848d58325c84"
+    },
+    {
+      "path": "doc/mexicanhat.asy",
+      "size_bytes": 288,
+      "sha256": "2385760434cf6725ef810a4c3d482d80fd675e480baacdb4487bdd1c999db04c"
+    },
+    {
+      "path": "doc/monthaxis.asy",
+      "size_bytes": 374,
+      "sha256": "6b87a7063eec6a2dac95021899cd305ba71f0f3f7662d19ce445e969c365002f"
+    },
+    {
+      "path": "doc/multicontour.asy",
+      "size_bytes": 458,
+      "sha256": "b21c683f867c1709b9c27c0a5b7cbb15c6910a59fc6ce1c46d0d1c00f931ff3b"
+    },
+    {
+      "path": "doc/onecontour.asy",
+      "size_bytes": 115,
+      "sha256": "0b41e5239e7cc77826db62235ab4b3fe0f4261bc5c28c5915fade48e8a964163"
+    },
+    {
+      "path": "doc/parametricgraph.asy",
+      "size_bytes": 240,
+      "sha256": "338c3a4026ea2f95560e17cacc4a8977a7969225a8344b516d3bf986480ed368"
+    },
+    {
+      "path": "doc/penfunctionimage.asy",
+      "size_bytes": 498,
+      "sha256": "b1089dc0778c43ea596bcf285340631abfa2d950847eeb908fc01efa28f94693"
+    },
+    {
+      "path": "doc/penimage.asy",
+      "size_bytes": 219,
+      "sha256": "d3caf98b105b5f8fb35c58076a5ff50ddf49fff23f9152c0f4101abc214084c5"
+    },
+    {
+      "path": "doc/planes.asy",
+      "size_bytes": 354,
+      "sha256": "de6e7cc42b7bdb4951331671b44b8fac2174a7330d90b1cf89658008a90f21f1"
+    },
+    {
+      "path": "doc/quartercircle.asy",
+      "size_bytes": 49,
+      "sha256": "537b1149ce0812a285d1e7b2ecaeebc125dfc6795fa1563a8079e4c397d49511"
+    },
+    {
+      "path": "doc/saddle.asy",
+      "size_bytes": 157,
+      "sha256": "6e3159912a9ae82eab1cf80775a286a897395b2be7de0f7dd0deca7cd1e232a4"
+    },
+    {
+      "path": "doc/scaledgraph.asy",
+      "size_bytes": 355,
+      "sha256": "619eae919b6736679ce18f62999e03b62ba4c691d3b8d4bd80090b54f2871155"
+    },
+    {
+      "path": "doc/secondaryaxis.asy",
+      "size_bytes": 792,
+      "sha256": "2248e18881bef4931a3f3524c42632f306bc25f6d72217165a2ce24c7c84489e"
+    },
+    {
+      "path": "doc/shadedtiling.asy",
+      "size_bytes": 256,
+      "sha256": "c7be5d6aa8596f761c2f474d2e57368c7a6341dcadd2855c4c1ceeb8f673d8c3"
+    },
+    {
+      "path": "doc/slopefield1.asy",
+      "size_bytes": 146,
+      "sha256": "3bd8a5ff07653f062b61c338fde6d9985650311a7f14ddf88fbce957d85c09bb"
+    },
+    {
+      "path": "doc/square.asy",
+      "size_bytes": 52,
+      "sha256": "30880a6c70996f9f2530838772fc30bb8b0452a99eb6a4edbdb178417ecf4161"
+    },
+    {
+      "path": "doc/subpictures.asy",
+      "size_bytes": 341,
+      "sha256": "479b7b4d6d632ffe6963e4d1dcdb2c9846cdc9b99e3202279b4746931f59a2d3"
+    },
+    {
+      "path": "doc/superpath.asy",
+      "size_bytes": 123,
+      "sha256": "4a988bd513b664749c14bfbd311e411d6f2fd2380749bb87222aa9fefbd460a4"
+    },
+    {
+      "path": "doc/tile.asy",
+      "size_bytes": 390,
+      "sha256": "862f4ff95a0a8765851b719c5209dd59c8b4075de87743f85303aa4e946f0c1d"
+    },
+    {
+      "path": "doc/triangulate.asy",
+      "size_bytes": 396,
+      "sha256": "0cf677d64043a879646be11ced1f035b6290b3a04a85d8e35f63b246cce016c5"
+    },
+    {
+      "path": "doc/unitcircle3.asy",
+      "size_bytes": 186,
+      "sha256": "4188c31e6bb035d36e58cd41220407f62feb605078cd47d88e1513a5e6892bec"
+    },
+    {
+      "path": "doc/vectorfield.asy",
+      "size_bytes": 140,
+      "sha256": "97ae716e402036203df0ba09cadbf853157023b39f4d2ce1a48c83704ab19ceb"
+    },
+    {
+      "path": "doc/westnile.asy",
+      "size_bytes": 1746,
+      "sha256": "14aef54bbef10a8ad68f53874c38218178df4e34be7bd2c27dde35343935b932"
+    },
+    {
+      "path": "examples/1overx.asy",
+      "size_bytes": 163,
+      "sha256": "7fec0d2973bae4fa264f5cfb16f48ad65b7df1448bf3c783f8ca8c4886e31626"
+    },
+    {
+      "path": "examples/AiryDisk.asy",
+      "size_bytes": 377,
+      "sha256": "806ab830a4f640f5f23d87c6632bc5524f14f6617f0e4533373b049eed100c79"
+    },
+    {
+      "path": "examples/BezierPatch.asy",
+      "size_bytes": 407,
+      "sha256": "39a69ccf2759107c0f44263c6c494dbf9aa1acfde50e3ff5b786bfe22d2a2dde"
+    },
+    {
+      "path": "examples/BezierSaddle.asy",
+      "size_bytes": 581,
+      "sha256": "d9bf11f3f3e81427e24f41707a2774b23c862262f48fbbc27e118ee186f2cccb"
+    },
+    {
+      "path": "examples/BezierSurface.asy",
+      "size_bytes": 1548,
+      "sha256": "1e87cfc65bf1621ec6e09538fe59c35ac37935d39988461c68db9c9c1622cb9d"
+    },
+    {
+      "path": "examples/BezierTriangle.asy",
+      "size_bytes": 199,
+      "sha256": "88dd3d7e37d074d400db3ea45d8887690d32b7890858d62660edf48e2533a30e"
+    },
+    {
+      "path": "examples/Coons.asy",
+      "size_bytes": 123,
+      "sha256": "79d297cf0288cbe669adf891480638ccbaf3f44cc779bc718243a56a64291f51"
+    },
+    {
+      "path": "examples/Gouraud.asy",
+      "size_bytes": 383,
+      "sha256": "dea2471d156da92d7eed60198ee4e297630d6ad4f3a9602460791707e6577934"
+    },
+    {
+      "path": "examples/Gouraudcontour.asy",
+      "size_bytes": 616,
+      "sha256": "025ae89f80b767f948c2886a8cc5cbaae6e824df8a6e7fdd30c3f8fb45e3458b"
+    },
+    {
+      "path": "examples/Klein.asy",
+      "size_bytes": 1352,
+      "sha256": "4dc6c66b521885c3927fb24cfb69ee3d82b4f06eada8e193cfea33af8b83ac1d"
+    },
+    {
+      "path": "examples/NURBScurve.asy",
+      "size_bytes": 703,
+      "sha256": "9e5adcc288ef4c474e879e0a0b47260578418dcd3f422fe92713b766764596c1"
+    },
+    {
+      "path": "examples/NURBSsphere.asy",
+      "size_bytes": 1088,
+      "sha256": "3b6720ef4d29e0b747ec12e06b9412646a6fc2f471f42232a8d9779cc8242984"
+    },
+    {
+      "path": "examples/NURBSsurface.asy",
+      "size_bytes": 1598,
+      "sha256": "69de5577c375aecaa38ee9e46d2a4fc6c7313cf6dc614746eeee0b3b4f5edaa2"
+    },
+    {
+      "path": "examples/Pythagoras.asy",
+      "size_bytes": 557,
+      "sha256": "363b5cb6b0eb50dcd53400f3829bc157f1e5e988023fb4e7b23ed27ed38ad006"
+    },
+    {
+      "path": "examples/PythagoreanTree.asy",
+      "size_bytes": 420,
+      "sha256": "f534f50471f47230cf5afd9d03135d7c7befc0711f5e4c5455f74b8835571c3e"
+    },
+    {
+      "path": "examples/RiemannSphere.asy",
+      "size_bytes": 945,
+      "sha256": "ecb663eae8750f2aa7d6afd135be634414b64de31861b4c0441975c0bf2fe239"
+    },
+    {
+      "path": "examples/RiemannSurface.asy",
+      "size_bytes": 350,
+      "sha256": "6cadd310118f7f707f77ab572ad7ba81987be38bf8ab9364e5ad7c37401fa3ba"
+    },
+    {
+      "path": "examples/RiemannSurfaceRoot.asy",
+      "size_bytes": 386,
+      "sha256": "2b21f919cf6101015f115e7a0efe4e1ce54f2da1f4d7628fb05a9b1ccfa7b13f"
+    },
+    {
+      "path": "examples/Sierpinski.asy",
+      "size_bytes": 410,
+      "sha256": "0671ea24888bc7a096883e19d3c2924f5656fd4484e134b303a7f380f8206528"
+    },
+    {
+      "path": "examples/SierpinskiGasket.asy",
+      "size_bytes": 821,
+      "sha256": "b383f994b5154b3484c3842214eda4e16bc3fa9316c8a44ad2531a6b710a4601"
+    },
+    {
+      "path": "examples/SierpinskiSponge.asy",
+      "size_bytes": 2398,
+      "sha256": "6959fb2635309c802a1cc5e3d651473c1f0ed984cbca27a10c3bcca650e3809b"
+    },
+    {
+      "path": "examples/Viviani.asy",
+      "size_bytes": 714,
+      "sha256": "6fb893c07bb1b1afc5f54ec3262893af602db1a877db8ecc821f3a07f5a6d200"
+    },
+    {
+      "path": "examples/advection.asy",
+      "size_bytes": 4158,
+      "sha256": "496f57dc5a43d6c642cb0e996bc16dae94286f0ea1de6608abda80e5ca2db9b5"
+    },
+    {
+      "path": "examples/alignbox.asy",
+      "size_bytes": 245,
+      "sha256": "b733a9a6f7d187286b2dc18357e0902f2a54fd71e265297c0cf8f23c96706caa"
+    },
+    {
+      "path": "examples/alignedaxis.asy",
+      "size_bytes": 2830,
+      "sha256": "904faf9cc12851a52745fb00aa98acb46c9c1a0598680721e8de90e023b65970"
+    },
+    {
+      "path": "examples/animations/cube.asy",
+      "size_bytes": 946,
+      "sha256": "5aa8e1ad0110eda0d360f83fb51a33fb65c7d8ac038e27cdd058880d008cde3b"
+    },
+    {
+      "path": "examples/animations/earthmoon.asy",
+      "size_bytes": 1919,
+      "sha256": "96fbd50b653b5480d2e570393347407b1eaddc77330cf027c9ca760ec6a6d3c1"
+    },
+    {
+      "path": "examples/animations/embeddedmovie.asy",
+      "size_bytes": 503,
+      "sha256": "96e2feaaa783c695719e4f1210bd3c1d846ae98ba16d4c49547736ae5da379b6"
+    },
+    {
+      "path": "examples/animations/embeddedu3d.asy",
+      "size_bytes": 196,
+      "sha256": "a60175b656486e22a84ebd29a7549fabf89df864162ef22e34534f0c910acc4a"
+    },
+    {
+      "path": "examples/animations/externalmovie.asy",
+      "size_bytes": 411,
+      "sha256": "94f7bdcdefea1bd0c6324f3b6975d5e272f91169f5adfb0e70834ecbce8d5549"
+    },
+    {
+      "path": "examples/animations/glmovie.asy",
+      "size_bytes": 390,
+      "sha256": "66b3b76587e444224ff2af63c2a79b952754eeb1f2dfee6cfdccc71c7d8c0f8a"
+    },
+    {
+      "path": "examples/animations/heatequation.asy",
+      "size_bytes": 1760,
+      "sha256": "f79d9d39f6d256359784f56ad6b87bf93026ae1db8b6d3f7a202d58f623a8328"
+    },
+    {
+      "path": "examples/animations/pdfmovie.asy",
+      "size_bytes": 326,
+      "sha256": "3d0b0c5a375dc79a2c6afd8bb0149821c357b715cfef7edf58fa4516399e460c"
+    },
+    {
+      "path": "examples/animations/robotArm.asy",
+      "size_bytes": 11926,
+      "sha256": "57616caee1a7f9cbfb49ebb6417decbe30f440cf44992c4244a7421a6904e84a"
+    },
+    {
+      "path": "examples/animations/slidemovies.asy",
+      "size_bytes": 1247,
+      "sha256": "51ee5601ce2532c5b7ee299f5755b563440aba4bc0115f644ee822e11f38d4de"
+    },
+    {
+      "path": "examples/animations/sphere.asy",
+      "size_bytes": 856,
+      "sha256": "c9c3f22aa703001ea9b288165f7e670ef1036414a0d5a2d666d57f32024d9fda"
+    },
+    {
+      "path": "examples/animations/teapotAnimation.asy",
+      "size_bytes": 16163,
+      "sha256": "cdbbb26fcc7b2b4408631b4f5ddccdcccc9c347a42c76c65a31f7491a7016473"
+    },
+    {
+      "path": "examples/animations/torusanimation.asy",
+      "size_bytes": 798,
+      "sha256": "9993bca3d36ab2cafa2264f77210ff3fc73a47550b42d0c1ab806d2fbf05d0e7"
+    },
+    {
+      "path": "examples/animations/wavepacket.asy",
+      "size_bytes": 1498,
+      "sha256": "fe3172a0cd9a30583053596a39105db886ea5269c6cd87081d7846a099a07b21"
+    },
+    {
+      "path": "examples/animations/wheel.asy",
+      "size_bytes": 1194,
+      "sha256": "ecf69be101acc1a5d84851619d598d1c5bd92a709b8bda3ed9c6867f74d6a409"
+    },
+    {
+      "path": "examples/annotation.asy",
+      "size_bytes": 236,
+      "sha256": "f10f737bec73132c2cc1e5554ebd840bda2de84a4cedd0c6019f7fc5101397d9"
+    },
+    {
+      "path": "examples/arrows3.asy",
+      "size_bytes": 1213,
+      "sha256": "943c52600d5fda50573e4f3611c5b027a7b6d218ff62867189c5bb2564fc12c8"
+    },
+    {
+      "path": "examples/axialshade.asy",
+      "size_bytes": 61,
+      "sha256": "75c66280e62c121340bcbd460bef0bc441be2486ba86804bf18b3f9ceaf60c23"
+    },
+    {
+      "path": "examples/bars3.asy",
+      "size_bytes": 496,
+      "sha256": "04861889239c30fbb7f1039dad06a15b6c9518ef1b40f8ae5b9b104dc9859426"
+    },
+    {
+      "path": "examples/billboard.asy",
+      "size_bytes": 154,
+      "sha256": "0c091f67ce79ad257bdcbaac83c4c4ce739c0958ce7447f1724cfb597b3d9740"
+    },
+    {
+      "path": "examples/buildcycle.asy",
+      "size_bytes": 513,
+      "sha256": "0cabd464e0346a9b5e10dbc48bd4f9716980c4dbc8b4b003de2d3e53cf6759b6"
+    },
+    {
+      "path": "examples/cardioid.asy",
+      "size_bytes": 233,
+      "sha256": "de2f45cf286c080a54b1f0e9b31e92a009ff629d3b1aad49edce239d05a9cda0"
+    },
+    {
+      "path": "examples/cards.asy",
+      "size_bytes": 485,
+      "sha256": "465d1588cb60c5db06594b94e8f122022b02c1e18fa9533a40f8c6ea922e2e98"
+    },
+    {
+      "path": "examples/centroidfg.asy",
+      "size_bytes": 688,
+      "sha256": "d17d93868fb40f5d60d9f3e40799aae650c59b65e864129d2bf14f68ee709725"
+    },
+    {
+      "path": "examples/cheese.asy",
+      "size_bytes": 322,
+      "sha256": "9805986e9ee5997c4d9e0ec59f24483c85d5feefb7eb00ecfa4436c159dff6e1"
+    },
+    {
+      "path": "examples/circles.asy",
+      "size_bytes": 576,
+      "sha256": "63bbecc6c000e114e2e2f5a68f8dfa71293e2f16fcfbbf242cf869061c5cb7d8"
+    },
+    {
+      "path": "examples/circumcircle.asy",
+      "size_bytes": 228,
+      "sha256": "9d341e33f0f41cc83af974048be9c2c56944970c1c3d457cb4ad17ac9852ddec"
+    },
+    {
+      "path": "examples/clockarray.asy",
+      "size_bytes": 712,
+      "sha256": "a9bb1bff5092fc0c8241055f94074a7aeee6ed7a1f28d59d46960106d23b0205"
+    },
+    {
+      "path": "examples/coag.asy",
+      "size_bytes": 264,
+      "sha256": "116c1568cd271300f4158796cdc9c1156c692c1ac3d9550c8b20c7e29fae8766"
+    },
+    {
+      "path": "examples/colorpatch.asy",
+      "size_bytes": 436,
+      "sha256": "1f525c006aaf48fc78f4c03f197d6f30b1a546cb809bb8c5986dbec0e026be91"
+    },
+    {
+      "path": "examples/colorplanes.asy",
+      "size_bytes": 472,
+      "sha256": "8ce69e92c9f805dc0c40575b4bfddc9d45c42aa5cadfb1e13d1eabd85e4b66ff"
+    },
+    {
+      "path": "examples/condor.asy",
+      "size_bytes": 739,
+      "sha256": "01f112974c4668b599b256e4efbd3069c5997e28f4731023be5deb6ddde70316"
+    },
+    {
+      "path": "examples/cones.asy",
+      "size_bytes": 495,
+      "sha256": "292599394b0b01427ba33d863080405d184f861bde39aa8edaf386642bf49fdd"
+    },
+    {
+      "path": "examples/conicurv.asy",
+      "size_bytes": 1778,
+      "sha256": "5ba14bc2f104456caa5ea000af2b5cd4927786c52541b184bfba8c75c1521a5c"
+    },
+    {
+      "path": "examples/contextfonts.asy",
+      "size_bytes": 254,
+      "sha256": "1abd7d5a245827d4c8fd1c106533f70b32384b21e488e7e4a4851c9491f9b121"
+    },
+    {
+      "path": "examples/controlsystem.asy",
+      "size_bytes": 802,
+      "sha256": "0602a31dc9c4e5723b4c005bec07022f408b468023dd96e7edf34f2df234157f"
+    },
+    {
+      "path": "examples/cos2theta.asy",
+      "size_bytes": 235,
+      "sha256": "8d6f279ab9d5fba8c40a4f5c31ccd223ac58dea4563fb06e874eab817fe62efa"
+    },
+    {
+      "path": "examples/cos3.asy",
+      "size_bytes": 582,
+      "sha256": "1fec12dea6b459dec7813d515d14aa7f9a1d010184f3fac597026ceabf646363"
+    },
+    {
+      "path": "examples/cosaddition.asy",
+      "size_bytes": 460,
+      "sha256": "11ce4eada388269cd323d7818dd56e06eb2c12eac9085035b892e8473e21e8ff"
+    },
+    {
+      "path": "examples/cpkcolors.asy",
+      "size_bytes": 5537,
+      "sha256": "5a18cdd2a441fbbbb9bff80e034fd3a37d25d83ce790d1037ad41d5485b935ee"
+    },
+    {
+      "path": "examples/cubeFillDrawDots.asy",
+      "size_bytes": 895,
+      "sha256": "6b37e0ab6cb7f8b42a8c98e82d2977a90c051f4866be289c6edcc4983f48d108"
+    },
+    {
+      "path": "examples/cubeOpenDots.asy",
+      "size_bytes": 90,
+      "sha256": "387e089721e50dbb189beb17c1c7123b670cf2c7f0658dc47e77a426f4271384"
+    },
+    {
+      "path": "examples/curvedlabel.asy",
+      "size_bytes": 177,
+      "sha256": "d5dbca65ca4cfd065d8f24f2bda3512483d35a26304d1328fa79f6199a928dcb"
+    },
+    {
+      "path": "examples/curvedlabel3.asy",
+      "size_bytes": 572,
+      "sha256": "13d07ef03d72272e2fa47951a25b59404af73ce9d79afd3021c1ee8d9b6e4ccc"
+    },
+    {
+      "path": "examples/cyclohexane.asy",
+      "size_bytes": 1781,
+      "sha256": "f3d0e01c6b1cc4b06a631ec1911dd63d90073b177b7db99d3291c8d98a8fd5b8"
+    },
+    {
+      "path": "examples/cylinder.asy",
+      "size_bytes": 352,
+      "sha256": "d7e3955898c2e0eb399c3910b923fa705e4ad925cafb1f4c8ef8faf057e656f4"
+    },
+    {
+      "path": "examples/delu.asy",
+      "size_bytes": 506,
+      "sha256": "c819c1f880eafa957cb396b4ca49cbdf4b75c22127fa7e20b6cee63eec772a99"
+    },
+    {
+      "path": "examples/dimension.asy",
+      "size_bytes": 509,
+      "sha256": "53318123b7f4a4c927cb0cf88c69b134d77e8f36fed965bb6ef2db1e2202f083"
+    },
+    {
+      "path": "examples/dragon.asy",
+      "size_bytes": 1216,
+      "sha256": "b63cb2e7cf4cc74db8ad1ac8b48779da70324af463a873725e9859fdf9e2b3f6"
+    },
+    {
+      "path": "examples/electromagnetic.asy",
+      "size_bytes": 1298,
+      "sha256": "43b7b43ee8d39b41e96ec80b7e094fefd240ec93b32b823f33b5f8a9627ebd68"
+    },
+    {
+      "path": "examples/elevation.asy",
+      "size_bytes": 298,
+      "sha256": "7602c5eee93fe35e6d79974afac2a55a0b47a1e77874703240015904bca35ba6"
+    },
+    {
+      "path": "examples/epix.asy",
+      "size_bytes": 398,
+      "sha256": "e5d8af4e70e4b931bc442bf5bf54ddff54d8783abb5c4d3d04ee877e00755d2b"
+    },
+    {
+      "path": "examples/equilateral.asy",
+      "size_bytes": 242,
+      "sha256": "6681d89488ae5cc2684f5c20a56125bf46063e954198e81c3c1e919eb60ebe99"
+    },
+    {
+      "path": "examples/equilchord.asy",
+      "size_bytes": 548,
+      "sha256": "fcbdb6e44c69a4254107f544d87fb0356c539d79c456b0986074ecc930fd5884"
+    },
+    {
+      "path": "examples/exp3.asy",
+      "size_bytes": 579,
+      "sha256": "f14756d96fd02ca6e089fbe3cf9ddf493ce44da65c8aad0cd8ad5345a04a162d"
+    },
+    {
+      "path": "examples/extrudedcontour.asy",
+      "size_bytes": 493,
+      "sha256": "0e76e65588c0e5f4ec7ab475c777591f0997b739bf0366d8c6ad944a394760c8"
+    },
+    {
+      "path": "examples/fano.asy",
+      "size_bytes": 498,
+      "sha256": "02f993f52b6760460ab10d87f7a5874098c8e28fbf200f163f2312e9e4d54087"
+    },
+    {
+      "path": "examples/fequlogo.asy",
+      "size_bytes": 929,
+      "sha256": "f7891b84971c282030ab0eeefda62ef399965abbaf0ca9e0ba6832f923986a8a"
+    },
+    {
+      "path": "examples/fermi.asy",
+      "size_bytes": 715,
+      "sha256": "411ab89ab1c1cf5deea399c78aeebae541b165d34dd2f69b43ebd7929bce28f5"
+    },
+    {
+      "path": "examples/filesurface.asy",
+      "size_bytes": 547,
+      "sha256": "763bfd6a7637458e8d636b439bd399244430d0bcd5e5781f70317712a6daa1d7"
+    },
+    {
+      "path": "examples/fin.asy",
+      "size_bytes": 4244,
+      "sha256": "6c7f0c8992d6aeb5e8507179dbc49384889aa8681d797c37abbb89c3578026ec"
+    },
+    {
+      "path": "examples/fitcolors.asy",
+      "size_bytes": 1643,
+      "sha256": "1583c0e36e3df367afd831cd06ab311863525680f0d0426a680b112de57140dc"
+    },
+    {
+      "path": "examples/fjortoft.asy",
+      "size_bytes": 710,
+      "sha256": "c4f7a8fee4d6cb757a4da10331d45073dfa2d803a933452eb674349b49f6003b"
+    },
+    {
+      "path": "examples/floatingdisk.asy",
+      "size_bytes": 558,
+      "sha256": "15a1c73ca077a2d6c7b99fef649e9a98cc01f7fbbd00c561ad03827497e70c8c"
+    },
+    {
+      "path": "examples/floor.asy",
+      "size_bytes": 500,
+      "sha256": "82b31fbe22fec7b0133e409b4224e77f193b85174f3964464e06a7e522152b88"
+    },
+    {
+      "path": "examples/fractaltree.asy",
+      "size_bytes": 683,
+      "sha256": "4051832fe9e4bc4b3fc30eea579fea682faccf626771152988d5db90ba40d0d6"
+    },
+    {
+      "path": "examples/functionshading.asy",
+      "size_bytes": 1185,
+      "sha256": "4f5d4071c065d2e54e6a71e1dafa9e085bfaab0b0bea9439a232f530ed0d35cd"
+    },
+    {
+      "path": "examples/galleon.asy",
+      "size_bytes": 502,
+      "sha256": "f8e4093bbcfddd4d901e2b2e3d1a93c9f36fa1acd6108bffed1899f9b77aa4f7"
+    },
+    {
+      "path": "examples/gamma.asy",
+      "size_bytes": 439,
+      "sha256": "8ba38c69cb25c4f5671cabceda18971f4226a959dcedb8bd12e774f03841d197"
+    },
+    {
+      "path": "examples/gamma3.asy",
+      "size_bytes": 708,
+      "sha256": "e48f148e05209cf33c1807aec84f1beb4a3c99179316dcf360d76915a473320e"
+    },
+    {
+      "path": "examples/genusthree.asy",
+      "size_bytes": 679,
+      "sha256": "750ec94a1e931f91d2061a65938641fc34992c5ddcca6dc011a27cfcfbb50792"
+    },
+    {
+      "path": "examples/genustwo.asy",
+      "size_bytes": 1121,
+      "sha256": "f5f14fb519453c8ff9f1dacd84790494bd32715eb7ab6128ca6972a78536c873"
+    },
+    {
+      "path": "examples/grid.asy",
+      "size_bytes": 76,
+      "sha256": "07595084577495510666844f6b9900a2bd3fd5bf428e4d22ac8272f55eb5e1a7"
+    },
+    {
+      "path": "examples/hierarchy.asy",
+      "size_bytes": 459,
+      "sha256": "5177faef0190d78a1f8c081429c156111adfbb4c998b0af7e17c27aa6271b07e"
+    },
+    {
+      "path": "examples/hyperboloid.asy",
+      "size_bytes": 315,
+      "sha256": "b3bb05f8a7886b8d982f17923322ba068602ae9bfa6e29a9d43854f50f13659b"
+    },
+    {
+      "path": "examples/hyperboloidsilhouette.asy",
+      "size_bytes": 267,
+      "sha256": "1222f1ac45873654367eaafaa2c2cf86b7081f396173a9dba8e559cd8fb732fd"
+    },
+    {
+      "path": "examples/imagehistogram.asy",
+      "size_bytes": 1111,
+      "sha256": "bf9b4fea8fccd2a7c35a5a77fb886c0251c44dd3c748aac2abdfaefb03690eb3"
+    },
+    {
+      "path": "examples/impact.asy",
+      "size_bytes": 610,
+      "sha256": "150fac2ed981807d6ce71670f0cbc0733d1a4bf45bfbae4cd2dd2a6d2f66e84a"
+    },
+    {
+      "path": "examples/integraltest.asy",
+      "size_bytes": 598,
+      "sha256": "c9cf5d98968f43b9f029fe5aa7644b4c557a346d2bf7553aa7957a579fce9a05"
+    },
+    {
+      "path": "examples/interlockedtori.asy",
+      "size_bytes": 3482,
+      "sha256": "ba5f7ce9576bfc3fae43fcbe76aeaef59519112b59a734dddd34d35f34b25fb4"
+    },
+    {
+      "path": "examples/interpolate1.asy",
+      "size_bytes": 4818,
+      "sha256": "b4edc3f44e01a273b47d4a851ed6cd92223d080d0c4aab8a17f7b5a44dabb596"
+    },
+    {
+      "path": "examples/jump.asy",
+      "size_bytes": 289,
+      "sha256": "9a945e7d76e877dfe6f59a72ca98055baae190162f90dae3291d7ac58062c502"
+    },
+    {
+      "path": "examples/label3.asy",
+      "size_bytes": 182,
+      "sha256": "41968620c69dd01f93c1b56495d4896937d8df4f1b4baa0c9b1487d69b41bba5"
+    },
+    {
+      "path": "examples/label3ribbon.asy",
+      "size_bytes": 196,
+      "sha256": "e9cb58e09a916ab24fd4d40e1ba44011a8b41a3a7979ec8b9d53d9d4dd455bad"
+    },
+    {
+      "path": "examples/label3solid.asy",
+      "size_bytes": 187,
+      "sha256": "647335dc988632f4da0eefcd2f66f9357b6d8770c10ef29a521c1b73c5e4a1ff"
+    },
+    {
+      "path": "examples/label3zoom.asy",
+      "size_bytes": 632,
+      "sha256": "e23d3609bb06c2b9c25cf74e9613181a9d57f7001ddfd0609ade8225b3f1d4e0"
+    },
+    {
+      "path": "examples/labelbox.asy",
+      "size_bytes": 264,
+      "sha256": "2eb5cf84415b2790ff7e1d963e362dbf88d8ba2242d89b81e6da6b9c5f6445f6"
+    },
+    {
+      "path": "examples/laserlattice.asy",
+      "size_bytes": 1114,
+      "sha256": "d85c3d84613d3a87930e059b05219192fe4a861a1c87313754be9f6595b67000"
+    },
+    {
+      "path": "examples/latticeshading.asy",
+      "size_bytes": 136,
+      "sha256": "70377804ea6f8f6d28d7b8ed8676817e384053729087991fb3e3521cf8b24555"
+    },
+    {
+      "path": "examples/layers.asy",
+      "size_bytes": 690,
+      "sha256": "2c82415b277493a2122e74d8aa295df3f416a55db1a421054288b6d30015d627"
+    },
+    {
+      "path": "examples/lever.asy",
+      "size_bytes": 460,
+      "sha256": "d4476c6c9c5915249a18715223b060de11a6e21a937f6b87a966254a527b9507"
+    },
+    {
+      "path": "examples/limit.asy",
+      "size_bytes": 654,
+      "sha256": "cfe974023028ab820a125c90427c02ca71f560121123a2b3c35752cce9b92901"
+    },
+    {
+      "path": "examples/linearregression.asy",
+      "size_bytes": 1910,
+      "sha256": "19109754ba8edbf48055953947f2f5439fa80250ed8f47678f86cfee818f6a6a"
+    },
+    {
+      "path": "examples/lines.asy",
+      "size_bytes": 168,
+      "sha256": "13b8226793b02d0cda40cfcdfcde4d7c2454e107aa47711d6f5d98e47b553e51"
+    },
+    {
+      "path": "examples/lmfit1.asy",
+      "size_bytes": 1040,
+      "sha256": "32dd3410593cf041b6eec04310cf9a67235459dbd5252b24913f238e95875b39"
+    },
+    {
+      "path": "examples/log.asy",
+      "size_bytes": 206,
+      "sha256": "eba1fd4797f60fbe5a77c016cdb45993f23a2eedeeed6d41f26b66a726c45d4a"
+    },
+    {
+      "path": "examples/logdown.asy",
+      "size_bytes": 349,
+      "sha256": "f59be6945cb5ad261535a5367a84ab4a63b8177568d5a29a222cb235dc68145e"
+    },
+    {
+      "path": "examples/logo3.asy",
+      "size_bytes": 1461,
+      "sha256": "e803b463b2973182619f14b089c76fa7d9b86fd8862bcbba9243793b03d7dac1"
+    },
+    {
+      "path": "examples/lowint.asy",
+      "size_bytes": 196,
+      "sha256": "f617f0b894858d2a7eec0985e934d39a4ea4282198da6ab87461503e92eb56e0"
+    },
+    {
+      "path": "examples/lowupint.asy",
+      "size_bytes": 657,
+      "sha256": "541113999208edc86d8b966080f3573fb8c6c7ea54538b1ae39bdaf49b3b3c47"
+    },
+    {
+      "path": "examples/magnetic.asy",
+      "size_bytes": 479,
+      "sha256": "f93f779ff3405cc9f9aaecc3068514824b92aac60ecffd8a70c67c7941d23d6e"
+    },
+    {
+      "path": "examples/markregular.asy",
+      "size_bytes": 879,
+      "sha256": "4f8343ec4df35769a2b9fa54770d2f57d4171cf14436442d0e7bcbee692946fe"
+    },
+    {
+      "path": "examples/mergeExample.asy",
+      "size_bytes": 1968,
+      "sha256": "e0056ea9a0bae3a47e2a7a13b3b31a418ceb0f7f29604b0c26706264034cbe2d"
+    },
+    {
+      "path": "examples/mobiustorus.asy",
+      "size_bytes": 2525,
+      "sha256": "c7ab6160babb6c8ca1d35686ed3e875b3e2e3bace45ede31ce43575979d6527f"
+    },
+    {
+      "path": "examples/mosaic.asy",
+      "size_bytes": 5216,
+      "sha256": "e51ad2056e587c3ca41d808424480a066f90616faa5786f45065505bc34680d3"
+    },
+    {
+      "path": "examples/mosquito.asy",
+      "size_bytes": 2504,
+      "sha256": "9e50235b09a3bc671b4313898dddce03e4cb3ee51632c2ea27f8ba2b1e697b75"
+    },
+    {
+      "path": "examples/near_earth.asy",
+      "size_bytes": 1566,
+      "sha256": "90037eea38057b4ad3aba25f344a8cf05322e463b0387069f63e119ccc537d5c"
+    },
+    {
+      "path": "examples/odetest.asy",
+      "size_bytes": 1251,
+      "sha256": "e5fa5f3e138ea787506aa10a2c1ae4c4e0c1110012efc54942043dfc5ae1c15c"
+    },
+    {
+      "path": "examples/oneoverx.asy",
+      "size_bytes": 308,
+      "sha256": "4527b13398a2791178dfc6a527819a7327f972bdb39c84a2988360a779f2f87c"
+    },
+    {
+      "path": "examples/orthocenter.asy",
+      "size_bytes": 810,
+      "sha256": "66d344b0315a1500800ec9d8d473a7d404373f220005c207e3f53618fcbf100c"
+    },
+    {
+      "path": "examples/pOrbital.asy",
+      "size_bytes": 641,
+      "sha256": "101949ae36140028d5c15e4acffd09a6d38038625f2f1ec2df48c48354a5bb83"
+    },
+    {
+      "path": "examples/parametricelevation.asy",
+      "size_bytes": 254,
+      "sha256": "6a1c9a85e9116525369af87420b7446ce1447c2acdf1b038017cd12a62dc2287"
+    },
+    {
+      "path": "examples/parametricsurface.asy",
+      "size_bytes": 407,
+      "sha256": "d8bfd567d71438096c054102fb41986d394133e871ccf7a8b587ba4ccd8db4bc"
+    },
+    {
+      "path": "examples/partialsurface.asy",
+      "size_bytes": 711,
+      "sha256": "f61bba43c3a73bb7bc9eb03a620f4521e58ad828b0bebf9c4f14dbeea01ed87d"
+    },
+    {
+      "path": "examples/partitionExample.asy",
+      "size_bytes": 1055,
+      "sha256": "9d9f134fd0ed4898c51e2664f690add5f93f279e3295a42643caa015d92a8a0a"
+    },
+    {
+      "path": "examples/pathintersectsurface.asy",
+      "size_bytes": 426,
+      "sha256": "3f95b5662ebe274457eec3e855f0b5507693e91bdf4c721bf10351de331e3ae8"
+    },
+    {
+      "path": "examples/pdb.asy",
+      "size_bytes": 3355,
+      "sha256": "0cc7ed3a79432d3926c7ef8f5197264981d6dc53fb75f123d5d1e9427a3f7b49"
+    },
+    {
+      "path": "examples/phase.asy",
+      "size_bytes": 361,
+      "sha256": "03a44ac65309926b3616c7fa1aa09ffd5183acd92d9e0b836750d003eaf21384"
+    },
+    {
+      "path": "examples/pipeintersection.asy",
+      "size_bytes": 362,
+      "sha256": "793774b9e2a82f1d4c6b98d7ee958bf96bf453424757237aee7a43553a12af4d"
+    },
+    {
+      "path": "examples/pipes.asy",
+      "size_bytes": 3857,
+      "sha256": "8b23da9f9bac895f3debf96b113154896dfd2485bb004afc966b5929c5585e17"
+    },
+    {
+      "path": "examples/planeproject.asy",
+      "size_bytes": 418,
+      "sha256": "8053f76990bdd51e53cecd3435ff4643091f4c4c8e5d5cb6b594fa7cde752aa6"
+    },
+    {
+      "path": "examples/polararea.asy",
+      "size_bytes": 930,
+      "sha256": "35f122cf00213ebbc6fbe2c04c9aecc94acaf73bf0916111e8c58b8fa8f81868"
+    },
+    {
+      "path": "examples/polarcircle.asy",
+      "size_bytes": 628,
+      "sha256": "2696301243be0a1606978403c2e60b3e64b01280878ee07e8adcd4050a49ab55"
+    },
+    {
+      "path": "examples/polardatagraph.asy",
+      "size_bytes": 326,
+      "sha256": "960f2463fe25f0393adf38204fe88aed0a3cfd5e5cae3dd73ebe4103f719ea3a"
+    },
+    {
+      "path": "examples/poster.asy",
+      "size_bytes": 954,
+      "sha256": "257423819eef9ba10a43c541b57446cf82dc8316b284c74c6c37844272c38fd5"
+    },
+    {
+      "path": "examples/progrid.asy",
+      "size_bytes": 58,
+      "sha256": "430a3d176ae7ce104daf9ff540ac7cd7a682537d3db6f4ae9acfce85abe643f3"
+    },
+    {
+      "path": "examples/projectelevation.asy",
+      "size_bytes": 402,
+      "sha256": "5652061a5ff96ee88a06889e6e7c3a4aec28413acb804e6f1dd1201f658d34b4"
+    },
+    {
+      "path": "examples/projectrevolution.asy",
+      "size_bytes": 427,
+      "sha256": "1185e607c7e4f311f9737b338038b98442a28561314510d527afe008319a01aa"
+    },
+    {
+      "path": "examples/pseudosphere.asy",
+      "size_bytes": 747,
+      "sha256": "768f1ded4424bd2d733570c6c4e71f83e3de112ca472ad475dcaf7065d4db2ec"
+    },
+    {
+      "path": "examples/quilt.asy",
+      "size_bytes": 734,
+      "sha256": "0dc74cad0b1bd1488cad16803779493a2d8c5467d6ea33911cb3a6e57d687032"
+    },
+    {
+      "path": "examples/rainbow.asy",
+      "size_bytes": 345,
+      "sha256": "37bb9e36d3b5b9d159ec100d039da14602deba3c7e7e4cf178d09ff075c17cd1"
+    },
+    {
+      "path": "examples/randompath3.asy",
+      "size_bytes": 78,
+      "sha256": "5b71b7267e6db53de18a2985fb0e3f39212846895e8dca980b3ea491e2636cca"
+    },
+    {
+      "path": "examples/ring.asy",
+      "size_bytes": 141,
+      "sha256": "129a622260494f228245e864053be329d7cf2919fc92be259aec4d93763cdec7"
+    },
+    {
+      "path": "examples/roll.asy",
+      "size_bytes": 184,
+      "sha256": "983a60cfab25275d02d4b79ccf8a5e100fc0917a30a54f2dfb04a8df6c6ebb5d"
+    },
+    {
+      "path": "examples/roundpath.asy",
+      "size_bytes": 1309,
+      "sha256": "527efecc8fc1169e36a88dd4a895d44b1286382ee476ab6122b8e5a637ae1fc9"
+    },
+    {
+      "path": "examples/sacone.asy",
+      "size_bytes": 445,
+      "sha256": "8c364976159ded6b7905cce087e9dddaf2015382bf8aceda000c315e1a6b0aa4"
+    },
+    {
+      "path": "examples/sacone3D.asy",
+      "size_bytes": 288,
+      "sha256": "b68dabe63f035a5ff481aecc3ea129fe6c825a83987d071e3291128043e841db"
+    },
+    {
+      "path": "examples/sacylinder.asy",
+      "size_bytes": 400,
+      "sha256": "b7bf5f6447e7ab975c516d44c1d5f5dfeff9fe7edf861014ea76dec7962f7a1a"
+    },
+    {
+      "path": "examples/sacylinder3D.asy",
+      "size_bytes": 341,
+      "sha256": "d7ed0ad3919461881effc13b5510c5e7fb5f6cc915eb927ae8133ba14e41d108"
+    },
+    {
+      "path": "examples/shade.asy",
+      "size_bytes": 66,
+      "sha256": "3eefb950c60aed9f7fb670e01a51536c0f71924ef3479c8a500d9389133d94b1"
+    },
+    {
+      "path": "examples/shadestroke.asy",
+      "size_bytes": 111,
+      "sha256": "35285857742f70f65d83e54d187aa11ef58b2c8f65787a8c5d272c23863218ed"
+    },
+    {
+      "path": "examples/shellmethod.asy",
+      "size_bytes": 1065,
+      "sha256": "7229855f215762caafb4b995be0de6ec738e93b337afd0376412e60af8e95299"
+    },
+    {
+      "path": "examples/shellsqrtx01.asy",
+      "size_bytes": 829,
+      "sha256": "c7617c837c765c20c6f28998efa4044328c534765ff5e617ff2290fe40501944"
+    },
+    {
+      "path": "examples/sin1x.asy",
+      "size_bytes": 327,
+      "sha256": "72bd6caa20ac4d4dd2eed2c5ef26869efac343490fd6000f387e0e786f083827"
+    },
+    {
+      "path": "examples/sin3.asy",
+      "size_bytes": 579,
+      "sha256": "77759eaaf7451bc1ecdcaeab7b12792da940e032696525c5946bd2688cb51a51"
+    },
+    {
+      "path": "examples/sinc.asy",
+      "size_bytes": 591,
+      "sha256": "c6705c93bbd8436d2f0b07c455ab16c46500e62126dcf8381bc02abeeecae339"
+    },
+    {
+      "path": "examples/sinxlex.asy",
+      "size_bytes": 378,
+      "sha256": "25a9f6d73da24d4212bdd57aef79c38edfb33d913e7c718d79d12cd2ee6c2a56"
+    },
+    {
+      "path": "examples/slidedemo.asy",
+      "size_bytes": 3390,
+      "sha256": "96c87c6a5f53f3ca000d14acf5c24668db7ad26c31d3044ac66afddc0e488107"
+    },
+    {
+      "path": "examples/slope.asy",
+      "size_bytes": 2020,
+      "sha256": "ce4189bceb73c6041429671f03054a2d757a7344e670bfc53d88838257816aea"
+    },
+    {
+      "path": "examples/smoothelevation.asy",
+      "size_bytes": 508,
+      "sha256": "bbfc473a9ccfa7a4662cbb35fdfaff7522dc3b801ede34e21fa571f4fcf52b87"
+    },
+    {
+      "path": "examples/soccerball.asy",
+      "size_bytes": 2628,
+      "sha256": "34e7257dbf90840e43711ee61d029bd4ff6731eeaa7c8ba2b02d5efcf2b8919d"
+    },
+    {
+      "path": "examples/spectrum.asy",
+      "size_bytes": 2362,
+      "sha256": "3bd91fa54fdd39e6d6ad63687024cff3674dedfe211e9901aff96802d48fa976"
+    },
+    {
+      "path": "examples/sphere.asy",
+      "size_bytes": 209,
+      "sha256": "b053d6d40a672e11df86b747a20c036c1f7d23a87e92ee92053c696e4a4f29f3"
+    },
+    {
+      "path": "examples/spheresilhouette.asy",
+      "size_bytes": 150,
+      "sha256": "9c7d8b3c18763c30269f1a65eaab1565a17c198b1e4866c858b3c438d1cb424b"
+    },
+    {
+      "path": "examples/sphereskeleton.asy",
+      "size_bytes": 162,
+      "sha256": "2fd6d9803962d1e67a4e034e4e0fa3ddeec8ac070cfc7cf9243fec822e52f120"
+    },
+    {
+      "path": "examples/sphericalharmonic.asy",
+      "size_bytes": 325,
+      "sha256": "cebe44154cfa139522e7951ba6cb74f3e79ebab1dd02bf03b5153c3e8f066950"
+    },
+    {
+      "path": "examples/spiral.asy",
+      "size_bytes": 210,
+      "sha256": "52992e7904c4b2f25ef3ae8bacc07aeab9df61e31b3db865edfdad1662def23a"
+    },
+    {
+      "path": "examples/spiral3.asy",
+      "size_bytes": 424,
+      "sha256": "4d550ff59638406acaf47d09b3733860b85baa01ac21e4d0acea75b994540c16"
+    },
+    {
+      "path": "examples/spline.asy",
+      "size_bytes": 608,
+      "sha256": "d6b24f1e7dc8b5973faf993f4e66e1c32d78045aca3c1ce1de41ebf2fb7230fb"
+    },
+    {
+      "path": "examples/splinecontours.asy",
+      "size_bytes": 2127,
+      "sha256": "809845da4b0510bda2103cd2b785edaae524c904acf174fecf1aacde2b01900e"
+    },
+    {
+      "path": "examples/splitpatch.asy",
+      "size_bytes": 2164,
+      "sha256": "6917e7abaf97d36e5c018bfd8fb4323af104dfdf4b2d3392c5e46c8c3bba1c49"
+    },
+    {
+      "path": "examples/spring.asy",
+      "size_bytes": 667,
+      "sha256": "65af24f77d265d00a3821b2649b34e66ab4ffda5f67333d45e4610ecb9456163"
+    },
+    {
+      "path": "examples/spring0.asy",
+      "size_bytes": 38,
+      "sha256": "8915151f7720ac301b27f4e59f3db6d3f47ddef2b6cd305d17d08c29c3ad3a35"
+    },
+    {
+      "path": "examples/spring2.asy",
+      "size_bytes": 43,
+      "sha256": "80e928cf8cb7e2678364308d086bb17c3b68d0a57261a80b188def0e388fa0a5"
+    },
+    {
+      "path": "examples/sqrtx01.asy",
+      "size_bytes": 674,
+      "sha256": "a5a3f6636cb5c9d707d276d2c79ecd60a842a7b1f16c3f1096168bb4c0857687"
+    },
+    {
+      "path": "examples/sqrtx01y1.asy",
+      "size_bytes": 579,
+      "sha256": "adb4f10173ba18b0373f2ed13f19f0bd6c7013369a29167a91d92e2b883641f7"
+    },
+    {
+      "path": "examples/star.asy",
+      "size_bytes": 145,
+      "sha256": "49469213f787409b9fbcbfa7389570ad38a305dea88b4a1203475c50ff91a55c"
+    },
+    {
+      "path": "examples/stereoscopic.asy",
+      "size_bytes": 162,
+      "sha256": "b397e42af51084594b7a329448cc2df419806c2baec6ddc934b34cc99957ee75"
+    },
+    {
+      "path": "examples/stroke3.asy",
+      "size_bytes": 59,
+      "sha256": "e9fb77deb535d0418121288b2e0de72c9ad09e4c32f4c4018e9d99a25f01c854"
+    },
+    {
+      "path": "examples/strokepath.asy",
+      "size_bytes": 300,
+      "sha256": "e7d62166a6a988d8b0302d34cbde9898e596da6a520ae86a3080da934ca7cd60"
+    },
+    {
+      "path": "examples/strokeshade.asy",
+      "size_bytes": 175,
+      "sha256": "e4f7a5434eb26d91252369bc3ea43c556267345af0e3f957ae73d7bba6542e1b"
+    },
+    {
+      "path": "examples/tanh.asy",
+      "size_bytes": 198,
+      "sha256": "1aba02983bcb3493404c9da6e4ca730bafce73b79cf7239cba4ad525c7f2f130"
+    },
+    {
+      "path": "examples/teapot.asy",
+      "size_bytes": 14420,
+      "sha256": "2d0824291ff4aac605528a14e73fdba8b4967df9d529f3dc9c6d3450f386b3bf"
+    },
+    {
+      "path": "examples/teapotIBL.asy",
+      "size_bytes": 34,
+      "sha256": "10cbe35a6f3e7f9e171d41ee2a6d1d779b33f0950bb1a720c2efecb124ce4f17"
+    },
+    {
+      "path": "examples/tensor.asy",
+      "size_bytes": 303,
+      "sha256": "26aab79f8191712b560dff332b6162d2db9261ec3c1c748b54b2b011be3a4ed2"
+    },
+    {
+      "path": "examples/tetra.asy",
+      "size_bytes": 547,
+      "sha256": "6e0d1768c0d0e0e54bfc52910abcbf577f5225478827101d6b71b3b60af7215b"
+    },
+    {
+      "path": "examples/textpath.asy",
+      "size_bytes": 312,
+      "sha256": "77c569f134b6ee5d605ada6d79347c22c7f6a92e7420e527e6e1f27aa3aa67d8"
+    },
+    {
+      "path": "examples/thermodynamics.asy",
+      "size_bytes": 8429,
+      "sha256": "7d6c30a276d5ef7368fb96dc5c09183f420eaa11872e1004aef68fc40e92eea2"
+    },
+    {
+      "path": "examples/threeviews.asy",
+      "size_bytes": 533,
+      "sha256": "1a917116b254fc50c2cd01c668e76eafa09c68c590da595b0f95d132e90569df"
+    },
+    {
+      "path": "examples/tiling.asy",
+      "size_bytes": 104,
+      "sha256": "d49e2173686261ef70f8cdab0915d0102c46c0ef6eae715da2172934b5d5f050"
+    },
+    {
+      "path": "examples/torus.asy",
+      "size_bytes": 419,
+      "sha256": "5e14f7f35a2c2333bb8dcd691ce5cd256f769ea4ff3f56f5189ef07b64b5c5b0"
+    },
+    {
+      "path": "examples/transparency.asy",
+      "size_bytes": 188,
+      "sha256": "943a2bacc3e26d80b7e84b89f8d85ed19af17554d052c802b9aab33f20f9dcbe"
+    },
+    {
+      "path": "examples/transparentCubes.asy",
+      "size_bytes": 250,
+      "sha256": "4c40ecc6f36e8cf07198c8dcd599892b169ebf2c6a70df57d79df83e4c034d23"
+    },
+    {
+      "path": "examples/treetest.asy",
+      "size_bytes": 602,
+      "sha256": "c6535b02ae00116515393917578512a412e7634c24a0cf2f98afb30097a079c8"
+    },
+    {
+      "path": "examples/trefoilknot.asy",
+      "size_bytes": 589,
+      "sha256": "d6c509af5e8460fc2eb74b3d43133878dc07560b982c1acda5da9f309ab60fa7"
+    },
+    {
+      "path": "examples/triads.asy",
+      "size_bytes": 972,
+      "sha256": "fcb1016d3d90efdea15213108092c66aef64123036f81e6419d970dc051502f8"
+    },
+    {
+      "path": "examples/triangle.asy",
+      "size_bytes": 207,
+      "sha256": "24d4b7c95c4aca0b44e47a1fb44f43002ded2e2478f67a8f0e7d7d9bf5e27a39"
+    },
+    {
+      "path": "examples/triangles.asy",
+      "size_bytes": 441,
+      "sha256": "df597f8999bbaff1be73c5d94ff6d021b183361c7f81dedc598a65c9cbd2f918"
+    },
+    {
+      "path": "examples/triceratops.asy",
+      "size_bytes": 255,
+      "sha256": "12f8c68c20a34e24c340212514ff9f25608cb1195868f3342bffc1ca2deec4a6"
+    },
+    {
+      "path": "examples/trumpet.asy",
+      "size_bytes": 291,
+      "sha256": "83fa193d46c5e997c4c1231e28b36614b174270978f962ef156c86fc7a5fce1f"
+    },
+    {
+      "path": "examples/truncatedIcosahedron.asy",
+      "size_bytes": 2071,
+      "sha256": "a2e90846a31cbc30627d0c16b098d75e67491aa7c44d4d45d62502526036a802"
+    },
+    {
+      "path": "examples/tvgen.asy",
+      "size_bytes": 40665,
+      "sha256": "58ce2be61a1206fb137b5443027f8ea20f45d0e97af9d696d10955922a65debc"
+    },
+    {
+      "path": "examples/twistedtubes.asy",
+      "size_bytes": 841,
+      "sha256": "939d6987ec820c978ba370c7721f7c43d1accbae64fc008510ec15ddda03fdeb"
+    },
+    {
+      "path": "examples/twoSpheres.asy",
+      "size_bytes": 437,
+      "sha256": "567ddc071f4906864c13acbebe03851628d25f6c4aacc8f35db62be1d954f622"
+    },
+    {
+      "path": "examples/unitcircle.asy",
+      "size_bytes": 322,
+      "sha256": "07ffe5bd0b76012ca4fcb784802cf6cec4026de797a11b66c5c9c511d42355bf"
+    },
+    {
+      "path": "examples/unitoctant.asy",
+      "size_bytes": 180,
+      "sha256": "d5435bf22fea5750352846400ec6609371c69b015e93db4dad7edc3533329c66"
+    },
+    {
+      "path": "examples/unitoctantx.asy",
+      "size_bytes": 714,
+      "sha256": "2a88a32412d87c8c55debabecdfa05877f929179421a715577318f00f4dc4336"
+    },
+    {
+      "path": "examples/upint.asy",
+      "size_bytes": 199,
+      "sha256": "ebba7929889277ce5ca9a4d7e958ee38b3b7c60a5ca153a97f68a72d95b03334"
+    },
+    {
+      "path": "examples/vectorfield3.asy",
+      "size_bytes": 525,
+      "sha256": "fa2920bb19e41f0b379567a0de4215168d308e1b3a3e145433d2e7ca26055b0f"
+    },
+    {
+      "path": "examples/vectorfieldsphere.asy",
+      "size_bytes": 351,
+      "sha256": "1f71de1db3f3a92d07246130c05557bdf4945220e658cf58219afa72004e2c46"
+    },
+    {
+      "path": "examples/venn.asy",
+      "size_bytes": 626,
+      "sha256": "3dae32a61480907b5b5eac9255743548155ff1460746e035ce574690a48c33b3"
+    },
+    {
+      "path": "examples/venn3.asy",
+      "size_bytes": 839,
+      "sha256": "789cb8b728dae4c9c92d6c1404ead4c2a27899a9d8d7b91f0180288c42268498"
+    },
+    {
+      "path": "examples/vertexshading.asy",
+      "size_bytes": 1029,
+      "sha256": "a8eec2cb9dd03c0038425308e7a823c03a8da605db28cbb7d1b5ad1cb155c6b4"
+    },
+    {
+      "path": "examples/washer.asy",
+      "size_bytes": 360,
+      "sha256": "a2cb93d294ac53eb87694b8fbed24b3b4d528bd8de50c2f77cfa730c6d370f9c"
+    },
+    {
+      "path": "examples/washermethod.asy",
+      "size_bytes": 1010,
+      "sha256": "165a42f42bcb092a59747dbefc14625f618ba2aa821dbb6cf6b000ab1b44481f"
+    },
+    {
+      "path": "examples/wedge.asy",
+      "size_bytes": 628,
+      "sha256": "a93ef77a4ad3d0c0c2b7ecf0a9297050d28cd5d106335a5769cac0a6474cd58c"
+    },
+    {
+      "path": "examples/workcone.asy",
+      "size_bytes": 1030,
+      "sha256": "3fc2008f92efcee1641f54c6d1c0715538aa9c0c19ab302604bd332089eb4a8a"
+    },
+    {
+      "path": "examples/worksheet.asy",
+      "size_bytes": 978,
+      "sha256": "7af0283ec72cbf3c8e3e967e38506996268981fa67f844210267db5514a17dd8"
+    },
+    {
+      "path": "examples/worldmap.asy",
+      "size_bytes": 2626,
+      "sha256": "57d6fcd8ae9a092cf76eda571fa239b6c359131a3171368fcd890ea99c413518"
+    },
+    {
+      "path": "examples/xsin1x.asy",
+      "size_bytes": 580,
+      "sha256": "479ff2f34fb49c36ebcb292bbf558fe9ef083995d4c9dd5223dcbc2e1686bc68"
+    },
+    {
+      "path": "examples/xstitch.asy",
+      "size_bytes": 3739,
+      "sha256": "6b0ff51d798bca00b02d25d081e44697895795399f363a60a3ea96ffada2e2ef"
+    },
+    {
+      "path": "examples/xxsq01.asy",
+      "size_bytes": 743,
+      "sha256": "c8e63fd175099ad0df7ba6d3e21a8baa3234c0a8788f75163e8e70a863b11ddb"
+    },
+    {
+      "path": "examples/xxsq01x-1.asy",
+      "size_bytes": 866,
+      "sha256": "576cfcf5aa98f14b3d54decdf9d7ab878560a1ac89a87306158563a5f0ce0621"
+    },
+    {
+      "path": "examples/xxsq01y.asy",
+      "size_bytes": 825,
+      "sha256": "ec2bd3c351bb739de3f84bc2c121661709c63a3d52c35501f6e3eca99dcbe769"
+    },
+    {
+      "path": "examples/yingyang.asy",
+      "size_bytes": 222,
+      "sha256": "e0c7e176e511aa56c4d2a50846ab9e66622b3685e2cd0341f643fe7998682601"
+    }
+  ]
+}

@@ -61,29 +61,26 @@ func TestLuaDrawDocsCLIJSONArgsEnvelopeAndCache(t *testing.T) {
 	if len(results) != 2 || results[0]["ok"] != true || !strings.Contains(results[0]["text"].(string), "Dpolyline3d") {
 		t.Fatalf("bare tool arguments did not search: %#v", results)
 	}
-	if results[1]["ok"] != true || !strings.Contains(results[1]["text"].(string), "LuaDraw") {
+	if results[1]["ok"] != true || !strings.Contains(results[1]["text"].(string), "luadraw_base.lua") {
 		t.Fatalf("tools envelope did not read without an image/model: %#v", results)
 	}
-	if _, err := os.Stat(filepath.Join(cache, "luadraw-doc-index-v4.json")); err != nil {
-		t.Fatalf("index was not written under --cache-dir: %v", err)
+	cacheInfo, ok := results[0]["cache"].(map[string]any)
+	if !ok || cacheInfo["namespace"] == "" || cacheInfo["misses"].(float64) == 0 {
+		t.Fatalf("index/cache counters missing: %#v", results[0])
+	}
+	if entries, err := os.ReadDir(cache); err != nil || len(entries) == 0 {
+		t.Fatalf("cache was not written under --cache-dir: entries=%v err=%v", entries, err)
 	}
 
-	statBefore, err := os.Stat(filepath.Join(cache, "luadraw-doc-index-v4.json"))
-	if err != nil {
-		t.Fatal(err)
-	}
 	freqRequest := `{"mode":"frequent","limit":8,"max_chars":2048}`
 	code, output = runDocsCLI(t, []string{"--stdin", "--resource-root", resources, "--cache-dir", cache}, freqRequest)
 	if code != 0 {
 		t.Fatalf("frequent failed: %d %s", code, output)
 	}
 	result := decodeDocsResult(t, output)
-	if result["ok"] != true || result["text"] == "" {
-		t.Fatalf("frequent did not return indexed usage: %#v", result)
-	}
-	statAfter, err := os.Stat(filepath.Join(cache, "luadraw-doc-index-v4.json"))
-	if err != nil || !statAfter.ModTime().Equal(statBefore.ModTime()) {
-		t.Fatalf("warm index was rebuilt: before=%v after=%v err=%v", statBefore.ModTime(), statAfter, err)
+	cacheInfo, ok = result["cache"].(map[string]any)
+	if result["ok"] != true || result["text"] == "" || !ok || cacheInfo["misses"].(float64) != 0 {
+		t.Fatalf("frequent did not return a warm indexed result: %#v", result)
 	}
 }
 
@@ -120,8 +117,8 @@ func TestLuaDrawDocsCLIJSONOptionsOverrideFlagDefaults(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("request via stdin failed: %d %s", code, output)
 	}
-	if _, err := os.Stat(filepath.Join(jsonCache, "luadraw-doc-index-v4.json")); err != nil {
-		t.Fatalf("JSON cache_dir did not override flag default: %v", err)
+	if entries, err := os.ReadDir(jsonCache); err != nil || len(entries) == 0 {
+		t.Fatalf("JSON cache_dir did not override flag default: entries=%v err=%v", entries, err)
 	}
 	if _, err := os.Stat(defaultCache); !os.IsNotExist(err) {
 		t.Fatalf("default cache unexpectedly used: err=%v", err)

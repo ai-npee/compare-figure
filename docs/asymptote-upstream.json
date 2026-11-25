@@ -1,0 +1,25 @@
+{
+  "project": "Asymptote",
+  "version": "3.16",
+  "ctan_package_url": "https://ctan.org/pkg/asymptote",
+  "source_archive_url": "https://mirrors.ctan.org/graphics/asymptote.zip",
+  "resolved_download_host": "https://sg.mirrors.cicku.me/ctan/graphics/asymptote.zip",
+  "archive_size_bytes": 36765144,
+  "archive_sha256": "21462c4a48664b4066201f15616b537377a8085b95021ec84a68b52919ca3a22",
+  "resource_root": "vendor/asymptote-3.16",
+  "selected_resource_size_bytes": 3196494,
+  "selected_file_count": 337,
+  "license": {
+    "spdx": "LGPL-3.0-or-later",
+    "scope_note": "Upstream README says project source files are LGPL-3.0-or-later unless explicitly noted otherwise. Retained LICENSE, LICENSE.LESSER and LICENSES-THIRD-PARTY.md; observe file-level notices and third-party terms where applicable."
+  },
+  "contents": {
+    "documentation": ["doc/asymptote.pdf", "doc/asyRefCard.pdf", "doc/CAD.pdf"],
+    "documentation_sources": ["doc/asymptote.texi", "doc/asyRefCard.tex", "doc/CAD.tex", "doc/FAQ/asy-faq.texi", "doc/FAQ/asy-faq.info"],
+    "asy_source_examples": ["all .asy files under doc/ and examples/"],
+    "license_and_attribution": ["LICENSE", "LICENSE.LESSER", "LICENSES-THIRD-PARTY.md", "README"],
+    "excluded": ["compiler/C++ source tree", "binaries", "tests", "unrelated bundled dependencies"]
+  },
+  "file_hash_manifest": "vendor/asymptote-3.16/RESOURCE-MANIFEST.json",
+  "retrieval_note": "Downloaded from the CTAN canonical mirror URL over HTTPS; CTAN redirected this request to the resolved mirror host above."
+}

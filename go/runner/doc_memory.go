@@ -1,7 +1,7 @@
 package runner
 
 import (
-	"compare-figure/luadraw"
+	"compare-figure/documents"
 	"context"
 	"strings"
 )
@@ -19,7 +19,7 @@ func documentationMemory(ctx context.Context, config, options Object) (string, e
 	if maxChars == 0 || lines == 0 {
 		return "", nil
 	}
-	docs, err := luadraw.NewDocs(Str(options, "luadraw_root", ""), Str(options, "doc_cache_dir", ""))
+	docs, err := documents.New(Str(options, "resource_root", ""), Str(options, "doc_cache_dir", ""), Str(options, "drawing_mode", "luadraw"))
 	if err != nil {
 		return "", err
 	}

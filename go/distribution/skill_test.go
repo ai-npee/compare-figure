@@ -1,6 +1,9 @@
 package distribution
 
 import (
+	"bytes"
+	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -8,6 +11,61 @@ import (
 
 	"gopkg.in/yaml.v3"
 )
+
+func TestExportIncludesAsymptoteAndPreservesLuaDrawResources(t *testing.T) {
+	root, err := FindRoot("")
+	if err != nil {
+		t.Skip(err)
+	}
+	out := filepath.Join(t.TempDir(), "export")
+	if _, err = Export(context.Background(), ExportOptions{Root: root, Out: out}); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{
+		"docs/asymptote-upstream.json",
+		"docs/drawing-modes.md",
+		"docs/doc-library-compatibility.md",
+		"vendor/asymptote-3.16/RESOURCE-MANIFEST.json",
+		"vendor/asymptote-3.16/LICENSE",
+		"vendor/asymptote-3.16/LICENSE.LESSER",
+		"vendor/asymptote-3.16/doc/asymptote.pdf",
+		"vendor/asymptote-3.16/doc/asymptote.texi",
+		"vendor/asymptote-3.16/examples/triangle.asy",
+	} {
+		source, e := os.ReadFile(filepath.Join(root, filepath.FromSlash(name)))
+		if e != nil {
+			t.Fatal(name, e)
+		}
+		got, e := os.ReadFile(filepath.Join(out, filepath.FromSlash(name)))
+		if e != nil || !bytes.Equal(got, source) {
+			t.Fatalf("exported resource mismatch for %s: %v", name, e)
+		}
+	}
+	luaRoot := filepath.Join(root, "vendor", "luadraw-3.7")
+	if err = filepath.WalkDir(luaRoot, func(path string, entry os.DirEntry, walkErr error) error {
+		if walkErr != nil || entry.IsDir() {
+			return walkErr
+		}
+		rel, e := filepath.Rel(root, path)
+		if e != nil {
+			return e
+		}
+		source, e := os.ReadFile(path)
+		if e != nil {
+			return e
+		}
+		got, e := os.ReadFile(filepath.Join(out, rel))
+		if e != nil {
+			return e
+		}
+		if !bytes.Equal(got, source) {
+			return fmt.Errorf("LuaDraw resource changed in export: %s", rel)
+		}
+		return nil
+	}); err != nil {
+		t.Fatal(err)
+	}
+}
 
 func TestCanonicalSkillVersionAndBody(t *testing.T) {
 	root := t.TempDir()

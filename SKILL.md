@@ -1,40 +1,53 @@
 ---
 name: compare-figure
-description: "Create original LuaDraw figures or redraw and compare references. Provides standalone CLI/JSON/JSONL documentation lookup with shared frequency caching, plus automatic and Agent-led drawing tools; reference comparison defaults to 17% overlap."
+description: "Create original figures or redraw references with configurable LuaDraw, native LaTeX, Asymptote, or mixed drawing policies. Shared doc-library lookup, automatic and Agent-led drawing; reference comparison defaults to 17% overlap."
 license: MIT
 metadata:
-  version: "0.2.2"
+  version: "0.3.0"
 ---
 
 # compare-figure: two work modes
 
 The Skill package contains Go source and runtime resources, with no prebuilt executable. Before first use, the Agent checks for Go 1.25+ (`go version`); official downloads and installation instructions are https://go.dev/dl/ and https://go.dev/doc/install. From this Skill root run `go -C go build -o ../build/compare-figure ./cmd/compare-figure` (Windows: `go -C go build -o ../build/compare-figure.exe ./cmd/compare-figure`). Go builds for the current host by default; use the existing executable for subsequent calls, and rebuild after source updates. Go modules listed in go/go.mod may need downloading on the first build. Use a writable cache, for example `GOCACHE="$PWD/build/go-cache"` on POSIX systems.
-Resolve the executable and resources relative to this SKILL.md, not the caller working directory. Use an absolute executable path when operating inside a book directory. The examples use compare-figure as shorthand for that full binary path. Execution is native Go; Python is not required. Lua/TeX/Poppler remain detected external tools.
+Resolve the executable and resources relative to this SKILL.md, not the caller working directory. Use an absolute executable path when operating inside a book directory. The examples use compare-figure as shorthand for that full binary path. Execution is native Go; Python is not required. Lua/TeX/Poppler remain detected external tools. Asymptote modes also require a working `asy` executable; see install.md. The independent doc-library module is a fixed upstream Go dependency downloaded during the first build; no sibling checkout is required.
 
 Copy `examples/runner.yaml.example` to `runner.yaml` for a commented automatic-mode configuration; actual runner.yaml/runner.json and *.local.yaml/JSON files are ignored by Git and excluded from Skill exports. Preserve user-adjusted session/view/compile/figure_check budgets when creating local configurations. Use environment variables for keys where practical and never publish real credentials.
 
-The accepted delivery includes a self-contained submitted.tex with the exact LuaDraw program embedded in the official luadraw environment, plus submitted.pdf rebuilt from that TeX. Prefer this editable_tex/submitted_tex as the user's single-file TeX deliverable; editable_source/editable_lua also retain the accepted Lua for compatibility. No input Lua/TikZ sidecar is needed. `compile --source submitted.tex --engine lualatex` uses the official environment; `--engine xelatex` or `--engine pdflatex` extracts and runs the same embedded Lua with Lua/texlua before compiling generated TikZ. A TeX engine is still required for the PDF stage.
+## Drawing policy (independent of work mode and TeX engine)
+
+Select `drawing.mode` in YAML, `--drawing-mode` in CLI, or top-level `drawing_mode` in JSON:
+
+| Policy | Allowed source | Bundled documentation |
+|---|---|---|
+| `luadraw` (default) | LuaDraw `.lua` or genuine LuaDraw environment in `.tex` | LuaDraw |
+| `latex` | Native `.tex`: TikZ, PGFPlots, picture and installed TeX packages | No special-library manual; use existing TeX knowledge or configured document sources |
+| `asymptote` | `.asy` or `.tex` with an `asy` environment | Asymptote |
+| `mixed` | Model selects LuaDraw, Asymptote or native LaTeX per figure | Both LuaDraw and Asymptote |
+
+Honor the chosen policy. Do not silently switch to a forbidden library when compilation fails. `--engine` still selects the TeX engine, not the drawing policy. Do not embed the reference raster instead of reconstructing the figure. A source file uses one selected backend; mixed does not require using all libraries together. Asymptote output is a static PDF for comparison, not an interactive WebGL delivery.
+
+Accepted delivery preserves the actual `.lua`, `.asy` or `.tex` source and a standalone editable `submitted.tex` with `submitted.pdf`. LuaDraw retains its embedded official environment and independent Lua fallback. Asymptote TeX embeds the Asy program; compilation runs TeX, explicitly invokes `asy` on generated figure sources, then reruns TeX. A TeX editor alone needs that extra Asymptote build step; use this Skill's compile command to perform it. Native LaTeX retains its editable document. Read `source_language`, `drawing_mode`, `backend` and `engine` in the result rather than assuming LuaDraw. Keep warnings and uncertainty. Policy changes require a separate workspace or a compatible resume; do not mix an accepted drawing from a different policy into a run.
 
 ## Original drawing and standalone documentation — no reference image required
 
-When the user wants a new LuaDraw diagram, use the current Agent's reasoning and file tools. No reference bitmap, Markdown book, image_context workspace, second model or API key is required. Consult documentation before inventing API calls:
+When the user wants a new diagram, use the current Agent's reasoning and file tools. Add `--drawing-mode POLICY` to compile/docs/tool/run commands when using a nondefault policy. No reference bitmap, Markdown book, image_context workspace, second model or API key is required. Consult documentation before inventing API calls:
 
-    compare-figure luadraw-doc --mode frequent --cache-dir work/shared-doc-cache
-    compare-figure luadraw-doc --query graph3d --snippet-chars 1200 --max-chars 6000 --cache-dir work/shared-doc-cache
+    compare-figure document-search --mode frequent --cache-dir work/shared-doc-cache
+    compare-figure document-search --query graph3d --snippet-chars 1200 --max-chars 6000 --cache-dir work/shared-doc-cache
 
-Use list/find/grep to discover real files, read exact constructors/methods/examples, and view a PDF page/crop only when helpful. Write figure.lua or a self-contained TeX luadraw environment, compile it, and inspect the generated PDF/preview. For a new drawing without a reference, judge the user-requested geometry, labels and style; no reference comparison score or submit acceptance is available. Deliver editable TeX/Lua and PDF after compilation succeeds. Run compare only if the user supplies a reference.
+Use list/find/grep to discover real files, read exact constructors/methods/examples, and view a PDF page/crop only when helpful. Write source allowed by the drawing policy, compile it with `--drawing-mode`, and inspect the generated PDF/preview. For a new drawing without a reference, judge the user-requested geometry, labels and style; no reference comparison score or submit acceptance is available. Deliver editable TeX and original language source plus PDF after compilation succeeds. Run compare only if the user supplies a reference.
 
 The documentation command is also an independent machine interface:
 
-    compare-figure luadraw-doc --stdin --cache-dir work/shared-doc-cache
-    compare-figure luadraw-doc --request examples/luadraw-doc.json.example
-    compare-figure luadraw-doc --jsonl --cache-dir work/shared-doc-cache
+    compare-figure document-search --stdin --cache-dir work/shared-doc-cache
+    compare-figure document-search --request examples/luadraw-doc.json.example
+    compare-figure document-search --jsonl --cache-dir work/shared-doc-cache
 
-Supply a bare JSON tool object (`{"mode":"search","query":"Dpolyline3d"}`) or an envelope (`{"operation":"docs","arguments":{"mode":"search","query":"Dpolyline3d"},"cache_dir":"work/shared-doc-cache"}`). JSONL keeps one local process and index objects alive across requests; it is not a model session or a network server. A bad line returns a JSON error and subsequent lines continue. Prefer one shared writable cache directory across agent sessions; use separate --out directories for parallel PDF previews. The existing `tools --jsonl` envelope interface remains available. See docs/luadraw-doc.md for calling contracts, Go API, dependencies and cache controls. This library indexes the bundled LuaDraw manuals/sources, not arbitrary LuaLaTeX documentation.
+Supply a bare JSON tool object (`{"mode":"search","query":"Dpolyline3d"}`) or an envelope (`{"operation":"docs","arguments":{"mode":"search","query":"Dpolyline3d"},"cache_dir":"work/shared-doc-cache"}`). JSONL keeps one local process and index objects alive across requests; it is not a model session or a network server. A bad line returns a JSON error and subsequent lines continue. Prefer one shared writable cache directory across agent sessions; use separate --out directories for parallel PDF previews. The existing `tools --jsonl` envelope interface remains available. See docs/luadraw-doc.md for calling contracts, Go API, dependencies and cache controls. The generic wrapper uses the independent doc-library Go module; it provides source-qualified results from the manuals allowed by the drawing policy. Use `--drawing-mode mixed --doc-source asymptote` or JSON `source:"asymptote"` to select a source. `luadraw-doc` and the old JSON docs envelope remain compatibility entrances. See docs/doc-library-compatibility.md for differences and cache-layout changes.
 
 ## Documentation navigation and reusable paragraphs
 
-`luadraw_doc` is the single knowledge-base tool. Use `mode:list` with a relative `doc` directory to discover actual files (optionally `recursive:true`); `mode:find` searches file names/globs; `mode:grep` searches literal text (`regex:true` opts into a regular expression). Follow `\\input`/`\\include` references using these modes and `mode:read`; do not guess manual section filenames. Access stays within the bundled LuaDraw root.
+`document_search` is the knowledge-base tool; `luadraw_doc` remains an execution alias. Use `mode:list` with a relative `doc` directory to discover actual files (optionally `recursive:true`); `mode:find` searches file names/globs; `mode:grep` searches literal text (`regex:true` opts into a regular expression). Follow `\\input`/`\\include` references using these modes and `mode:read`; do not guess manual section filenames. Access stays within the selected configured document roots; `source` selects luadraw/asymptote in mixed mode.
 
 `mode:read` accepts source files with 1-based start_line/end_line, or a PDF doc (also accepted in query) with page for text. `mode:view` displays a PDF whole page or a percentage crop. Search returns complete paragraph snippets with merged overlapping hits; snippet_chars controls each hit and max_chars controls the result budget. Inspect exact API signatures via source read before writing code.
 
@@ -66,9 +79,9 @@ The Agent-facing compare_figure tool returns the original production Soft-ink ov
 
 - Automatic mode: the user supplies a vision/tool model, base URL and API key. The Agent invokes run and the runner owns drawing, all tool calls, iteration and accepted delivery. Default overlap is 17%.
 - Semi-automatic mode: the current Agent draws the figure itself, calls documentation/compile/compare tools, reads returned images and iterates. No second drawing model or model key is needed. Default overlap is also 17%. Do not invoke run or request model credentials in this mode.
-- Follow the user's requested mode. If the user asks the current Agent to draw and has not supplied another model, use semi-automatic mode. Both modes use LuaDraw source and the same native scoring.
+- Follow the user's requested mode. If the user asks the current Agent to draw and has not supplied another model, use semi-automatic mode. Both work modes use the selected drawing policy and the same native scoring.
 
-Run compare-figure environment first to discover the actually working compiler route. Prefer usable LuaLaTeX; otherwise use the tested standalone Lua/texlua → generated TikZ → XeLaTeX/pdfLaTeX route. Executable existence alone does not prove usability.
+Run compare-figure environment --drawing-mode POLICY first to discover the actually working compiler route. Prefer usable LuaLaTeX; otherwise use the tested standalone Lua/texlua → generated TikZ → XeLaTeX/pdfLaTeX route. Executable existence alone does not prove usability.
 
 ## Mode 1 — automatic runner
 
@@ -87,12 +100,12 @@ Repeating matching inputs resumes automatically; run --out work/auto --resume re
 The current Agent performs the drawing and iteration. A typical CLI loop is:
 
 1. Inspect the reference and surrounding context. Identify geometry, dimensions, labels, line styles, layering and any cross-page continuation. Preserve uncertain marks rather than inventing missing labels.
-2. Search LuaDraw usage before inventing methods:
+2. Search the selected library documentation before inventing methods:
 
-       compare-figure luadraw-doc-search Dpolyline3d
+       compare-figure document-search-search Dpolyline3d
 
    Search returns text plus official PDF document/page/bbox locations without an image by default. Decide whether a page image is needed. Use `docs --mode view --doc doc/luadraw-doc-en.pdf --page 91` to inspect the located whole page; optionally pass --left/--top/--right/--bottom percentages and --zoom for a region. Search bbox coordinates are PDF points, not percentages. `docs --mode read --doc files/luadraw_base.lua --start-line 1 --end-line 40` reads source text. Explicit --include-image may attach a search crop when requested; do not request images for every lookup automatically.
-3. Write editable figure.lua with the Agent's own file tools. Use real LuaDraw geometry, including actual 3D constructions when needed. A single genuine LuaDraw environment in TeX is also accepted. Generated TikZ is a backend artifact; pure hand-written TikZ and embedded reference rasters are rejected as main source.
+3. Write editable figure.lua (luadraw), figure.asy (asymptote), or figure.tex (latex/mixed). Use real geometry, including actual 3D constructions when needed. Pure hand-written TikZ is allowed in latex/mixed and rejected in luadraw/asymptote. Generated artifacts do not replace the accepted source. Embedding the reference raster is not redrawing.
 4. Compile, inspect the returned preview/PDF, and compare against the original:
 
        compare-figure compile --source figure.lua --out work/compiled
@@ -100,20 +113,20 @@ The current Agent performs the drawing and iteration. A typical CLI loop is:
 
    Read the actual pdf path from compile's JSON; the example assumes source name figure.lua. compare returns similarity_percent, metrics, thresholds, pass and images. Default size limit remains 0.10; inspect thresholds.overlap_pass and thresholds.size_pass when pass=false. --reference-mm W,H supplies known printed size; --max-scale-dev adjusts the size gate. --threshold is PERCENT; JSON pass_overlap is a ratio (0.17).
 5. Open the returned comparison image. Correct visible geometry/labels/topology/style and rerun compile/compare. --detail, --crop L,T,R,B, --zoom and --worst-region select visual evidence after full-image scoring. A crop does not raise the full-image score. A 17% score is an acceptance floor, not a guarantee of semantic correctness.
-6. Once pass=true and visual inspection is satisfactory, stop and deliver the editable LuaDraw source, matching PDF/preview, comparison image and result JSON. In this direct loop no automatic runner or submit call is required. Copy scratch artifacts to a chosen final output directory before another scratch call. Never claim an unsupported or failed rendering is accepted.
+6. Once pass=true and visual inspection is satisfactory, stop and deliver the editable drawing source, matching PDF/preview, comparison image and result JSON. In this direct loop no automatic runner or submit call is required. Copy scratch artifacts to a chosen final output directory before another scratch call. Never claim an unsupported or failed rendering is accepted.
 
 ### All 11 tools as native CLI calls
 
 For the original complete tool contracts and persistent compile/compare/submit state, use tool (alias agent-tool):
 
     compare-figure tool --workspace work/agent --original reference.png --name write_file --args '{"path":"figure.lua","content":"...LuaDraw program..."}'
-    compare-figure tool --workspace work/agent --name luadraw_doc --args '{"query":"Dpolyline3d"}'
+    compare-figure tool --workspace work/agent --name document_search --args '{"query":"Dpolyline3d"}'
     compare-figure tool --workspace work/agent --name compile --args '{"path":"figure.lua"}'
     compare-figure tool --workspace work/agent --name compare_figure --args '{"detail":"gray"}'
     compare-figure tool --workspace work/agent --name submit --args '{"path":"figure.lua"}'
     compare-figure tool --workspace work/agent --name deliver
 
-Use --args-file for complex source/arguments to avoid shell escaping. This path exposes write_file, edit_file, read_file, grep, compile, view_pdf, compare_figure, submit, image_context, view_image and luadraw_doc without a model. The workspace snapshot persists between commands. Initial --original binds the task; subsequent commands reuse it. This path keeps the original submission gates and accepted-source delivery; the direct compile/compare loop above is sufficient when the Agent manages its own final output.
+Use --args-file for complex source/arguments to avoid shell escaping. This path exposes write_file, edit_file, read_file, grep, compile, view_pdf, compare_figure, submit, image_context, view_image and document_search (legacy luadraw_doc alias) without a model. The workspace snapshot persists between commands. Initial --original binds the task; subsequent commands reuse it. This path keeps the original submission gates and accepted-source delivery; the direct compile/compare loop above is sufficient when the Agent manages its own final output.
 
 ## Outputs and process contract
 

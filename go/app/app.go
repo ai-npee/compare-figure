@@ -5,7 +5,9 @@ import (
 	"bytes"
 	cf "compare-figure"
 	"compare-figure/distribution"
+	"compare-figure/documents"
 	"compare-figure/luadraw"
+	"compare-figure/render"
 	"compare-figure/runner"
 	"context"
 	"encoding/json"
@@ -19,18 +21,22 @@ import (
 	"strings"
 )
 
-const help = `compare-figure: native Go LuaDraw figure runner and Agent tools
+const help = `compare-figure: native Go figure comparison and drawing runner
+
+Drawing modes (run/compile/environment --drawing-mode): luadraw (default), mixed, latex, asymptote.
+  Drawing mode selects the drawing language; --engine remains the TeX compiler.
+  latex permits native TikZ/PGFPlots and other TeX packages; asymptote is Asymptote-only.
 
 Modes:
   Automatic: run uses your model/base URL/key and draws through the runner.
-  Semi-automatic: the current Agent writes LuaDraw and calls the tools below;
+  Semi-automatic: the current Agent writes editable vector sources and calls the tools below;
                  no drawing model/API key is needed. Default overlap: 17%.
 
 Commands:
   run, auto           Autonomous session; identical reruns resume automatically
-  compile             Compile LuaDraw (alias: luadraw-compile)
-  docs                Search/read/view manuals (alias: luadraw-doc-search)
-  luadraw-doc          Standalone LuaDraw documentation JSON/JSONL service
+  compile             Compile an editable figure source (alias: luadraw-compile)
+  docs, document-search  Search/read/view local drawing references (alias: doc)
+  luadraw-doc          Legacy LuaDraw documentation JSON/JSONL service
   compare             Compare image/PDF: --reference REF --candidate PDF
   tool, agent-tool    Persist and execute any of the 11 drawing tools
   tools               JSON/JSONL service: compare, docs, compile, environment, run
@@ -76,8 +82,8 @@ func Run(ctx context.Context, args []string, in io.Reader, out, errOut io.Writer
 		return agentToolCLI(ctx, rest, in, out)
 	case "compare", "tools":
 		return jsonCLI(ctx, command, rest, in, out)
-	case "compile", "luadraw-compile", "docs", "luadraw-doc-search", "luadraw-doc", "doc-search":
-		if command == "doc-search" {
+	case "compile", "luadraw-compile", "docs", "document-search", "doc", "luadraw-doc-search", "luadraw-doc", "doc-search":
+		if command == "doc-search" || command == "document-search" || command == "doc" {
 			command = "docs"
 		}
 		return manualCLI(ctx, command, rest, in, out)
@@ -88,6 +94,7 @@ func Run(ctx context.Context, args []string, in io.Reader, out, errOut io.Writer
 		fs.SetOutput(errOut)
 		resource := fs.String("resource-root", "", "runtime resources")
 		root := fs.String("luadraw-root", "", "LuaDraw distribution")
+		mode := fs.String("drawing-mode", "", "luadraw/mixed/latex/asymptote")
 		if e := fs.Parse(rest); e != nil {
 			return writeError(out, e, 2)
 		}
@@ -95,15 +102,29 @@ func Run(ctx context.Context, args []string, in io.Reader, out, errOut io.Writer
 		if e != nil {
 			return writeError(out, e, 2)
 		}
+		customRoot := *root != ""
 		if *root == "" {
 			*root = filepath.Join(base, "vendor", "luadraw-3.7", "luadraw")
 		}
-		result, e := luadraw.Probe(ctx, *root)
+		selected, e := render.NormalizeMode(*mode)
+		if e != nil {
+			return writeError(out, e, 2)
+		}
+		var result map[string]any
+		if selected == "luadraw" && customRoot {
+			result, e = luadraw.Probe(ctx, *root)
+			if result != nil {
+				result["drawing_mode"] = selected
+			}
+		} else {
+			result, e = render.Probe(ctx, base, selected)
+		}
 		if e != nil {
 			return writeError(out, e, 2)
 		}
 		emit(out, result)
-		if ready, _ := result["ready"].(bool); !ready {
+		ready := runner.Bool(result, "ready", runner.Bool(result, "usable", false))
+		if !ready {
 			return 2
 		}
 		return 0
@@ -176,6 +197,7 @@ func runCLI(ctx context.Context, args []string, in io.Reader, out io.Writer) int
 	fs.Func("max-tokens", "output token budget", func(value string) error { n, e := strconv.Atoi(value); opts.MaxTokens = &n; return e })
 	fs.Float64Var(&opts.Timeout, "timeout", 180, "request timeout seconds")
 	fs.StringVar(&opts.Engine, "engine", "", "auto/lualatex/xelatex/pdflatex")
+	fs.StringVar(&opts.DrawingMode, "drawing-mode", "", "luadraw/mixed/latex/asymptote")
 	fs.StringVar(&opts.OutputLang, "output-lang", "", "explanation language")
 	fs.StringVar(&opts.CheckerModel, "checker-model", "", "checker model alias")
 	fs.BoolVar(&opts.FigureCheck, "figure-check", false, "visual checker")
@@ -204,6 +226,7 @@ func runCLI(ctx context.Context, args []string, in io.Reader, out io.Writer) int
 	if fs.NArg() != 0 {
 		return writeError(out, fmt.Errorf("unexpected arguments: %v", fs.Args()), 2)
 	}
+	modeCLI := opts.DrawingMode
 	if *request != "" || *stdin {
 		reader := in
 		if *request != "" {
@@ -216,6 +239,9 @@ func runCLI(ctx context.Context, args []string, in io.Reader, out io.Writer) int
 		}
 		if e := json.NewDecoder(reader).Decode(&opts); e != nil {
 			return writeError(out, e, 2)
+		}
+		if modeCLI != "" {
+			opts.DrawingMode = modeCLI
 		}
 	}
 	if referenceMM != "" {
@@ -239,6 +265,15 @@ func runCLI(ctx context.Context, args []string, in io.Reader, out io.Writer) int
 		if opts.LuaDrawRoot != "" {
 			values = append(values, "--luadraw-root", opts.LuaDrawRoot)
 		}
+		if opts.DrawingMode == "" && opts.Config != "" {
+			config, e := runner.LoadConfig(opts.Config)
+			if e != nil {
+				return writeError(out, e, 2)
+			}
+			if configured := runner.Str(runner.Obj(config, "drawing"), "mode", ""); configured != "" {
+				values = append(values, "--drawing-mode", configured)
+			}
+		}
 		return Run(ctx, append([]string{"environment"}, values...), in, out, io.Discard)
 	}
 	result, e := runner.Run(ctx, opts)
@@ -254,7 +289,7 @@ func runCLI(ctx context.Context, args []string, in io.Reader, out io.Writer) int
 
 type service struct {
 	resources string
-	docs      map[string]*luadraw.Docs
+	docs      map[string]*documents.Docs
 }
 
 func (s *service) root(explicit string) (string, error) {
@@ -296,6 +331,9 @@ func (s *service) handle(ctx context.Context, request map[string]any) (any, erro
 		if e := json.Unmarshal(data, &opts); e != nil {
 			return nil, e
 		}
+		if mode := runner.Str(request, "drawing_mode", ""); mode != "" {
+			opts.DrawingMode = mode
+		}
 		if opts.ResourceRoot == "" {
 			opts.ResourceRoot = s.resources
 		}
@@ -305,15 +343,19 @@ func (s *service) handle(ctx context.Context, request map[string]any) (any, erro
 		if e != nil {
 			return nil, e
 		}
-		return luadraw.Probe(ctx, runner.Str(request, "luadraw_root", filepath.Join(root, "vendor", "luadraw-3.7", "luadraw")))
-	case "docs", "compile":
+		return render.Probe(ctx, root, runner.Str(request, "drawing_mode", ""))
+	case "docs", "document_search", "compile":
 		root, e := s.root(runner.Str(request, "resource_root", ""))
 		if e != nil {
 			return nil, e
 		}
 		target := runner.Str(request, "out_dir", "")
 		if target == "" {
-			target, e = cf.DefaultOutput(operation)
+			operationName := operation
+			if operationName == "document_search" {
+				operationName = "docs"
+			}
+			target, e = cf.DefaultOutput(operationName)
 			if e != nil {
 				return nil, e
 			}
@@ -326,44 +368,82 @@ func (s *service) handle(ctx context.Context, request map[string]any) (any, erro
 			return nil, e
 		}
 		inline := runner.Bool(request, "inline_images", false)
-		if operation == "docs" {
-			library := runner.Str(request, "luadraw_root", filepath.Join(root, "vendor", "luadraw-3.7", "luadraw"))
+		if operation == "docs" || operation == "document_search" {
+			arguments := request
+			if value, ok := request["arguments"].(map[string]any); ok {
+				arguments = value
+			}
+			mode := runner.Str(request, "drawing_mode", runner.Str(arguments, "drawing_mode", "luadraw"))
+			mode, e = render.NormalizeMode(mode)
+			if e != nil {
+				return nil, e
+			}
 			cache := runner.Str(request, "cache_dir", luadraw.CacheDirectory(root))
-			key := library + "\n" + cache
+			library := runner.Str(request, "luadraw_root", "")
+			resource := root
+			if mode == "luadraw" && library != "" {
+				resource = library
+			}
+			key := resource + "\n" + cache + "\n" + mode
 			if s.docs == nil {
-				s.docs = map[string]*luadraw.Docs{}
+				s.docs = map[string]*documents.Docs{}
 			}
 			tool := s.docs[key]
 			if tool == nil {
-				tool, e = luadraw.NewDocs(library, cache)
+				tool, e = documents.New(resource, cache, mode)
 				if e != nil {
 					return nil, e
 				}
 				s.docs[key] = tool
 			}
-			arguments := request
-			if value, ok := request["arguments"].(map[string]any); ok {
-				arguments = value
+			args := runner.Clone(arguments)
+			if _, nested := request["arguments"].(map[string]any); !nested {
+				for _, key := range []string{"operation", "id", "request_id", "out_dir", "resource_root", "luadraw_root", "cache_dir", "inline_images", "drawing_mode", "doc_source"} {
+					delete(args, key)
+				}
 			}
-			text, image, e := tool.Execute(ctx, arguments, target)
+			delete(args, "drawing_mode")
+			if source := runner.Str(arguments, "doc_source", ""); source != "" {
+				args["source"] = source
+			}
+			delete(args, "doc_source")
+			response, e := tool.ExecuteResponse(ctx, args, target)
 			if e != nil {
 				return nil, e
 			}
+			text := runner.Str(response, "text", "")
+			documentImages, _ := response["images"].([]any)
 			images := []cf.ImageArtifact{}
-			if image != "" {
-				image, e = retainDocumentImage(target, image)
+			for _, item := range documentImages {
+				image, ok := item.(map[string]any)
+				if !ok {
+					continue
+				}
+				imagePath := runner.Str(image, "path", "")
+				if imagePath == "" {
+					continue
+				}
+				imagePath, e = retainDocumentImage(target, imagePath)
 				if e != nil {
 					return nil, e
 				}
-				artifact, e := cf.ImageArtifactFor(image, inline)
+				image["path"] = imagePath
+				artifact, e := cf.ImageArtifactFor(imagePath, inline)
 				if e != nil {
 					return nil, e
 				}
 				images = append(images, artifact)
 			}
-			return map[string]any{"version": "compare-figure-tools/1", "ok": true, "text": text, "images": images, "out_dir": target}, nil
+			response["document_images"] = documentImages
+			response["version"], response["ok"], response["text"], response["images"], response["out_dir"] = "compare-figure-tools/1", true, text, images, target
+			return response, nil
 		}
 		options := runner.Clone(runner.Obj(request, "options"))
+		if mode := runner.Str(request, "drawing_mode", ""); mode != "" {
+			options["drawing_mode"] = mode
+		} else if _, ok := options["drawing_mode"]; !ok {
+			options["drawing_mode"] = ""
+		}
 		if _, ok := options["resource_root"]; !ok {
 			options["resource_root"] = root
 		}
@@ -373,7 +453,7 @@ func (s *service) handle(ctx context.Context, request map[string]any) (any, erro
 		if _, ok := options["helper_path"]; !ok {
 			options["helper_path"] = filepath.Join(root, "scripts", "luadraw_runtime.lua")
 		}
-		result, e := luadraw.Compile(ctx, runner.Str(request, "source", ""), target, options)
+		result, e := render.Compile(ctx, runner.Str(request, "source", ""), target, options)
 		if e != nil {
 			return result, e
 		}

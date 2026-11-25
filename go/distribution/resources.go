@@ -138,7 +138,7 @@ func Export(ctx context.Context, options ExportOptions) (map[string]any, error) 
 		}
 		return e
 	}
-	for _, directory := range []string{"prompts", "vendor/luadraw-3.7", "go"} {
+	for _, directory := range []string{"prompts", "vendor/luadraw-3.7", "vendor/asymptote-3.16", "go"} {
 		base := filepath.Join(root, filepath.FromSlash(directory))
 		err = filepath.WalkDir(base, func(path string, d fs.DirEntry, e error) error {
 			if e != nil {
@@ -172,7 +172,7 @@ func Export(ctx context.Context, options ExportOptions) (map[string]any, error) 
 			return nil, err
 		}
 	}
-	for _, name := range []string{"scripts/luadraw_runtime.lua", "scripts/export_skill.sh", "vendor/dependencies.lock.json", "LICENSE", "install.md", "viewer.html", "docs/viewer-upstream.json", "docs/luadraw-doc.md", "examples/luadraw-doc.json.example"} {
+	for _, name := range []string{"scripts/luadraw_runtime.lua", "scripts/export_skill.sh", "vendor/dependencies.lock.json", "LICENSE", "install.md", "viewer.html", "docs/viewer-upstream.json", "docs/luadraw-doc.md", "docs/drawing-modes.md", "docs/doc-library-compatibility.md", "docs/asymptote-upstream.json", "examples/luadraw-doc.json.example"} {
 		mode := os.FileMode(0644)
 		if name == "scripts/export_skill.sh" {
 			mode = 0755
@@ -186,7 +186,7 @@ func Export(ctx context.Context, options ExportOptions) (map[string]any, error) 
 	}
 	add("SKILL.md", skill, 0644)
 	add("VERSION", []byte(version+"\n"), 0644)
-	add("README.md", []byte("# compare-figure source Skill\n\nThis export contains production Go source only; it includes no compiled executable. Install Go 1.25+ from the official download page: https://go.dev/dl/. From this directory build the native executable with:\n\n    go -C go build -o ../build/compare-figure ./cmd/compare-figure\n\nCreate the build directory first if needed. Open viewer.html to browse saved sessions. Resources are discovered from the canonical SKILL.md and runtime resource tree.\n"), 0644)
+	add("README.md", []byte("# compare-figure source Skill\n\nThis export contains production Go source only; it includes no compiled executable. Install Go 1.25+ from the official download page: https://go.dev/dl/. From this directory build the native executable with:\n\n    go -C go build -o ../build/compare-figure ./cmd/compare-figure\n\nCreate the build directory first if needed. Open viewer.html to browse saved sessions. Bundled reference resources include LuaDraw 3.7 and Asymptote 3.16 documentation and source examples; the provenance and license notices are retained beside those resources. Runtime resources are discovered from the canonical SKILL.md and resource tree.\n"), 0644)
 	names := make([]string, 0, len(files))
 	for name := range files {
 		names = append(names, name)

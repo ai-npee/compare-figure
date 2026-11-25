@@ -2,6 +2,12 @@
 
 The supported exported runtime is Go. Python remains the development prototype and cross-language test oracle; it is not an export choice or a runtime bridge. The Go binary does not spawn Python for models, compilation, documents or image comparison.
 
+## Four drawing policies and shared document library
+
+As of 0.3.0, `drawing.mode` / `--drawing-mode` / JSON `drawing_mode` selects `luadraw` (default), `mixed`, `latex`, or `asymptote`. The `render` package validates source policy and dispatches compilation. LuaDraw keeps its original runtime and fallback; native TeX uses installed packages; Asymptote uses the system `asy`, including explicit TeX → Asy → TeX handling for embedded programs. `mixed` exposes both dedicated reference collections and lets the model choose. See [drawing modes](drawing-modes.md).
+
+`documents` is a thin adapter over the pinned upstream [doc-library](https://github.com/LingNc/doc-library) Go module. Indexing/extraction/paragraphs/cache/frequency are no longer duplicated here; `luadraw.NewDocs` remains a compatibility wrapper. No local sibling-module replacement or copied core is required. See [compatibility and differences](doc-library-compatibility.md). `document_search` / `document-search` is the generic tool/CLI; old LuaDraw aliases remain.
+
 ## Standalone LuaDraw documentation and original figures
 
 As of 0.2.1, `luadraw-doc` offers CLI flags, `--request`, `--stdin`, and persistent `--jsonl` with bare tool arguments or a docs envelope. It requires no reference, model key, Markdown input or drawing session, reuses the same configurable index/frequency caches, and can be used by unrelated drawing agents. The public `luadraw.NewDocs` / `Definition` / `Execute` / `FrequentSnippet` Go API remains available. See [standalone documentation interface](luadraw-doc.md) and the packaged `examples/luadraw-doc.json.example`. Original drawing uses documentation → editable LuaDraw source → compile → inspect → deliver; reference comparison is applicable only when a reference is supplied.
@@ -22,7 +28,8 @@ Results include reference_measurement/candidate_measurement, a full human-readab
 | `vector_session.py` | `go/session` | Chat/Responses/Anthropic, SSE, messages/images/reasoning, budgets, compaction, file-media transcript/checkpoint |
 | `vector_tools.py`, `luadraw_harness.py`, `vector_measure.py` | `go/drawing` | 11 schemas/tools, source files, RE2 grep, crop/view/context, physical size, compare/submit and accepted source delivery |
 | `luadraw_runtime.py`, Lua helper | `go/luadraw` + existing `scripts/luadraw_runtime.lua` | Actual host probes, preferred LuaLaTeX, standalone Lua→generated TikZ→XeLaTeX/pdfLaTeX |
-| `luadraw_docs.py` | `go/luadraw` | Pure Go + Poppler PDF bbox index, source search/read, manual region image, warm cache |
+| `luadraw_docs.py` | `go/documents` + upstream `doc-library`; `go/luadraw` compatibility wrapper | Multi-source reference selection/tool formatting; upstream owns index, navigation, PDF extraction and cache/frequency |
+| Drawing language policy | `go/render` | LuaDraw/native LaTeX/Asymptote dispatch and editable TeX wrapping |
 | `tools_cli.py` | `go/app` | Native JSON/JSONL operations, image paths/base64, errors and process status |
 | Development packaging | `go/distribution` | Movable resources and idempotent Go-only Skill export |
 | Production comparison | root Go package | Shared `Compare`, `Evidence`, `WorstRegion`, `ProcessRequest` and image/PDF artifacts |

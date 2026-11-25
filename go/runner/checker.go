@@ -2,6 +2,7 @@ package runner
 
 import (
 	"compare-figure/drawing"
+	"compare-figure/render"
 	"compare-figure/session"
 	"context"
 	"fmt"
@@ -112,7 +113,13 @@ func VerifyFigure(ctx context.Context, h *drawing.Harness, drawingSession *sessi
 			break
 		}
 		feedback := strings.ReplaceAll(session.CheckFeedback, "{problems}", problems)
-		feedback = strings.ReplaceAll(feedback, "figure.tex", Str(accepted, "source_path", "figure.lua")) + "\nKeep using LuaDraw; consult luadraw_doc for the affected construction."
+		mode := Str(h.Options, "drawing_mode", "luadraw")
+		language := Str(accepted, "source_language", "")
+		if language == "" {
+			language = Str(accepted, "drawing_backend", mode)
+		}
+		feedback = strings.ReplaceAll(feedback, "figure.tex", Str(accepted, "source_path", render.DefaultSource(mode)))
+		feedback += fmt.Sprintf("\nContinue within drawing mode %s using the accepted source language %s. Policy: %s. Use document_search for relevant reference material.", mode, language, render.SourceDescription(mode))
 		_, e = drawingSession.Run(ctx, feedback, nil)
 		if e != nil || !h.IsSubmitted() {
 			_ = h.Restore(accepted)

@@ -6,6 +6,9 @@ api_key_env: OPENAI_API_KEY  # 建议通过环境变量提供密钥；不要提�
 api: openai  # openai（Chat Completions）、responses 或 anthropic
 stream: true
 
+drawing:
+  mode: luadraw  # luadraw（默认）、mixed、latex 或 asymptote
+
 session:
   max_tool_rounds: 128  # 绘图模型最多执行的工具轮数
   max_tokens: 131072  # 每次模型响应的最大输出 token 数；需接口支持
