@@ -138,7 +138,7 @@ func Export(ctx context.Context, options ExportOptions) (map[string]any, error) 
 		}
 		return e
 	}
-	for _, directory := range []string{"prompts", "vendor/luadraw-3.7", "vendor/asymptote-3.16", "go"} {
+	for _, directory := range []string{"prompts", "vendor/luadraw-3.7", "vendor/asymptote-3.16", "vendor/katex-0.18.2", "go"} {
 		base := filepath.Join(root, filepath.FromSlash(directory))
 		err = filepath.WalkDir(base, func(path string, d fs.DirEntry, e error) error {
 			if e != nil {
@@ -172,7 +172,7 @@ func Export(ctx context.Context, options ExportOptions) (map[string]any, error) 
 			return nil, err
 		}
 	}
-	for _, name := range []string{"scripts/luadraw_runtime.lua", "scripts/export_skill.sh", "vendor/dependencies.lock.json", "LICENSE", "install.md", "viewer.html", "docs/viewer-upstream.json", "docs/luadraw-doc.md", "docs/drawing-modes.md", "docs/doc-library-compatibility.md", "docs/asymptote-upstream.json", "examples/luadraw-doc.json.example"} {
+	for _, name := range []string{"scripts/luadraw_runtime.lua", "scripts/export_skill.sh", "vendor/dependencies.lock.json", "LICENSE", "install.md", "viewer.html", "docs/viewer-upstream.json", "docs/luadraw-doc.md", "docs/drawing-modes.md", "docs/doc-library-compatibility.md", "docs/asymptote-upstream.json", "docs/katex-upstream.json", "docs/prompt-guide.md", "docs/viewer-math.md", "scripts/viewer_math.js", "examples/luadraw-doc.json.example"} {
 		mode := os.FileMode(0644)
 		if name == "scripts/export_skill.sh" {
 			mode = 0755

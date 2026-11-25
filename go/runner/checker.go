@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"time"
 )
 
@@ -73,7 +72,11 @@ func VerifyFigure(ctx context.Context, h *drawing.Harness, drawingSession *sessi
 			break
 		}
 		if round > 1 {
-			user = fmt.Sprintf("This is round %d of the same comparison, after the drawing session tried to fix the problems you listed. Compare the two images again and submit your verdict.", round)
+			user, e = Prompt(resources, "figurecheck_repeat.user.md", Object{"ROUND": round})
+			if e != nil {
+				warnings = append(warnings, e.Error())
+				break
+			}
 		}
 		originalPart, e := session.ImagePart(original, 1280)
 		if e != nil {
@@ -112,14 +115,19 @@ func VerifyFigure(ctx context.Context, h *drawing.Harness, drawingSession *sessi
 			warnings = append(warnings, e.Error())
 			break
 		}
-		feedback := strings.ReplaceAll(session.CheckFeedback, "{problems}", problems)
 		mode := Str(h.Options, "drawing_mode", "luadraw")
 		language := Str(accepted, "source_language", "")
 		if language == "" {
 			language = Str(accepted, "drawing_backend", mode)
 		}
-		feedback = strings.ReplaceAll(feedback, "figure.tex", Str(accepted, "source_path", render.DefaultSource(mode)))
-		feedback += fmt.Sprintf("\nContinue within drawing mode %s using the accepted source language %s. Policy: %s. Use document_search for relevant reference material.", mode, language, render.SourceDescription(mode))
+		values := drawingPromptValues(mode, Object{"PROBLEMS": problems, "SOURCE_LANGUAGE": language})
+		values["SOURCE_PATH"] = Str(accepted, "source_path", render.DefaultSource(mode))
+		feedback, promptErr := Prompt(resources, "drawing_figure.check-feedback.md", values)
+		if promptErr != nil {
+			_ = h.Restore(accepted)
+			warnings = append(warnings, "Figure correction unavailable; delivering current version: "+promptErr.Error())
+			break
+		}
 		_, e = drawingSession.Run(ctx, feedback, nil)
 		if e != nil || !h.IsSubmitted() {
 			_ = h.Restore(accepted)

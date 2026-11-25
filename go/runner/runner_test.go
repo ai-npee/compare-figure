@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compare-figure/distribution"
 	"compare-figure/luadraw"
+	"compare-figure/session"
 	"context"
 	"encoding/json"
 	"io"
@@ -111,6 +112,30 @@ func TestRunnerRealCompileDeliveryIdempotentWithoutModelKey(t *testing.T) {
 	if !bytes.Equal(before, after) || count.Load() != 1 {
 		t.Fatal("completed repeat changed result or contacted model")
 	}
+	legacyResources := t.TempDir()
+	for _, name := range []string{"SKILL.md", "prompts/luadraw_figure.system.md", "vendor/luadraw-3.7/luadraw/files/luadraw.sty", "scripts/luadraw_runtime.lua"} {
+		data, err := os.ReadFile(filepath.Join(resources, filepath.FromSlash(name)))
+		if err != nil {
+			t.Fatal(err)
+		}
+		target := filepath.Join(legacyResources, filepath.FromSlash(name))
+		if err = os.MkdirAll(filepath.Dir(target), 0700); err != nil {
+			t.Fatal(err)
+		}
+		if err = os.WriteFile(target, data, 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	legacyOpts := opts
+	legacyOpts.ResourceRoot = legacyResources
+	legacyResult, err := Run(context.Background(), legacyOpts)
+	if err != nil || !Bool(legacyResult, "submitted", false) || Bool(legacyResult, "api_contacted", true) || count.Load() != 1 {
+		t.Fatal("accepted legacy resume required new templates or a model", legacyResult, err, count.Load())
+	}
+	transcriptAfter, err := os.ReadFile(filepath.Join(opts.Out, "session.jsonl"))
+	if err != nil || !bytes.Equal(transcriptBefore, transcriptAfter) {
+		t.Fatal("accepted resume rewrote historical transcript", err)
+	}
 	changed := opts
 	changed.Context = "different task"
 	if _, e = Run(context.Background(), changed); e == nil {
@@ -155,6 +180,84 @@ func TestRunnerAuthFailureRerunStillSendsOriginalTask(t *testing.T) {
 	result, e := Run(context.Background(), opts)
 	if e != nil || !Bool(result, "submitted", false) || count.Load() != 1 || !imageSeen.Load() {
 		t.Fatal("initialization retry lost task image", e, result, count.Load(), imageSeen.Load())
+	}
+}
+
+func TestRunnerSavedPromptResumedOnceDespiteNewTemplateChanges(t *testing.T) {
+	resources, reference := realFixture(t)
+	isolated := filepath.Join(t.TempDir(), "resources")
+	if _, err := distribution.Export(context.Background(), distribution.ExportOptions{Root: resources, Out: isolated}); err != nil {
+		t.Fatal(err)
+	}
+	systemPath := filepath.Join(isolated, "prompts", "luadraw_figure.system.md")
+	originalSystem, err := os.ReadFile(systemPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	const sentinel = "Historical system policy sentinel.\n"
+	if err = os.WriteFile(systemPath, append([]byte(sentinel), originalSystem...), 0600); err != nil {
+		t.Fatal(err)
+	}
+	var resuming atomic.Bool
+	var resumedRequests atomic.Int64
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		message := Object{"role": "assistant", "content": "Paused without submission"}
+		if resuming.Load() {
+			resumedRequests.Add(1)
+			var request Object
+			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+				t.Error(err)
+			}
+			systems, originalUsers := 0, 0
+			for _, raw := range request["messages"].([]any) {
+				m := raw.(map[string]any)
+				if m["role"] == "system" {
+					systems++
+					if !strings.HasPrefix(m["content"].(string), sentinel) || strings.Contains(m["content"].(string), "Future template policy") {
+						t.Error("resume did not preserve saved system")
+					}
+				}
+				if m["role"] == "user" && strings.Contains(session.TextOf(m), "Surrounding document context") {
+					originalUsers++
+				}
+			}
+			if systems != 1 || originalUsers != 1 {
+				t.Errorf("resume system/user multiplicity: %d/%d", systems, originalUsers)
+			}
+			message = Object{"role": "assistant", "content": "", "tool_calls": modelCalls()}
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(Object{"choices": []any{Object{"message": message, "finish_reason": "stop"}}})
+	}))
+	defer server.Close()
+	opts := runnerOptions(t, isolated, reference, server.URL+"/v1")
+	t.Setenv("COMPARE_FIGURE_TEST_KEY", "fake-key")
+	first, err := Run(context.Background(), opts)
+	if err != nil || Bool(first, "submitted", false) {
+		t.Fatal("expected a resumable unsubmitted session", first, err)
+	}
+	before, err := os.ReadFile(filepath.Join(opts.Out, "session.jsonl"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = os.WriteFile(systemPath, []byte("Future template policy must not replace historical prompt"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	userPath := filepath.Join(isolated, "prompts", "luadraw_figure.user.md")
+	if filepath.Dir(userPath) != filepath.Join(isolated, "prompts") {
+		t.Fatal("unexpected remove target", userPath)
+	}
+	if err = os.Remove(userPath); err != nil {
+		t.Fatal(err)
+	}
+	resuming.Store(true)
+	result, err := Run(context.Background(), opts)
+	if err != nil || !Bool(result, "submitted", false) || resumedRequests.Load() != 1 {
+		t.Fatal("resume failed or required a new opening template", result, err, resumedRequests.Load())
+	}
+	after, err := os.ReadFile(filepath.Join(opts.Out, "session.jsonl"))
+	if err != nil || !bytes.HasPrefix(after, before) {
+		t.Fatal("continuation rewrote existing history", err)
 	}
 }
 

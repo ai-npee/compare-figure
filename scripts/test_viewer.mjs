@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+const viewerMath = require('./viewer_math.js');
+const katex = require('../vendor/katex-0.18.2/katex.min.js');
 
 const html = await readFile(new URL('../viewer.html', import.meta.url), 'utf8');
 const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
@@ -24,12 +28,30 @@ const document = {
   addEventListener() {},
   createElement: () => element(Symbol()),
 };
-const window = {};
+const window = { ViewerMath: viewerMath, katex };
 class ResizeObserver { observe() {} }
 const context = { document, window, ResizeObserver, Blob, URL, console, Map, Set, Promise, JSON, String, Number, Math, Date, RegExp };
 vm.runInNewContext(script, context, { filename: 'viewer.html' });
 const api = window.__viewerTest;
 assert.ok(api, 'test hooks initialized');
+for (const source of [String.raw`行内 $x_1^2+\alpha$`, String.raw`行内 \(x_1^2+\alpha\)`, '$$\\frac{1}{2}$$', String.raw`\[\int_0^1 x\,dx\]`, '$$\n\\begin{aligned}x&=1\\\\y&=2\\end{aligned}\n$$']) {
+  assert.match(api.markdown(source), /class="katex"/, 'all four math delimiters and multiline display math render');
+}
+const mixed = api.markdown(String.raw`**加粗** 与 $x_i+y_j$，再加 \(a_b\)。`);
+assert.match(mixed, /<strong>加粗<\/strong>/);
+assert.doesNotMatch(mixed, /<em>i/);
+assert.equal((mixed.match(/class="katex"/g) || []).length, 2, 'underscores remain inside math');
+for (const literal of ['`$x$`', '```asy\nlabel("$x$",O);\n```', '````text\n```\n$x$\n```\n````', '~~~tex\n\\(x\\)\n~~~', String.raw`只剩闭合符 \) 和 \]`, String.raw`转义 \$x\$`, '价格 $5 与 $10']) {
+  assert.doesNotMatch(api.markdown(literal), /class="katex"/, 'source code, escapes, currency and unmatched delimiters stay literal');
+}
+const outerFence = api.markdown('````text\n```\n$x$\n```\n````\n\n$y$');
+assert.equal((outerFence.match(/class="katex"/g) || []).length, 1, 'long outer context fence closes correctly');
+assert.match(api.markdown('$\\thiscommanddoesnotexist{x}$'), /math-error/, 'invalid TeX preserves source instead of breaking the message');
+assert.doesNotMatch(api.markdown('$\\href{javascript:alert(1)}{click}$'), /href="javascript:/, 'untrusted math cannot create active links');
+assert.doesNotMatch(api.markdown('$<script>alert(1)</script>$'), /<script>/, 'TeX input cannot inject raw HTML');
+assert.doesNotMatch(viewerMath.renderMarkdown('$x$', source => source, null), /katex/, 'missing renderer retains readable math source');
+for (let n=0;n<270;n++) api.markdown(`$x+${n}$`);
+assert.ok(viewerMath.cacheSize() <= 256, 'formula cache stays bounded');
 api.state.allFiles.length = 0;
 api.state.sessionFiles.length = 0;
 let transcriptReads = 0;

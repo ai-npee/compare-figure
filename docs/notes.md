@@ -1,5 +1,25 @@
 # 开发记录
 
+## 提示词规范化与查看器离线公式
+
+用户指出新增Asymptote提示词在Go中简化拼接，缺少原LuaDraw user的Context围栏和完整工作流；要求以LuaDraw为参照补齐规范，并让viewer支持美元/双美元及反斜线圆括号/方括号数学分隔符。当前go/runner/prompt.go统一DrawingPrompts接口，非Lua模式由各库policy与共享完整system组成，LuaDraw保留完整system约束，四mode共用原user模板路径及完整任务/尺寸/预算/Context围栏/文档到提交顺序。库特定语法、Asy静态3D与TeX引擎/中文前导、native无专用手册和mixed自由择库均明确；没有再在Go中维护简化长提示词。提醒、后续视觉复核和修正反馈也移为文件。所有运行模板用途、变量与加载规则见docs/prompt-guide.md。
+
+用户另明确同意删除两份不再运行的旧latex_figure.system/user模板，已删除；仍运行的latex_figurecheck.system/user原文及SHA保留。此直接用户要求覆盖先前“四原模板本地保留”的约定；docs/upstream.json保留历史来源哈希并标记移除，不能把新模板冒充逐字上游。模板替换采用单次非递归处理，Context/环境中保留占位符字面量；围栏长度大于内部最长反引号串，viewer匹配类型和长度。正常新会话使用新模板；旧会话续跑保留原system/user，只保留一个system消息，不重写历史。已有接受态与无密钥恢复在新模板加载前返回；本地stub与真实编译测试覆盖磁盘模板改变/删除后原system和user各出现一次及转录原字节不变。尺寸Hint仍使用原测量事实；四mode测试验证about39%页宽信息完整保留，前次Asy测试因只传explicit_mm遗漏page_w的历史记录不篡改。
+
+独立viewer新增scripts/viewer_math.js与本地KaTeX0.18.2。先识别并保护公式，再做Markdown，最后使用受控KaTeX渲染，支持$...$/$$...$$/\\(...\\)/\\[...\\]；代码区、转义货币符号、链接目标与不配对结束符保持源码，坏公式保留完整原文。trust=false、throwOnError=true并捕获，受限展开/大小及256条缓存；折叠内容仍展开后渲染，宽公式仅容器内滚动。资源包含JS/CSS/60字体/MIT许可与逐文件SHA，官方npm归档SHAa71df261a7080b53a4be44ea1b40e8e73e84cdd5d3311239310568e76437c018。选择已修复固定版0.18.2，无CDN或运行下载；版本和校验见docs/katex-upstream.json，使用说明docs/viewer-math.md。分发包含完整模板、math脚本、字体和来源，不附平台程序/测试/缓存；旧LuaDraw245资源不动。
+
+验证：Node真实KaTeX测试覆盖四分隔符、多行、Markdown与下标互不干扰、动态代码围栏、转义/货币/未配对、非法TeX与HTML/link安全、缺库回退和缓存上限；原viewerfresh-file/分页/切换/图片测试在C/en_US/zh_CN三locale均通过。Chromium实际file://打开checkout和解压源码包，阻断所有HTTP(S)：图6.9真实70事件显示106个KaTeX节点，独立4公式样例含2独立公式，代码原样、未配对符号保留、本地字体载入成功，网络0/未捕获异常0；390px文档宽390无横向溢出。桌面/手机与样例截图已实际查看，证据runs/viewer-math-validation和runs/viewer-math-package-validation；样例单独添加于测试DOM，不改真实JSONL。该测试直接渲染真实记录，未伪称注入了系统文件选择器或检查了该轮图片加载。
+
+原样执行CI源码包步骤：726文件全部manifest SHA校验、独立解压Go构建、LuaDraw/Asy检索、所有prompt字节一致、两unused模板确实不存在、新模板/KaTeX资源与文档链接可搬移、导出包公式模块实跑均通过。验收ZIP在build/prompt-math-validation/export，SHA1db51e4dc199ee08c754622caa82bb35d64f9ea002d339b4ae75c2e3e3870ab3，不覆盖前轮dist/source-v0.3.0已交付包。专项runner真实编译+stub回归125.850s及最后prompt/旧system续跑42.393s均通过、runner vet通过，无付费模型调用。最终全仓go test ./...、go vet ./...与当前程序构建全部通过（runner243.777s、app79.867s、render80.307s、drawing54.107s，其余包成功或缓存命中）；当前仅本地修改，不推送或打标签，不改原会话/书稿。
+
+## 图6.9：Asymptote本地真实模型验证
+
+用户指定旧图6.9改用Asy测试，使用原gpt-6.1-sol与同一参考/上下文/物理尺寸100.48×119.58mm及17%重叠、10%尺寸、8submit门槛，输出runs/asymptote-figure-6.9，旧LuaDraw和书稿不变。自动模型33轮、41次工具调用、3轮比较，一次实际submit；最终重叠30.952623%、尺寸偏差0.297153%，正常通过且uncertain=false、accepted_as_is=false、warnings为空。旧LuaDraw对应25.010796%/1.172448%，本次本例像素重叠提高5.941827百分点；不是跨图/多次采样的库优劣结论。最终预览已人工查看，球面、圆锥、D2剖面、前后虚实线与坐标/角度标记具备；PDF的pdfimages检查没有位图记录，未嵌入参考扫描。
+
+首次真实模型流程在已接受后交付中失败：Asy源码settings.tex="xelatex"和xeCJK前导被导出到外层，而外层auto固定优先LuaLaTeX，触发xeCJK必须XeTeX错误。保留原始run.stdout错误和session，不人工改模型源码；按同一接受态--resume --engine xelatex恢复成功，result.json的api_contacted=false仅代表恢复阶段，首次模型确已真实运行。只复制submitted.tex到独立目录后XeLaTeX→Asy→XeLaTeX实际通过，证明不用原会话生成的Asy/PDF缓存。
+
+本地go/render补齐auto模式对Asy独立语句行显式settings.tex选择的尊重，保留显式--engine优先级，避免同一前导使用两个不兼容引擎。新增TestAsymptoteAutoEnginePreservesXeCJKDelivery，真实中文Asy及单独内嵌TeX auto重编通过（3.04s）；render vet/程序构建通过，图6.9真实独立TeX再次--engine auto返回engine=xelatex、ok=true。此次修复和验收记录仅本地，未推送或重做源码包；原先fea71ed CI成功不代表本次追加修复已经远端验证。模型稿、最终PDF/Asy/TeX/预览、三轮比较、首次错误与恢复/auto证据保存在忽略的runs对应目录。
+
 ## 0.3.0：四绘图库策略与独立文档依赖
 
 用户要求支持luadraw、mixed、latex、asymptote四策略，默认保持LuaDraw。drawing.mode/CLI与JSON drawing_mode贯穿编译、runner、工具会话、提示、恢复及接受态交付，TeX engine仍独立。mixed让模型根据图选择LuaDraw/Asymptote/常规TeX；纯latex允许TikZ/PGFPlots等已安装库，纯模式拒绝其他语言。新go/render分派编译，原LuaDraw优先LuaLaTeX及独立Lua回退保留，比较/尺寸/提交门槛与回执未改。Asy调用系统asy，.asy可直接产静态PDF，内嵌asy TeX显式执行TeX→Asy→TeX；交付保留实际源码与独立TeX/PDF，不把一次普通TeX命令声称完整Asy编译。

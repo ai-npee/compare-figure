@@ -3,11 +3,13 @@
   "revision": "20faca6aaaf8d9469b3ee68e5ff7477437b7a0d7",
   "extensions": {
     "drawing_backend": "Configurable luadraw/mixed/latex/asymptote; default LuaDraw 3.7",
-    "mode_policy_source": "go/runner/runner.go",
+    "mode_policy_source": "go/runner/prompt.go",
+    "prompt_guide": "docs/prompt-guide.md",
     "asymptote_resources": "docs/asymptote-upstream.json",
     "documentation_dependency": "docs/doc-library-compatibility.md",
-    "active_prompts": ["prompts/luadraw_figure.system.md", "prompts/luadraw_figure.user.md"],
-    "prompt_policy": "New LuaDraw requirement requested after exact production migration; original four prompts remain unchanged",
+    "active_prompts": ["prompts/luadraw_figure.system.md", "prompts/luadraw_figure.user.md", "prompts/drawing_figure.system.md", "prompts/drawing_figure.reminder.md"],
+    "prompt_policy": "Drawing modes use complete file templates and backend policies; see docs/prompt-guide.md. The original two unused drawing templates were removed at the user's explicit request; the two original figurecheck templates remain unchanged and active. files records below are upstream baseline hashes, not a declaration that every historical file remains in the local distribution.",
+    "removed_unused_prompts": ["prompts/latex_figure.system.md", "prompts/latex_figure.user.md"],
     "runtime_vendor_lock": "vendor/dependencies.lock.json",
     "skills_reference": {
       "repository": "https://github.com/LingNc/DocVision",

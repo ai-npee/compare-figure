@@ -1,0 +1,1 @@
+Final reminder: finish with a clean compile, inspect the actual PDF, compare it to the reference with compare_figure, then submit the exact editable source that was compiled and compared. Default source path: {SOURCE_PATH}. Drawing policy: {SOURCE_DESCRIPTION}.

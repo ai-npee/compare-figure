@@ -11,6 +11,8 @@
 
 混合策略允许选择适合的后端，不要求同一个源文件强行同时使用两套语言。模式限制在编译入口执行，而非仅靠提示词约束。`--engine` 仍指 TeX 引擎，与绘图库不同。
 
+`--engine auto` 会优先遵循 Asy 程序中独立语句行的显式 `settings.tex="xelatex"`（同样支持 `lualatex`／`pdflatex`），使标签前导与外层可编辑 TeX 使用一致的引擎；例如 `xeCJK` 必须由 XeLaTeX 处理。未指定源码引擎时沿用可用工具优先级；显式 `--engine` 优先于自动推断。
+
 ## 设置
 
 自动 runner 的 YAML：

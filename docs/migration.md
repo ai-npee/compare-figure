@@ -4,6 +4,8 @@
 
 ## 当前：完整原生Go runner与Go-only Skill
 
+当前绘图库策略见 [四模式配置](drawing-modes.md)，完整文件提示词与旧模板移除说明见 [提示词指南](prompt-guide.md)。查看器支持 [离线数学公式](viewer-math.md)。下方标注“前一阶段”的强制LuaDraw与四模板保留，是当时的迁移记录，不是当前策略或文件存在性要求。
+
 最新用户要求已将完整Python runner及11工具再迁移为原生Go：会话/三协议与SSE、转录压缩续跑、LuaDraw运行/文档、测量/比较/提交、复核交付、幂等自动恢复和可移动多平台导出。正式入口为Go的run/tools/compare/environment/build/export-skill；Python仅保留开发原型与对照测试，不是导出选项或运行桥接。包映射、构建和JSON契约见 [go-native.md](go-native.md)，真实测试与平台边界见 [notes.md](notes.md)。下方Python表格与早期“未运行Go”文字为历史来源追溯，不表示当前Go能力边界。
 
 ## 后续 LuaDraw / Go 比较升级（前一阶段记录）
@@ -22,7 +24,7 @@ LuaDraw固定3.7（邻仓0.3.6是exam-zh），保留245个官方分发文件及�
 
 | 源内容 | Python 位置 | 保留的行为 |
 | --- | --- | --- |
-| `latex_figure.system.md`、`latex_figure.user.md` | [prompts](../prompts/latex_figure.system.md) | 文件逐字复制；只填源模板已有变量，不改写或附加系统指令 |
+| `latex_figure.system.md`、`latex_figure.user.md` | [固定上游来源](https://github.com/LingNc/DocVision/blob/20faca6aaaf8d9469b3ee68e5ff7477437b7a0d7/go/internal/prompts/templates/latex_figure.system.md) | 迁移时逐字复制；现已按用户要求移除这两份未运行模板，保留历史哈希，运行模板见[说明](prompt-guide.md) |
 | `latex_figurecheck.system.md`、`latex_figurecheck.user.md` | [复核提示词](../prompts/latex_figurecheck.system.md) | 文件逐字复制；图像顺序为原图、重绘图 |
 | `CompileFigureTool` / `buildStandalone` | [vector_tools.py](../dev/python/vector_tools.py) | 正文片段，6pt边框，基础宏包、ctex、包/库/设置提升，编译日志、页数与实际尺寸 |
 | `WriteWorkFileTool` / `EditWorkFileTool` | 同上 | 源文件扩展名、精确替换、追加、全替换 |

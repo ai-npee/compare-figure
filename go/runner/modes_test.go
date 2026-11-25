@@ -85,18 +85,32 @@ func TestResumeCreditRequiresAndRebasesNonLuaEditableSource(t *testing.T) {
 }
 
 func TestStrategyPromptsAreModeSpecific(t *testing.T) {
-	mixed := strategySystem("mixed", "Chinese", 8, Object{"tools": Object{"asy": Object{"usable": true}}})
-	for _, want := range []string{"source=luadraw", "source=asymptote", "Environment facts:", "actual 3D geometry", "image_context", "compile.merges", "// for comments"} {
+	resources := promptFixture(t)
+	values := promptTestValues()
+	mixed, _, err := DrawingPrompts(resources, "mixed", values)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{"source=luadraw", "source=asymptote", "Environment facts", "actual 3D geometry", "image_context", "compile.merges", "// for comments", "do not need to read both libraries"} {
 		if !strings.Contains(mixed, want) {
 			t.Fatalf("mixed prompt missing %q", want)
 		}
 	}
-	latex := strategySystem("latex", "Chinese", 8, Object{})
-	if strings.Contains(latex, "source=luadraw") || strings.Contains(latex, "source=asymptote") || !strings.Contains(latex, "no bundled drawing manual") {
-		t.Fatal("native LaTeX prompt recommends unrelated references", latex)
+	latex, _, err := DrawingPrompts(resources, "latex", values)
+	if err != nil || !strings.Contains(latex, "no bundled drawing manual") || !strings.Contains(latex, "Do not search source=luadraw or source=asymptote") {
+		t.Fatal("native LaTeX prompt recommends unrelated references", err, latex)
 	}
-	if !strings.Contains(strategySystem("asymptote", "Chinese", 8, Object{}), "Asymptote") {
-		t.Fatal("Asymptote prompt missing its drawing policy")
+	asy, _, err := DrawingPrompts(resources, "asymptote", values)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{"Asymptote", "source=asymptote", "settings.render=0", "settings.tex", "explicit host engine option takes precedence", "xeCJK requires XeLaTeX"} {
+		if !strings.Contains(asy, want) {
+			t.Fatalf("Asymptote prompt missing %q", want)
+		}
+	}
+	if strings.Contains(asy, "source=luadraw") {
+		t.Fatal("Asymptote prompt directs documentation to LuaDraw")
 	}
 }
 

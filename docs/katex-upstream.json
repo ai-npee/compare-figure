@@ -1,0 +1,21 @@
+{
+  "project": "KaTeX",
+  "version": "0.18.2",
+  "package": "katex",
+  "registry": "https://registry.npmjs.org/katex/0.18.2",
+  "tarball_url": "https://registry.npmjs.org/katex/-/katex-0.18.2.tgz",
+  "tarball_sha256": "a71df261a7080b53a4be44ea1b40e8e73e84cdd5d3311239310568e76437c018",
+  "npm_integrity": "sha512-3snve4y0SXTMequLim1FMiPvLGElySam0blN5xQZBqEY3lOJz1TnuaaiugnBZBqHzlSAGmFTYL7MCQkORuLKCA==",
+  "npm_shasum_sha1": "7ab6ff83e21c097a59c9afd213b2d2955fa6c6ce",
+  "resource_root": "vendor/katex-0.18.2",
+  "license": "MIT",
+  "included_upstream_paths": [
+    "package/dist/katex.min.js",
+    "package/dist/katex.min.css",
+    "package/dist/fonts/*",
+    "package/LICENSE"
+  ],
+  "excluded": ["node_modules", "tests", "CLI", "source tree", "other runtime/contrib bundles"],
+  "resource_manifest": "vendor/katex-0.18.2/RESOURCE-MANIFEST.json",
+  "security_note": "Pinned to the official fixed upstream release 0.18.2. OSV query for npm katex@0.18.2 returned no matching advisories. This release includes the fix for GHSA-238p-pmpm-9mq7 / CVE-2026-103923 (LOW), published 2026-10-05: https://github.com/KaTeX/KaTeX/security/advisories/GHSA-238p-pmpm-9mq7. The advisory concerns inherited options/settings in a host already vulnerable to Object.prototype pollution; keep viewer options and host prototypes controlled."
+}

@@ -144,7 +144,7 @@ func TestNativeSkillExportIsSourceOnlyMovableAndReexportable(t *testing.T) {
 			t.Fatal("Python exported", item.Path)
 		}
 	}
-	for _, required := range []string{"examples/runner.yaml.example", "go/go.mod", "go/go.sum", "go/cmd/compare-figure/main.go", "SKILL.md", "VERSION", "viewer.html", "scripts/export_skill.sh", "scripts/luadraw_runtime.lua", "prompts/luadraw_figure.system.md", "vendor/luadraw-3.7/luadraw/files/luadraw.sty"} {
+	for _, required := range []string{"examples/runner.yaml.example", "go/go.mod", "go/go.sum", "go/cmd/compare-figure/main.go", "SKILL.md", "VERSION", "viewer.html", "scripts/export_skill.sh", "scripts/luadraw_runtime.lua", "scripts/viewer_math.js", "docs/prompt-guide.md", "docs/viewer-math.md", "docs/katex-upstream.json", "prompts/luadraw_figure.system.md", "vendor/luadraw-3.7/luadraw/files/luadraw.sty", "vendor/katex-0.18.2/katex.min.js", "vendor/katex-0.18.2/katex.min.css", "vendor/katex-0.18.2/LICENSE", "vendor/katex-0.18.2/RESOURCE-MANIFEST.json", "vendor/katex-0.18.2/fonts/KaTeX_Main-Regular.woff2"} {
 		if !seen[required] {
 			t.Fatal("missing source/runtime resource", required)
 		}

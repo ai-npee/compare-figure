@@ -6,7 +6,7 @@
 
 原生 **Go LuaDraw 矢量图 runner 与图形比对工具**。完整会话、模型协议、11个绘图工具、文档检索附图、编译、复核、续跑和交付均在Go中实现。**Skill只导出Go运行版本；Python只用于开发原型和对照测试，不是运行桥接或导出选项。**
 
-生产比较/会话基线为DocVision `20faca6`，绘图固定LuaDraw 3.7。四份原始提示词保留哈希基线，当前绘图使用新增的LuaDraw提示词；来源和许可见 [清单](../docs/upstream.json) 与 [固定依赖](../vendor/dependencies.lock.json)。完整迁移、接口及幂等行为见 [Go说明](../docs/go-native.md)。
+生产比较/会话基线为DocVision `20faca6`，默认绘图资源为LuaDraw 3.7，另支持三种绘图库策略。当前四模式使用[完整文件提示词](prompt-guide.md)，两份旧unused绘图模板已移除、两份原版复核模板保留；历史来源哈希仍用于追溯。来源和许可见 [清单](../docs/upstream.json) 与 [固定依赖](../vendor/dependencies.lock.json)。完整迁移、接口及幂等行为见 [Go说明](../docs/go-native.md)。查看器的公式与代码显示规则见 [离线数学排版](viewer-math.md)。
 
 ## 原创LuaDraw图与独立文档工具
 

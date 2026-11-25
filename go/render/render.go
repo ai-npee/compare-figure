@@ -60,6 +60,7 @@ func failed(message string) map[string]any {
 
 var luaEnv = regexp.MustCompile(`\\begin\s*\{(?:luadraw\*?|luacode\*?)\}|\\usepackage(?:\[[^]]*\])?\{luadraw\}`)
 var asyEnv = regexp.MustCompile(`\\begin\s*\{asy\}`)
+var asyTeXEngine = regexp.MustCompile(`(?m)^[\t ]*settings\.tex\s*=\s*"(lualatex|xelatex|pdflatex)"\s*;`)
 
 // Language identifies the source language and enforces the configured policy before invoking a compiler.
 func Language(path, code, mode string) (string, error) {
@@ -266,6 +267,13 @@ func Compile(ctx context.Context, source, workdir string, options map[string]any
 		return true
 	}
 	engine := str(options, "engine", "auto")
+	// Asymptote exports its label preamble into the outer TeX document.
+	// Keep both engines consistent when the program explicitly selects one.
+	if engine == "auto" && lang == "asymptote" {
+		if selected := asyTeXEngine.FindStringSubmatch(string(raw)); len(selected) > 1 {
+			engine = selected[1]
+		}
+	}
 	if engine == "auto" {
 		engine = ""
 		for _, n := range []string{"lualatex", "xelatex", "pdflatex"} {

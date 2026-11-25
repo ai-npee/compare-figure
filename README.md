@@ -47,6 +47,8 @@
 | Skill 行为与完整操作流程 | [SKILL.md](SKILL.md) |
 | CLI、尺寸、Markdown 输入、配置、续跑与工具 | [详细使用说明](docs/usage.md) |
 | 四绘图库策略与编译交付 | [模式配置](docs/drawing-modes.md) |
+| 完整绘图提示词与复核模板用途 | [提示词说明](docs/prompt-guide.md) |
+| 会话查看器与离线公式排版 | [数学语法与代码显示](docs/viewer-math.md) |
 | 独立文档工具及旧入口兼容 | [检索接口](docs/luadraw-doc.md) · [功能差异](docs/doc-library-compatibility.md) |
 | 原生 Go 接口、构建和资源导出 | [Go 运行说明](docs/go-native.md) |
 | CI 检查、版本标签与源码 Skill 发布 | [发布说明](docs/releasing.md) |
@@ -87,4 +89,4 @@ node scripts/test_viewer.mjs
 
 导出版本取自 [VERSION](VERSION)，生成源码 Skill ZIP、SHA256 和逐文件清单。GitHub Actions 配置在代码更新时测试并验证源码包，匹配版本的 `vX.Y.Z` 标签可触发 Release 发布；仅推送代码不会自动发布正式版本，详见 [发布说明](docs/releasing.md)。首次远端运行结果以 Actions 记录为准。
 
-项目采用 [MIT 许可](LICENSE)，固定 LuaDraw 3.7 与 Asymptote 3.16 资源各保留原许可。依赖和提示词来源见 [固定依赖](vendor/dependencies.lock.json) 、[提示词来源](docs/upstream.json) 与 [Asymptote 资源来源](docs/asymptote-upstream.json)。
+项目采用 [MIT 许可](LICENSE)，固定 LuaDraw 3.7、Asymptote 3.16 和 viewer 的本地 KaTeX 0.18.2 资源各保留原许可。依赖和提示词来源见 [固定依赖](vendor/dependencies.lock.json) 、[提示词来源](docs/upstream.json) 与 [Asymptote 资源来源](docs/asymptote-upstream.json)。
