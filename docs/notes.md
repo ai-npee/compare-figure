@@ -1,5 +1,9 @@
 # 开发记录
 
+## 发布策略：标签自动打包，CI手动运行
+
+用户认为无需每次提交运行CI，要求仅推送标签时自动Release。ci.yml已移除push/PR/workflow_call，仅保留workflow_dispatch手动完整检查；release.yml移除复用CI的checks job与needs依赖，继续保留v*标签触发、标签与VERSION一致校验、源码ZIP导出、SHA256校验及Release附件发布。测试仍可在本地或GitHub手动运行。既有v0.3.0已由07b98b0成功发布，Release运行45571780693成功，源码ZIP和.sha256均已上传；新策略只影响后续提交/标签，不移动或重写已有Release。
+
 ## 提示词规范化与查看器离线公式
 
 用户指出新增Asymptote提示词在Go中简化拼接，缺少原LuaDraw user的Context围栏和完整工作流；要求以LuaDraw为参照补齐规范，并让viewer支持美元/双美元及反斜线圆括号/方括号数学分隔符。当前go/runner/prompt.go统一DrawingPrompts接口，非Lua模式由各库policy与共享完整system组成，LuaDraw保留完整system约束，四mode共用原user模板路径及完整任务/尺寸/预算/Context围栏/文档到提交顺序。库特定语法、Asy静态3D与TeX引擎/中文前导、native无专用手册和mixed自由择库均明确；没有再在Go中维护简化长提示词。提醒、后续视觉复核和修正反馈也移为文件。所有运行模板用途、变量与加载规则见docs/prompt-guide.md。

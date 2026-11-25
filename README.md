@@ -87,6 +87,6 @@ node scripts/test_viewer.mjs
 ./scripts/export_skill.sh
 ```
 
-导出版本取自 [VERSION](VERSION)，生成源码 Skill ZIP、SHA256 和逐文件清单。GitHub Actions 配置在代码更新时测试并验证源码包，匹配版本的 `vX.Y.Z` 标签可触发 Release 发布；仅推送代码不会自动发布正式版本，详见 [发布说明](docs/releasing.md)。首次远端运行结果以 Actions 记录为准。
+导出版本取自 [VERSION](VERSION)，生成源码 Skill ZIP、SHA256 和逐文件清单。GitHub Actions 仅在手动触发时运行完整 CI；普通提交、推送和 PR 不自动运行检查。匹配版本的 `vX.Y.Z` 标签会直接校验版本、打包并创建 Release，不再等待完整 CI，详见 [发布说明](docs/releasing.md)。
 
 项目采用 [MIT 许可](LICENSE)，固定 LuaDraw 3.7、Asymptote 3.16 和 viewer 的本地 KaTeX 0.18.2 资源各保留原许可。依赖和提示词来源见 [固定依赖](vendor/dependencies.lock.json) 、[提示词来源](docs/upstream.json) 与 [Asymptote 资源来源](docs/asymptote-upstream.json)。

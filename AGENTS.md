@@ -10,6 +10,8 @@ Python模块和测试仅放dev/python，使用conda base（本机/home/lingnc/mi
 
 ## 状态与范围
 
+- 用户最新要求取消每次提交的自动CI，只需要推标签自动Release：ci.yml仅保留workflow_dispatch手动入口，无push/PR/workflow_call；release.yml不再调用CI或needs checks，仅v*标签触发版本一致校验、打包、checksum与创建Release。普通push/PR不运行Actions，需要完整检查时本地跑或手动触发。v0.3.0已在用户授权下正式发布，tag指向07b98b0，Release source Skill运行45571780693 success，ZIP与.sha256已上传；本次发布策略调整不重写既有标签/附件，后续tag生效。
+
 - 最新用户要求已完成：四绘图库提示词参照完整LuaDraw规范，go/runner/prompt.go统一DrawingPrompts加载；库policy+共享drawing_figure.system完整workflow，四mode同一user骨架恢复原尺寸/看图预算/Context动态围栏/查文档到提交步骤，提醒/复核后续轮/反馈也为文件。模板路径和作用见docs/prompt-guide.md；新模板适用于新会话，续跑原system/user不改写且system只出现一次，已接受无密钥恢复不依赖新模板。一次性变量替换不重展开Context，动态围栏保护内嵌代码，四mode原尺寸Hint可保留about39%页宽（前次explicit_mm漏page_w历史不改）。用户明确允许删除unused旧latex_figure.system.md/user.md，现已删除；只保留仍用于视觉复核的latex_figurecheck两原件及SHA，docs/upstream.json保留历史来源hash并标明移除。此要求覆盖下方历史“四原模板必须本地保留”，不得自动恢复unused两文件。
 - viewer已增加固定KaTeX0.18.2本地JS/CSS/60字体/MIT及逐文件SHA，支持美元/双美元/反斜线圆括号/方括号数学，配合scripts/viewer_math.js先保护公式再Markdown；代码围栏与行内源码、未配对符号不排版，坏公式保留原文，不上传、不需CDN。模板Context围栏内数学显示源码是预期；正文/展开思考与工具文字可排版。资源与说明docs/viewer-math.md/katex-upstream.json随源码Skill导出，HTML必须与相邻脚本/vendor一起保留。受控trust=false、异常捕获、公式缓存256、宽公式内滚动，原折叠/分页/媒体按需加载保留。
 - 本轮验收：Go全仓test/vet/build全部PASS（runner243.777s、app79.867s、render80.307s、drawing54.107s），新模板/上下文安全/metadata/page-width/旧system只一次及accepted无密钥与复核stub回归均通过，无付费模型调用。Node实际KaTeX四分隔符/多行/代码/escapedcurrency/未配对/坏TeX/XSS/缓存、既有viewer测试在3locale均PASS。Chromium实际file://分别打开checkout与独立解压包、HTTP(S)blocked，图6.9真实70事件显示106KaTeX节点，独立4公式2display样例/代码literal/unpaired保留/本地fontsready，网络0/异常0，390px无横向溢出，screenshots已查看。证据runs/viewer-math-{validation,package-validation}，math测试直接渲染真实rows+独立fixture，不改历史会话，也不把缺注入媒体句柄称为图片已加载。
