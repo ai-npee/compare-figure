@@ -20,6 +20,7 @@ func (d *Docs) Definition() map[string]any {
 	}
 	props["case_sensitive"].(map[string]any)["description"] = "Grep defaults to true for legacy compatibility; other modes default to false. Set false explicitly for case-insensitive grep."
 	props["source"].(map[string]any)["description"] = "Reference source ID (luadraw or asymptote for bundled sources); use with relative doc paths"
+	props["doc"].(map[string]any)["description"] = "Exact source-root-relative file for read/view, directory for list/grep/find. list doc=\".\" lists root files and subdirectories (directory paths end in /); requests have no persistent current directory. Discover unknown paths with find before read; e.g. Asymptote manual is doc/asymptote.texi, not asymptote.texi."
 	return map[string]any{"type": "function", "function": map[string]any{"name": "document_search", "description": "Search/read/navigate local reference collections. Select source when paths occur in multiple collections. Search returns text and PDF page/bbox provenance; view explicitly renders pages or percentage regions. PDF coordinates do not map to TeX source lines.", "parameters": schema}}
 }
 

@@ -22,15 +22,24 @@ function element(selector) {
   });
   return elements.get(selector);
 }
+let mediaNodes = [];
+const observers = [];
+class IntersectionObserver {
+  constructor(callback) { this.callback = callback; this.targets = new Set(); observers.push(this); }
+  observe(node) { this.targets.add(node); }
+  unobserve(node) { this.targets.delete(node); }
+  disconnect() { this.targets.clear(); }
+  intersect() { this.callback([...this.targets].map(target => ({ target, isIntersecting: true }))); }
+}
 const document = {
   querySelector: element,
-  querySelectorAll: () => [],
+  querySelectorAll: selector => selector === '[data-media-ref]' ? mediaNodes : [],
   addEventListener() {},
   createElement: () => element(Symbol()),
 };
 const window = { ViewerMath: viewerMath, katex };
 class ResizeObserver { observe() {} }
-const context = { document, window, ResizeObserver, Blob, URL, console, Map, Set, Promise, JSON, String, Number, Math, Date, RegExp };
+const context = { document, window, ResizeObserver, IntersectionObserver, Blob, URL, console, Map, Set, Promise, JSON, String, Number, Math, Date, RegExp };
 vm.runInNewContext(script, context, { filename: 'viewer.html' });
 const api = window.__viewerTest;
 assert.ok(api, 'test hooks initialized');
@@ -150,4 +159,140 @@ api.render([
 const lazyDetailsHTML = elements.get('#timeline').innerHTML;
 assert.doesNotMatch(lazyDetailsHTML, /<h1>hidden thought<\/h1>/, 'collapsed reasoning is not markdown-rendered');
 assert.match(lazyDetailsHTML, /data-media-ref="file:\/\/media\/result\.png"/, 'images directly attached to tool results are shown');
-console.log(`viewer parser, fresh-file, partial-write, and bounded-timeline checks passed (${Intl.DateTimeFormat().resolvedOptions().locale})`);
+for (const receipt of ['Image returned (call direct).', 'Image returned (tool_call_id=direct).']) {
+  api.render([
+    { t: 'msg', role: 'assistant', tool_calls: [{ id: 'direct', function: { name: 'read_image', arguments: '{}' } }] },
+    { t: 'msg', role: 'tool', tool_call_id: 'direct', text: 'ok' },
+    { t: 'msg', role: 'user', text: receipt, images: ['file://media/result.png'] },
+  ]);
+  assert.equal(api.state.currentEvents.length, 1, 'both image receipt formats attach to their tool without an extra user entry');
+  assert.equal(api.state.currentEvents[0].images.length, 1);
+}
+
+// These mutable handles model an active run: media appears AFTER the initial walk.
+const handleCalls = [], fileReads = [], entryWalks = [];
+function dir(name, children = new Map()) {
+  return { kind: 'directory', name, children,
+    async *entries() { entryWalks.push(name); yield* children; },
+    async getDirectoryHandle(child, options) {
+      handleCalls.push(['directory', name, child, options.create]);
+      const found = children.get(child);
+      if (options.create !== false || found?.kind !== 'directory') throw Object.assign(Error(child), { name: 'NotFoundError' });
+      return found;
+    },
+    async getFileHandle(child, options) {
+      handleCalls.push(['file', name, child, options.create]);
+      const found = children.get(child);
+      if (options.create !== false || found?.kind !== 'file') throw Object.assign(Error(child), { name: 'NotFoundError' });
+      return found;
+    },
+  };
+}
+function file(name, contents = '') {
+  return { kind: 'file', async getFile() { fileReads.push(name); return new Blob([contents]); } };
+}
+const a = dir('a', new Map([['session.jsonl', file('a/session.jsonl')]]));
+const b = dir('b', new Map([['session.jsonl', file('b/session.jsonl')]]));
+api.directory = dir('root', new Map([['a', a], ['b', b]]));
+mediaNodes = [];
+await api.loadDirectory();
+const scans = entryWalks.length;
+const aMedia = dir('a/media', new Map([
+  ['new.jfif', file('a/media/new.jfif', 'a')],
+  ['unused.png', file('a/media/unused.png', 'unused')],
+  ['nested', dir('a/media/nested', new Map([['new.png', file('a/media/nested/new.png', 'nested')]]))],
+]));
+a.children.set('media', aMedia);
+b.children.set('media', dir('b/media', new Map([['new.jfif', file('b/media/new.jfif', 'b')]])));
+await api.loadSession(0);
+assert.equal(fileReads.filter(x => x.includes('/media/')).length, 0, 'reselecting a session does not discover or read any media eagerly');
+assert.equal(entryWalks.length, scans, 'reselecting never rescans the directory');
+const [aURL, duplicateURL] = await Promise.all([api.loadMediaRef('file://media/new.jfif'), api.loadMediaRef('file://media/new.jfif')]);
+assert.match(aURL, /^blob:/, 'media written after the initial walk is found through session parent handle');
+assert.equal(duplicateURL, aURL);
+assert.equal(fileReads.filter(x => x === 'a/media/new.jfif').length, 1, 'concurrent thumbnails share a single file read');
+assert.equal(api.state.fileByPath.get('a/media/new.jfif').file.type, '', 'empty JFIF MIME is retained without preventing object URL creation');
+assert.match(await api.loadMediaRef('file://media/nested/new.png'), /^blob:/, 'nested relative media is discovered by exact path');
+assert.equal(fileReads.includes('a/media/unused.png'), false, 'unreferenced media remains unread');
+assert.equal(entryWalks.length, scans, 'media discovery never walks directory entries');
+const safeCallCount = handleCalls.length;
+for (const unsafe of ['file:///tmp/new.jfif', '/media/new.jfif', 'file://media/../new.jfif', 'media/./new.jfif', 'media//new.jfif', 'C:/new.jfif', 'media\\new.jfif', 'https://host/new.jfif', '../new.jfif']) {
+  assert.equal(await api.loadMediaRef(unsafe), '', `unsafe reference is rejected: ${unsafe}`);
+}
+assert.equal(handleCalls.length, safeCallCount, 'unsafe paths perform no filesystem lookup');
+assert.equal(await api.loadMediaRef('file://media/no-directory/no.png'), '', 'a genuinely missing directory settles as missing');
+assert.equal(await api.loadMediaRef('file://media/no.png'), '', 'a genuinely missing file settles as missing');
+assert.ok(handleCalls.every(call => call[3] === false), 'all filesystem lookups explicitly disable creation');
+await api.loadSession(1);
+const bURL = await api.loadMediaRef('file://media/new.jfif');
+assert.notEqual(bURL, aURL, 'same filename in another session has an isolated object URL');
+assert.equal(await (await fetch(aURL).catch(() => null)), null, 'switching sessions revokes old object URLs');
+assert.equal(await (await fetch(bURL)).text(), 'b', 'same filename resolves within the selected session');
+
+let finishDirectory;
+aMedia.getDirectoryHandle = async (name, options) => {
+  assert.equal(options.create, false);
+  return new Promise(resolve => { finishDirectory = resolve; });
+};
+await api.loadSession(0);
+const staleDirectory = api.loadMediaRef('file://media/slow/new.png');
+// Let the first media directory lookup finish, then switch while slow is pending.
+await new Promise(resolve => setImmediate(resolve));
+await api.loadSession(1);
+finishDirectory(dir('slow', new Map([['new.png', file('a/media/slow/new.png')]])));
+assert.equal(await staleDirectory, '', 'a session switch cancels pending directory discovery');
+assert.equal(api.state.fileByPath.has('a/media/slow/new.png'), false, 'stale discovery cannot add records');
+assert.equal(fileReads.includes('a/media/slow/new.png'), false, 'stale discovery does not read a file');
+
+let finishFile;
+aMedia.children.set('slow.png', { kind: 'file', getFile() { return new Promise(resolve => { finishFile = resolve; }); } });
+await api.loadSession(0);
+const oldNode = { dataset: { mediaRef: 'file://media/slow.png' }, isConnected: true };
+mediaNodes = [oldNode];
+api.render([{ t: 'msg', role: 'user', images: ['file://media/slow.png'] }]);
+const oldObserver = observers.at(-1);
+oldObserver.intersect();
+await new Promise(resolve => setImmediate(resolve));
+assert.ok(finishFile, 'viewport intersection starts the referenced file read');
+mediaNodes = [];
+await api.loadSession(1);
+const urlsBefore = api.state.objectURLs.size;
+finishFile(new Blob(['old bytes']));
+await new Promise(resolve => setImmediate(resolve));
+assert.equal(oldNode.outerHTML, undefined, 'stale thumbnail completion cannot update the DOM');
+assert.equal(api.state.objectURLs.size, urlsBefore, 'stale file completion cannot create or leak object URLs');
+assert.equal(api.state.fileByPath.get('a/media/slow.png').file, null, 'stale file completion cannot write back a cached File');
+oldObserver.intersect();
+assert.equal(oldObserver.targets.size, 0, 'disconnected old observer remains inert');
+
+const missingNode = { dataset: { mediaRef: 'file://media/absent/no.png' }, isConnected: true };
+mediaNodes = [missingNode];
+const beforeMissing = handleCalls.length;
+api.render([{ t: 'msg', role: 'user', images: ['file://media/absent/no.png'] }]);
+const missingObserver = observers.at(-1);
+assert.equal(handleCalls.length, beforeMissing, 'render alone performs no media discovery');
+missingObserver.intersect();
+await new Promise(resolve => setImmediate(resolve));
+assert.match(missingNode.outerHTML, /未找到图片/, 'missing media produces a terminal missing placeholder');
+const afterMissing = handleCalls.length;
+missingObserver.intersect();
+await new Promise(resolve => setImmediate(resolve));
+assert.equal(handleCalls.length, afterMissing, 'missing media is unobserved and never retried in a loop');
+
+let finishHandle;
+const bMedia = b.children.get('media');
+bMedia.getFileHandle = async (name, options) => {
+  assert.equal(options.create, false);
+  return new Promise(resolve => { finishHandle = resolve; });
+};
+const staleHandle = api.loadMediaRef('file://media/late.png');
+await new Promise(resolve => setImmediate(resolve));
+assert.ok(finishHandle, 'exact file handle discovery is pending before the directory switch');
+mediaNodes = [];
+api.directory = dir('replacement');
+await api.loadDirectory();
+finishHandle(file('b/media/late.png', 'stale'));
+assert.equal(await staleHandle, '', 'switching the authorized root cancels pending file handle discovery');
+assert.equal(api.state.fileByPath.size, 0, 'a stale handle cannot enter the replacement directory index');
+assert.equal(fileReads.includes('b/media/late.png'), false, 'stale file handles never read file contents');
+console.log(`viewer parser, fresh-file, late-media, race, isolation, lazy-read, and bounded-timeline checks passed (${Intl.DateTimeFormat().resolvedOptions().locale})`);

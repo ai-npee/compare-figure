@@ -35,6 +35,36 @@ func results(t *testing.T, r map[string]any) []any {
 	return v
 }
 
+func TestMissingPathSuggestionsIncludeSubdirectories(t *testing.T) {
+	root := t.TempDir()
+	for _, name := range []string{"LICENSE", "README"} {
+		if err := os.WriteFile(filepath.Join(root, name), []byte("fixture"), 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, name := range []string{"doc", "examples"} {
+		if err := os.MkdirAll(filepath.Join(root, name), 0700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, name, "example.tex"), []byte("reference"), 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	d, err := documents.NewConfig(documents.Config{Sources: []documents.Source{{ID: "asymptote", Root: root}}, CacheDir: t.TempDir()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _, err = d.Execute(context.Background(), map[string]any{"mode": "read", "source": "asymptote", "doc": "asymptote.texi", "start_line": 1, "end_line": 2}, t.TempDir())
+	if err == nil {
+		t.Fatal("expected missing path error")
+	}
+	for _, want := range []string{"asymptote:doc/", "asymptote:examples/", "mode=list doc=", "mode=find"} {
+		if !strings.Contains(err.Error(), want) {
+			t.Fatalf("missing suggestion %q: %v", want, err)
+		}
+	}
+}
+
 func TestFrequentSnippetSupportsExpandedBudgetsAndKeepsSmallerExplicitLimits(t *testing.T) {
 	root := t.TempDir()
 	for i := 0; i < 4; i++ {

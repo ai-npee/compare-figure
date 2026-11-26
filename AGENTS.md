@@ -10,6 +10,9 @@ Python模块和测试仅放dev/python，使用conda base（本机/home/lingnc/mi
 
 ## 状态与范围
 
+- 图5.3 Asy会话的view_pdf/compare图片实际已落盘，viewer误报未找到来自首次walkDirectory清单未含运行后新增media。现视口惰性加载会按当前session的parentHandle精确getDirectoryHandle/getFileHandle(create:false)发现缺项，不整树重扫/不轮询；每个await检查generation，切会话/根期间不污染索引/File/URL/DOM，同路径请求去重。media相对路径拒绝..、绝对路径和外部scheme，空JFIF MIME照常解码。兼容(tool_call_id=...)和旧(call id)回执归属。Chromium真实5.3会话注入只读句柄测试8/8引用图naturalWidth>0，目标1280×1175/900×826，初扫0媒体读取、未引用original0读，entries两次不增加，缺/异常/网络0；证据runs/viewer-late-media-validation，截图已查看。三locale Node及竞态/路径/按需读取回归PASS，未改真实session或调用模型。
+- document_search具有search/read/view/list/find/grep/frequent；list含文件与目录(kind directory、尾/)，目录是文档source根相对路径而非宿主cwd，无cd状态，空/不允许目录不展示。Asy手册正确doc/asymptote.texi，模型误填根asymptote.texi时旧error仅5建议被顶层LICENSE占满，看不到doc/examples；改为最多32条目录优先并给具体list参数，工具doc字段说明补示例。原上游doc-library只读依赖未改。documents test20.892s/vet/build及真实list/find/read成功，docs/luadraw-doc/viewer说明同步。
+
 - 最新图片规则：从source-md引用选中原图后，view_image默认用真实原图所在目录查同目录文件；完整Markdown本地链接用与启动选图相同的解析器建立映射，支持非images目录、URL编码和明确链接的../外部图片，其他路径仍限制在已提供根内，不请求远程图片。Markdown目录为额外根，--images-dir仅回退；自动runner和半自动tool入口均贯通，不把会话media/original复制目录误当书稿图像根。重叠搜索根去重，真实同名歧义仍提示。用户图5.3原报错是旧view_image总剥images/而images-dir指向其上级；现无需精确传images目录，保持原命令或省略images-dir均可。实际tool4次原图/邻图×完整引用/裸名成功，证据runs/image-reference-validation/result.json，无模型请求、不改原会话。
 - 高频自动开场摘要默认及上限已按用户改成最多8条、每行1024字符、总4096字符，runner/documents两层硬锁同时改，显式更小预算继续有效；8条不是保证全出，先受总字符预算约束。主动document_search frequent工具默认仍256每行，可显式line_chars1024，不混称自动摘要预算。新上限/被动不计频/小预算及图片路径测试PASS，runner/documents回归与相关vet/构建成功；全drawing宿主真实TeX集成另因standalone.cls缺失失败，不能宣称全仓无条件通过。README/SKILL/配置及检索文档同步，具体本轮验证见notes。
 

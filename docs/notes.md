@@ -1,5 +1,13 @@
 # 开发记录
 
+## 文档目录建议与运行中新媒体查看
+
+用户在manual-figure-5.3-asy报告两问题。document_search read给asymptote.texi而真实文件doc/asymptote.texi，旧missingPathError仅取list前5项，恰为顶层LICENSE/README等，遗漏doc/与examples/目录。现沿用上游filtered list，预算32并目录优先，错误明确只是有限建议并给list doc参数，模型工具doc字段强调source根相对路径/无跨请求cd/先find再read。工具七模式search/read/view/list/find/grep/frequent；list确实返回文件及文件夹(kind=directory,路径尾/)，非递归默认直接子项，空/全被过滤目录不索引。read若给doc与行范围，不会因query存在而自动修正路径或语义定位。实际CLI list根7项含两目录，find找到doc/asymptote.texi，read9800-9803成功；该段是unitbox相关而非query所写projection，说明应先search/grep找真实行。新增缺路径提示包含非空目录测试，documents完整test20.892s/vet/build成功。未改独立doc-library源或依赖。
+
+另viewer里file://media/027dac0d58d67f8a07a2d985.jfif与e6b6fcc6715ad46240b9f2fb.png实际存在，后者main直接看图确认。首选目录时walkDirectory的索引未含运行后新增文件，旧observer缺记录直接误报未找到，重选会话只读JSONL不重扫；不是Asy编译失败或PNG/JFIF损坏。现在视口触发loadMediaRef，从选中session的parentHandle精确getDirectoryHandle/getFileHandle(create:false)发现缺项，不entries整目录重扫、不轮询、不预读其他图片。mediaPath拒绝..、abs、其他scheme等，pending按generation+完整sessionpath去重，每await后generation校验，切session/root途中不更新索引/Filecache/URL/DOM，URL回收与懒渲染保留。识别(tool_call_id=...)和(call id)图像回执，把图片归到对应工具不再多余user行。新消息仍手动刷新/重选，无自动文件监听；旧浏览器页面需重新加载脚本。
+
+Viewer子任务559ae314-33a0-4fa0-8f21-4b86d6a93aa7已freeze，三locale Node回归通过，新增scan后文件/目录、同名跨session、空MIME、精确读/去重、missing终态、安全和目录/handle/getFile期间session及root切换测试。真实Chromium file://加载真实5.3会话和media，通过注入只读FS handle适配器（不是系统目录选择器自动化），故意初扫隐藏两个目标再重选/滚动，8/8引用图naturalWidth>0，两目标1280×1175/900×826。初读仅JSONL两次0媒体，8媒体各1次、未引用original.jpg0读，entries始终root/media共2次，精确handle4调用全create:false，空MIME也解码，missing/异常/远程请求均0。证据runs/viewer-late-media-validation/browser-result.json与预览，main已实际看截图。首轮浏览器测试误把未引用original当第9张，修正按JSONL真实8引用并断言original不读后通过，未修改真实会话或调用模型。
+
 ## 图片引用目录优先与高频摘要扩容
 
 用户要求开场高频摘要从总2048/每行256扩大为总4096/每行1024、8条不变，runner默认和硬上限及documents.FrequentSnippet两层同步更新，仍尊重显式小预算，仍被动不计频。最多8条受总4096预算限制，不保证每条都达到1024或每次都显示8条。主动document_search frequent的每行默认仍为256，可显式传line_chars1024；文档区分自动摘要与主动工具，避免未修改上游却声称工具默认也变更。

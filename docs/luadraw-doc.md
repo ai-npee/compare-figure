@@ -24,6 +24,20 @@ Windows 输出名使用 `../build/compare-figure.exe`。首次构建会下载固
 
 从其他项目调用时使用可执行程序的绝对路径。资源自动从 Skill 根定位，或用 `--resource-root` 指定 Skill 根；`--luadraw-root` 指定固定库根。文档内容只能在库根内访问，不开放任意宿主文件。
 
+## 工具模式与目录导航
+
+`document_search` 提供七种常用模式：`search` 正文检索，`read` 源码按行或PDF按页读文字，`view` PDF整页/区域看图，`list` 列目录，`find` 按文件名/通配符找路径，`grep` 精确文本或正则搜索，`frequent` 高频段落。目录导航限定配置文档源，不是操作系统当前工作目录，也没有跨请求保留的 `cd` 状态。
+
+```json
+{"source":"asymptote","mode":"list","doc":".","limit":30}
+{"source":"asymptote","mode":"list","doc":"doc","limit":30}
+{"source":"asymptote","mode":"find","query":"*asymptote.texi*"}
+```
+
+`list` 默认列直接子项，包含文件和文件夹；文件夹以 `/` 结尾，JSON有 `kind:"directory"`，`recursive:true` 可递归列允许的文档。结果受 `limit`/`offset` 分页；空目录或不含允许文档的目录不会被索引展示。缺路径的错误提示只是最多32项建议，目录优先，并非完整目录清单。
+
+Asymptote 手册实际路径是 `doc/asymptote.texi`，不是根目录的 `asymptote.texi`；可 `find` 定位后再 `read`。`read` 给了 `doc` 和行范围就读那段，不会根据 `query` 自动把错误路径或不相关行号修正为匹配段落。先 `search`/`grep` 查 `orthographic` 获得真实路径/行号再读。
+
 ## CLI 参数调用
 
 `luadraw-doc` 是独立入口，`docs`、`luadraw-doc-search` 保持兼容；所有正常结果为 JSON。
