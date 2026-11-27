@@ -1,0 +1,12 @@
+# mixed 模式声明全部可检索资料；source/sources 只做精确筛选。
+# 根目录均相对此 YAML，可随源码 Skill 搬移。
+sources:
+  - id: luadraw
+    root: ../../vendor/luadraw-3.7/luadraw
+  - id: luadraw-notes
+    root: ..
+    include:
+      - luadraw-surface-rendering.md
+    extensions: [.md]
+  - id: asymptote
+    root: ../../vendor/asymptote-3.16

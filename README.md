@@ -47,6 +47,7 @@
 | Skill 行为与完整操作流程 | [SKILL.md](SKILL.md) |
 | CLI、尺寸、Markdown 输入、配置、续跑与工具 | [详细使用说明](docs/usage.md) |
 | 四绘图库策略与编译交付 | [模式配置](docs/drawing-modes.md) |
+| LuaDraw曲面网格、相交面裁切与方法选择 | [曲面渲染参考](docs/luadraw-surface-rendering.md) |
 | 完整绘图提示词与复核模板用途 | [提示词说明](docs/prompt-guide.md) |
 | 会话查看器与离线公式排版 | [数学语法与代码显示](docs/viewer-math.md) |
 | 独立文档工具及旧入口兼容 | [检索接口](docs/luadraw-doc.md) · [功能差异](docs/doc-library-compatibility.md) |

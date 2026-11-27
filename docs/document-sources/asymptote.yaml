@@ -1,0 +1,4 @@
+# Asymptote 模式不加载 LuaDraw 补充资料。
+sources:
+  - id: asymptote
+    root: ../../vendor/asymptote-3.16

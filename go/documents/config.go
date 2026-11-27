@@ -6,12 +6,14 @@ package documents
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 
 	"doc-library/pkg/doclibrary"
+	"gopkg.in/yaml.v3"
 )
 
 const DependencyRevision = "a705bca4420cd2126b6072a1c7b6450f2b9cc84c"
@@ -26,9 +28,11 @@ type Docs struct {
 	emptyMessage string
 }
 
-// New selects the references for a drawing backend. rootResource may be the
-// Skill resource root or the legacy vendor/luadraw-3.7/luadraw root.
-// Native LaTeX has no bundled reference collection; use NewConfig to add one.
+// New selects a backend's docs/document-sources/<mode>.yaml when present.
+// Source roots and a configured relative cache_dir resolve from that YAML file;
+// cacheDir, when supplied, overrides its cache setting. Without a configuration,
+// the original official references (or an empty native LaTeX collection) apply.
+// rootResource may be the Skill root or its legacy vendor/luadraw-3.7/luadraw root.
 func New(rootResource, cacheDir, mode string) (*Docs, error) {
 	mode = strings.ToLower(strings.TrimSpace(mode))
 	if mode == "" {
@@ -37,20 +41,35 @@ func New(rootResource, cacheDir, mode string) (*Docs, error) {
 	if mode != "luadraw" && mode != "mixed" && mode != "latex" && mode != "asymptote" {
 		return nil, fmt.Errorf("unknown document backend %q", mode)
 	}
-	if mode == "latex" {
-		return &Docs{emptyMessage: "No bundled reference for native LaTeX; configure document sources to add a reference collection."}, nil
+	if rootResource == "" {
+		if mode == "latex" {
+			return emptyLatexDocs(), nil
+		}
+		return nil, fmt.Errorf("document resource root is required")
 	}
 	root, err := filepath.Abs(rootResource)
 	if err != nil {
 		return nil, err
 	}
-	if rootResource == "" {
-		return nil, fmt.Errorf("document resource root is required")
-	}
 	resource := root
-	// A direct LuaDraw root is accepted by the legacy NewDocs API.
-	if isDir(filepath.Join(root, "doc")) && isDir(filepath.Join(root, "files")) {
-		resource = filepath.Clean(filepath.Join(root, "..", "..", ".."))
+	// Only the canonical bundled legacy location identifies a Skill root.
+	// Independent legacy collections must not acquire ancestor/cwd configs.
+	if isDir(filepath.Join(root, "doc")) {
+		resource = ""
+		candidate := filepath.Clean(filepath.Join(root, "..", "..", ".."))
+		if filepath.Join(candidate, "vendor", "luadraw-3.7", "luadraw") == root {
+			resource = candidate
+		}
+	}
+	if resource != "" {
+		path := filepath.Join(resource, "docs", "document-sources", mode+".yaml")
+		docs, found, err := configuredDocs(path, cacheDir)
+		if err != nil || found {
+			return docs, err
+		}
+	}
+	if mode == "latex" {
+		return emptyLatexDocs(), nil
 	}
 	var sources []Source
 	if mode == "luadraw" || mode == "mixed" {
@@ -64,6 +83,9 @@ func New(rootResource, cacheDir, mode string) (*Docs, error) {
 		sources = append(sources, Source{ID: "luadraw", Root: lua})
 	}
 	if mode == "asymptote" || mode == "mixed" {
+		if resource == "" {
+			return nil, fmt.Errorf("Asymptote documentation requires a bundled resource root")
+		}
 		asy, err := asymptoteRoot(resource)
 		if err != nil {
 			return nil, err
@@ -71,6 +93,54 @@ func New(rootResource, cacheDir, mode string) (*Docs, error) {
 		sources = append(sources, Source{ID: "asymptote", Root: asy})
 	}
 	return NewConfig(Config{Sources: sources, CacheDir: cacheDir})
+}
+
+func emptyLatexDocs() *Docs {
+	return &Docs{emptyMessage: "No bundled reference for native LaTeX; configure document sources to add a reference collection."}
+}
+
+// configuredDocs reads one standard doc-library Config, without overlays or
+// source-specific policies. Only a missing file permits the official fallback.
+func configuredDocs(path, cacheDir string) (*Docs, bool, error) {
+	file, err := os.Open(path)
+	if os.IsNotExist(err) {
+		return nil, false, nil
+	}
+	if err != nil {
+		return nil, true, fmt.Errorf("document sources config %s: %w", path, err)
+	}
+	defer file.Close()
+	decoder := yaml.NewDecoder(file)
+	decoder.KnownFields(true)
+	var config Config
+	if err = decoder.Decode(&config); err != nil {
+		return nil, true, fmt.Errorf("document sources config %s: %w", path, err)
+	}
+	var extra yaml.Node
+	if err = decoder.Decode(&extra); err != io.EOF {
+		if err == nil {
+			err = fmt.Errorf("expected exactly one YAML document")
+		}
+		return nil, true, fmt.Errorf("document sources config %s: %w", path, err)
+	}
+	base := filepath.Dir(path)
+	for i := range config.Sources {
+		root := config.Sources[i].Root
+		if root != "" && !filepath.IsAbs(root) {
+			config.Sources[i].Root = filepath.Join(base, filepath.FromSlash(root))
+		}
+	}
+	if config.CacheDir != "" && !filepath.IsAbs(config.CacheDir) {
+		config.CacheDir = filepath.Join(base, filepath.FromSlash(config.CacheDir))
+	}
+	if cacheDir != "" {
+		config.CacheDir = cacheDir
+	}
+	docs, err := NewConfig(config)
+	if err != nil {
+		return nil, true, fmt.Errorf("document sources config %s: %w", path, err)
+	}
+	return docs, true, nil
 }
 
 // NewConfig accepts explicit sources, filters, quotas, Poppler paths and cache

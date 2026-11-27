@@ -12,6 +12,20 @@
 4. Agent 写 LuaDraw `.lua` 或内嵌 `luadraw` 环境的 `.tex`，调用 `compile`，查看 PDF 和预览，按用户要求修正。
 5. 交付可编辑源码和 PDF。没有参考图时不报告比对分数，也不需要进入参考图 `submit` 接受流程。
 
+曲面网格和相交场景的渲染选择、解析裁切示例与适用边界，见[LuaDraw 曲面渲染实践](luadraw-surface-rendering.md)。它同时以 `luadraw-notes` 来源接入工具：这份项目补充不是官方手册，不改动固定 vendor，也不索引整套项目文档或运行目录。
+
+引用源由 [LuaDraw 配置](document-sources/luadraw.yaml)、[mixed 配置](document-sources/mixed.yaml) 和 [Asymptote 配置](document-sources/asymptote.yaml) 声明，都是标准 doc-library `Config` YAML；相对 `root` 按 YAML 所在目录解析。`documents.New` 只负责按绘图模式加载配置并调用 `NewConfig`，没有写死经验文件名、来源别名或扩展筛选规则。后续补充资料只需改对应 YAML 的 `sources/include` 和增加实际文档；若使用导出包，也应将新增文档列入资源导出清单。
+
+不传 `source` 就搜索当前绘图模式配置的全部资料；`source:"luadraw"` **只查官方来源**。同时查询官方及补充可用 `sources:["luadraw","luadraw-notes"]`。返回结果保留真实来源，后续 `read/view` 使用该精确来源。显式 `NewConfig` 继续遵守调用方自己的配置；旧版或独立 LuaDraw 目录缺少 YAML 时退回原官方来源，无效的已选配置则报错而不静默回退。
+
+```json
+{"mode":"search","query":"Dscene3d 网格 毛刺","limit":5}
+{"sources":["luadraw","luadraw-notes"],"mode":"search","query":"cutfacet2","limit":5}
+{"source":"luadraw-notes","mode":"read","doc":"luadraw-surface-rendering.md","start_line":1,"end_line":57}
+```
+
+配置和参考原文一起随源码 Skill 导出，安装包也可检索、精读这些经验；不是只在仓库里的链接。
+
 ## 构建和依赖
 
 Skill 只附 Go 源码。安装 Go 1.25+（[下载](https://go.dev/dl/)、[安装](https://go.dev/doc/install)），在包根目录运行：

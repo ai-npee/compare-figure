@@ -1,5 +1,15 @@
 # 开发记录
 
+## 曲面经验参考与声明式文档来源
+
+eb9原图局部网格坑洼调查及方法对照只在本地隔离目录完成，未修改原接受稿/vendor；同单环面Dfacet比Dscene3d网格干净，但双环面直接Dmixfacet有整facet阶梯。用户指出上游Discussion #353作者的解析裁切方案，实际尝试cutfacet2按另一环面的隐式方程裁外侧patch再Dmixfacet，固定原geometry/view/grid/size/width改善局部坑洼与交界，红线经有限采样可见性筛选；不是严格Boolean或通用精确隐藏线证明。已整理正式docs/luadraw-surface-rendering.md，明确项目补充身份、方法适用条件、连续f每边最多一次过零、实体并集外表面语义及whole+zoom验证，不复制书图/运行转录/完整场景专用程序。
+
+用户要求经验必须在document_search中被检索，并偏好调节doc-library引用源而非改代码写死。最终方案：标准Config YAML放docs/document-sources/{luadraw,mixed,asymptote}.yaml；官方来源根原样保留，补充source=luadraw-notes以docs为根、include仅经验md。documents.New通用加载每mode YAML并调用NewConfig，source路径/配置cache相对文件目录、显式cache参数优先，未知字段/多YAML文档/无效配置报错，缺文件回官方兼容。独立legacy目录不误挂祖先配置，canonical包内旧vendor根可定位同包配置。source及sources保持精确筛选，不做luadraw→notes暗扩展；省略source默认查全部已配置来源。自动/工具/独立CLI共用此入口，配置初始化后不自动热重载。未来修改资料应改YAML与文档，不为经验文件再加Go特判；分发新增资源仍应同步资源导出清单。
+
+曾试写死notes和family扩展的临时实现已完全撤掉，未入提交。doc-library核心/固定remote pin未改。SKILL/README/检索说明与mixed策略提示词同步明确来源和精读参数。经验md与三份YAML加入源码Skill清单，导出包全部732文件SHA实核；实际用包内resource-root搜索Dscene3d 网格 毛刺首条luadraw-notes，并按source/doc读到cutfacet2双返回值示例，source=luadraw精确查找不含项目参考。相关测试：documents完整20.945s及vet/build成功、通用配置fixture严格解析/搬移/缓存优先/白名单与来源隔离、distribution0.187s、runner提示词/高频专项0.016s；luadraw兼容包此前72.292s通过。没有模型调用或重跑书图。
+
+另用户提出检索输出杂乱与bbox可选：审查确认同一矩形points/pct重复显示、模型每次读到cachehash，独立JSON还Text/Results正文镜像。默认保留source/doc/page或源码行、bbox_pct opt-in、启动默认加单次可选bool覆盖的提案写在独立doc-library/docs/output-design.md；当前格式/API不变，include_bbox尚未实现。隐藏输出不免除PDF bbox提取/段落合并，纯输出设置不可隔离cache；机器v1兼容与分页预算早停问题需在真正实现时一并处理。
+
 ## 文档目录建议与运行中新媒体查看
 
 用户在manual-figure-5.3-asy报告两问题。document_search read给asymptote.texi而真实文件doc/asymptote.texi，旧missingPathError仅取list前5项，恰为顶层LICENSE/README等，遗漏doc/与examples/目录。现沿用上游filtered list，预算32并目录优先，错误明确只是有限建议并给list doc参数，模型工具doc字段强调source根相对路径/无跨请求cd/先find再read。工具七模式search/read/view/list/find/grep/frequent；list确实返回文件及文件夹(kind=directory,路径尾/)，非递归默认直接子项，空/全被过滤目录不索引。read若给doc与行范围，不会因query存在而自动修正路径或语义定位。实际CLI list根7项含两目录，find找到doc/asymptote.texi，read9800-9803成功；该段是unitbox相关而非query所写projection，说明应先search/grep找真实行。新增缺路径提示包含非空目录测试，documents完整test20.892s/vet/build成功。未改独立doc-library源或依赖。

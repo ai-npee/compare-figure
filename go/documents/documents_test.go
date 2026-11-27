@@ -189,6 +189,244 @@ func TestTextOnlySourcesDoNotRequirePDFToolsAndRespectFilters(t *testing.T) {
 		t.Fatal("excluded document readable")
 	}
 }
+func sourceConfigFixture(t *testing.T) string {
+	t.Helper()
+	root := t.TempDir()
+	for path, body := range map[string]string{
+		"vendor/luadraw-3.7/luadraw/doc/official.tex": "Dscene3d officialneedle sharedmarker\n",
+		"vendor/luadraw-3.7/luadraw/files/graph.lua":  "official source\n",
+		"vendor/asymptote-3.16/doc/manual.texi":       "asymptoteneedle sharedmarker\n",
+		"docs/mesh-advice.md":                         "# Project experience\n\nprojectonlyfacet sharedmarker\n",
+		"docs/unrelated.md":                           "projectonlyfacet sharedmarker unrelated\n",
+		"docs/configuration.md":                       "projectonlyfacet sharedmarker private configuration\n",
+		"docs/notes.md":                               "projectonlyfacet sharedmarker private history\n",
+		"docs/private/run.md":                         "projectonlyfacet sharedmarker private run\n",
+	} {
+		writeSourceFixture(t, root, path, body)
+	}
+	return root
+}
+
+func writeSourceFixture(t *testing.T, root, path, body string) {
+	t.Helper()
+	name := filepath.Join(root, filepath.FromSlash(path))
+	if err := os.MkdirAll(filepath.Dir(name), 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(name, []byte(body), 0600); err != nil {
+		t.Fatal(err)
+	}
+}
+
+const fixtureSourceConfig = `sources:
+  - id: luadraw
+    root: ../../vendor/luadraw-3.7/luadraw
+  - id: project-guide
+    root: ..
+    include: [mesh-advice.md]
+`
+
+func assertSources(t *testing.T, response map[string]any, want ...string) {
+	t.Helper()
+	got := map[string]bool{}
+	for _, item := range results(t, response) {
+		r := item.(map[string]any)
+		got[r["source"].(string)] = true
+	}
+	if len(got) != len(want) {
+		t.Fatalf("source identities got %v want %v: %#v", got, want, response)
+	}
+	for _, source := range want {
+		if !got[source] || !strings.Contains(response["text"].(string), "source="+source) {
+			t.Fatalf("missing structured/text source %s: %#v", source, response)
+		}
+	}
+}
+
+func TestModeSourceConfigUsesDeclaredSourcesAndExactSelectors(t *testing.T) {
+	root := sourceConfigFixture(t)
+	for _, mode := range []string{"luadraw", "mixed"} {
+		t.Run(mode, func(t *testing.T) {
+			config := fixtureSourceConfig
+			if mode == "mixed" {
+				config += "  - id: asymptote\n    root: ../../vendor/asymptote-3.16\n"
+			}
+			writeSourceFixture(t, root, "docs/document-sources/"+mode+".yaml", config)
+			d, err := documents.New(root, t.TempDir(), mode)
+			if err != nil {
+				t.Fatal(err)
+			}
+			// Neither the ID nor filename is special to the adapter. Adding this
+			// reference required only the declarative source entry above.
+			note := execute(t, d, map[string]any{"query": "projectonlyfacet", "limit": 20})
+			assertSources(t, note, "project-guide")
+			if len(results(t, note)) != 1 || results(t, note)[0].(map[string]any)["doc"] != "mesh-advice.md" {
+				t.Fatalf("source include allowlist leaked other files: %#v", note)
+			}
+			hit := results(t, note)[0].(map[string]any)
+			read := execute(t, d, map[string]any{"mode": "read", "source": hit["source"], "doc": hit["doc"], "start_line": 1, "end_line": 3})
+			assertSources(t, read, "project-guide")
+			if !strings.Contains(read["text"].(string), "projectonlyfacet") {
+				t.Fatal("project follow-up lost body")
+			}
+			official := execute(t, d, map[string]any{"mode": "read", "source": "luadraw", "doc": "doc/official.tex", "start_line": 1, "end_line": 1})
+			assertSources(t, official, "luadraw")
+			if !strings.Contains(official["text"].(string), "officialneedle") {
+				t.Fatal("official root/read changed")
+			}
+			assertSources(t, execute(t, d, map[string]any{"source": "luadraw", "query": "projectonlyfacet"}))
+			assertSources(t, execute(t, d, map[string]any{"sources": []string{"luadraw"}, "query": "projectonlyfacet"}))
+			for _, args := range []map[string]any{
+				{"mode": "search", "query": "sharedmarker", "sources": []string{"luadraw", "project-guide"}, "limit": 20},
+				{"mode": "grep", "query": "sharedmarker", "sources": []string{"luadraw", "project-guide"}, "limit": 20},
+				{"mode": "list", "sources": []string{"luadraw", "project-guide"}, "recursive": true, "limit": 20},
+				{"mode": "frequent", "sources": []string{"luadraw", "project-guide"}, "limit": 20},
+			} {
+				assertSources(t, execute(t, d, args), "luadraw", "project-guide")
+				delete(args, "sources")
+				args["source"] = "luadraw"
+				assertSources(t, execute(t, d, args), "luadraw")
+			}
+			assertSources(t, execute(t, d, map[string]any{"mode": "find", "source": "luadraw", "query": "mesh-advice"}))
+			assertSources(t, execute(t, d, map[string]any{"mode": "find", "query": "mesh-advice"}), "project-guide")
+			for _, name := range []string{"unrelated.md", "configuration.md", "notes.md", "private/run.md"} {
+				if _, _, err := d.Execute(context.Background(), map[string]any{"mode": "read", "source": "project-guide", "doc": name}, ""); err == nil {
+					t.Fatalf("non-allowlisted project file readable: %s", name)
+				}
+			}
+			if _, _, err := d.Execute(context.Background(), map[string]any{"mode": "read", "source": "luadraw", "doc": hit["doc"]}, ""); err == nil {
+				t.Fatal("official read unexpectedly selected project reference")
+			}
+			if mode == "mixed" {
+				assertSources(t, execute(t, d, map[string]any{"source": "asymptote", "query": "sharedmarker"}), "asymptote")
+			}
+		})
+	}
+}
+
+func TestModeSourceConfigIsGenericAndPrecedesOfficialFallback(t *testing.T) {
+	root := t.TempDir() // No vendor tree: configuration defines the whole collection.
+	writeSourceFixture(t, root, "references/guide.txt", "customreferencekeyword\n")
+	for _, mode := range []string{"luadraw", "mixed", "asymptote", "latex"} {
+		writeSourceFixture(t, root, "docs/document-sources/"+mode+".yaml", "sources:\n  - id: any-reference\n    root: ../../references\n    include: [guide.txt]\n")
+		d, err := documents.New(root, t.TempDir(), mode)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assertSources(t, execute(t, d, map[string]any{"query": "customreferencekeyword"}), "any-reference")
+	}
+}
+
+func TestModeSourceConfigRejectsInvalidFilesWithoutFallback(t *testing.T) {
+	for name, body := range map[string]string{
+		"unknown field":         fixtureSourceConfig + "unknown: true\n",
+		"unknown source field":  "sources:\n  - id: luadraw\n    root: ../../vendor/luadraw-3.7/luadraw\n    unknown: true\n",
+		"unknown nested field":  fixtureSourceConfig + "limits:\n  unknown: 1\n",
+		"malformed yaml":        "sources: [\n",
+		"second document":       fixtureSourceConfig + "---\nsources: []\n",
+		"empty second document": fixtureSourceConfig + "---\n",
+		"empty file":            "",
+		"empty sources":         "sources: []\n",
+		"missing root":          "sources:\n  - id: missing\n",
+		"nonexistent root":      "sources:\n  - id: missing\n    root: ../../no-such-collection\n",
+	} {
+		t.Run(name, func(t *testing.T) {
+			root := sourceConfigFixture(t) // Valid official fallback must not hide errors.
+			writeSourceFixture(t, root, "docs/document-sources/luadraw.yaml", body)
+			_, err := documents.New(root, t.TempDir(), "luadraw")
+			if err == nil || !strings.Contains(err.Error(), "luadraw.yaml") {
+				t.Fatalf("invalid existing config silently fell back or lost location: %v", err)
+			}
+		})
+	}
+}
+
+func TestModeSourceConfigRelativePathsRelocateAndCacheArgumentWins(t *testing.T) {
+	original := sourceConfigFixture(t)
+	writeSourceFixture(t, original, "docs/document-sources/luadraw.yaml", fixtureSourceConfig+"cache_dir: ../../build/configured-cache\n")
+	moved := filepath.Join(t.TempDir(), "portable-skill")
+	if err := os.CopyFS(moved, os.DirFS(original)); err != nil {
+		t.Fatal(err)
+	}
+	writeSourceFixture(t, original, "docs/mesh-advice.md", "stale-original-reference\n")
+	t.Chdir(t.TempDir())
+	d, err := documents.New(moved, "", "luadraw")
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertSources(t, execute(t, d, map[string]any{"query": "projectonlyfacet"}), "project-guide")
+	entries, err := os.ReadDir(filepath.Join(moved, "build", "configured-cache"))
+	if err != nil || len(entries) == 0 {
+		t.Fatalf("relative cache did not relocate with config: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(original, "build", "configured-cache")); !os.IsNotExist(err) {
+		t.Fatalf("relocated config used original cache: %v", err)
+	}
+	fresh := sourceConfigFixture(t)
+	writeSourceFixture(t, fresh, "docs/document-sources/luadraw.yaml", fixtureSourceConfig+"cache_dir: ../../build/configured-cache\n")
+	override := t.TempDir()
+	d, err = documents.New(fresh, override, "luadraw")
+	if err != nil {
+		t.Fatal(err)
+	}
+	execute(t, d, map[string]any{"query": "projectonlyfacet"})
+	entries, err = os.ReadDir(override)
+	if err != nil || len(entries) == 0 {
+		t.Fatalf("cache argument did not override configuration: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(fresh, "build", "configured-cache")); !os.IsNotExist(err) {
+		t.Fatalf("configured cache used despite explicit argument: %v", err)
+	}
+}
+
+func TestMissingModeConfigAndLegacyRootsKeepOfficialSources(t *testing.T) {
+	root := sourceConfigFixture(t)
+	d, err := documents.New(root, t.TempDir(), "luadraw")
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertSources(t, execute(t, d, map[string]any{"query": "sharedmarker"}), "luadraw")
+	writeSourceFixture(t, root, "docs/document-sources/luadraw.yaml", fixtureSourceConfig)
+	legacy, err := documents.New(filepath.Join(root, "vendor", "luadraw-3.7", "luadraw"), t.TempDir(), "luadraw")
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertSources(t, execute(t, legacy, map[string]any{"query": "projectonlyfacet"}), "project-guide")
+	writeSourceFixture(t, root, "independent/nested/official/doc/manual.tex", "legacyofficialneedle\n")
+	independent := filepath.Join(root, "independent", "nested", "official")
+	t.Chdir(root) // Neither ancestor config nor cwd config may attach to this root.
+	legacy, err = documents.New(independent, t.TempDir(), "luadraw")
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertSources(t, execute(t, legacy, map[string]any{"query": "legacyofficialneedle"}), "luadraw")
+	assertSources(t, execute(t, legacy, map[string]any{"query": "projectonlyfacet"}))
+	asymptote, err := documents.New(root, t.TempDir(), "asymptote")
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertSources(t, execute(t, asymptote, map[string]any{"query": "sharedmarker"}), "asymptote")
+}
+
+func TestBundledLuaDrawRealSurfaceNotesKeywords(t *testing.T) {
+	d, err := documents.New(resourceRoot(t), t.TempDir(), "luadraw")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, keyword := range []string{"cutfacet2", "Dscene3d"} {
+		r := execute(t, d, map[string]any{"mode": "search", "query": keyword, "kinds": []string{"source"}, "extensions": []string{".md"}, "limit": 20})
+		assertSources(t, r, "luadraw-notes")
+		if !strings.Contains(r["text"].(string), keyword) {
+			t.Fatalf("real configured notes keyword missing: %s", keyword)
+		}
+	}
+	read := execute(t, d, map[string]any{"mode": "read", "source": "luadraw-notes", "doc": "luadraw-surface-rendering.md", "start_line": 23, "end_line": 29})
+	assertSources(t, read, "luadraw-notes")
+	if !strings.Contains(read["text"].(string), "cutfacet2") {
+		t.Fatal("real configured note follow-up did not read expected source lines")
+	}
+}
+
 func TestBundledLuaDrawRealQueriesReadViewNavigationAndWarmCache(t *testing.T) {
 	root := resourceRoot(t)
 	cache := t.TempDir()

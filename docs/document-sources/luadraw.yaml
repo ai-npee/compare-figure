@@ -1,0 +1,10 @@
+# doc-library 来源配置；路径相对此 YAML，不相对启动工作目录。
+# 官方资源保持独立来源；项目经验只开放下面明确列出的文件。
+sources:
+  - id: luadraw
+    root: ../../vendor/luadraw-3.7/luadraw
+  - id: luadraw-notes
+    root: ..
+    include:
+      - luadraw-surface-rendering.md
+    extensions: [.md]
