@@ -10,6 +10,8 @@ Python模块和测试仅放dev/python，使用conda base（本机/home/lingnc/mi
 
 ## 状态与范围
 
+- 新图11.86/11.87的两独立LuaDraw run均真实完成，主线串行job退出0/0并已收齐；同gpt-6.1-sol，LuaDraw3.7/LuaLaTeX。最终重叠71.498639%/57.023110%，尺寸偏差0.408975%/0.487711%，各一次正常submit、accepted_as_is=false/warnings=[]，均保留uncertain=true。两最终PDF已实际看图，分别14/245矢量对象，零位图；各自submitted.tex单独复制到隔离输入目录后无模型重编通过。第一张不确定为柱上口内后侧交线可见段，第二张为匹配印刷示意采用上下高度0.85/-0.4缩放，不能称精确球柱交体。最终PDF/TeX/Lua与配置/日志仅私有runs，不提交或公开原书素材；旧会话与原书未改。双环README展示95c4bac及region schema修复e68e63a已推main；本条只补完成记录，不重新Release。
+
 - 两张新LuaDraw任务图11.86/11.87使用新独立runs。现有网关禁Chat Completions、只支持Responses，因此仅新配置api改responses，model/key/endpoint不变。捕获429确切为user requests-per-minute limit exceeded，任务临时入口以至少20秒请求间隔与429退避串行运行；不将诊断/节流脚本或私有配置提交。实跑暴露模型为每个optional字段填默认，document_search同时传四flat=0和region导致连续冲突。模型Definition与fallback现只暴露canonical region；Execute/CLI仍支持旧flat，真实混用继续拒绝，不放宽来源/裁剪边界、不篡改旧转录。共享提示词同步region对象写法，修复后从原检查点恢复，不称前述错误调用已完成绘图。
 
 - 用户新指定双环图用于README效果展示：原始位图→compare-figure/Agent工具流程箭头→最后解析裁切且保留可见红线的最佳PDF。展示不写来源书籍、图号或实验参数，不宣称一键全自动；只核准assets/showcase/two-tori.svg与two-tori.pdf作为公共首页素材，原图嵌在展示内，不额外提交原始JPG或完整run/session。右图由最终PDF保留矢量，不以PNG代替。生成入口scripts/build_showcase.py接收显式original/redrawn路径，按用户追加要求使用XeLaTeX（fontspec/Noto）排PDF、pdftocairo -svg转SVG，右图只裁空白不改路径；中间TeX/日志在build临时目录。PDF约88KB、1张原位图/2294矢量绘图对象；SVG约1.07MB、1内嵌图/2384paths、无外链/JS，字形与整图已实际看过，Chromium最终SVG1200×580截图显示正常。预览和校验放build/showcase-validation；README直接嵌SVG并提供PDF链接。不修改固定vendor、原session或重跑模型；其余生成PDF/位图继续忽略，展示素材不自动加入运行Skill分发清单。

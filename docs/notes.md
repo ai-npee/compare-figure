@@ -1,5 +1,9 @@
 # 开发记录
 
+## 两张配对 LuaDraw 自动重绘完成
+
+图11.86与图11.87分别建立独立本地run，沿用gpt-6.1-sol，通过Responses协议和请求间隔串行执行，最终退出码均0。正式result确认各一次正常submit，重叠71.498639%/57.023110%，物理墨迹尺寸偏差0.408975%/0.487711%，accepted_as_is=false、warnings=[]，保留uncertain=true。主线逐张实际查看最终预览，单页PDF分别14/245矢量绘图对象、无嵌入位图；最终TeX分别只复制到隔离输入目录后用正式CLI/LuaLaTeX无模型重编成功。第一张保留上开口后侧交线的可见性疑点；第二张按原印刷图作示意，高度参数0.85/-0.4不代表精确球柱相交体。可编辑Lua和自包含TeX同时留存。原书、旧实验及旧会话不改，私有run、原始图片及真实配置不入库。
+
 ## Responses 文档工具裁剪字段兼容
 
 图11.86/11.87新LuaDraw任务使用的网关现仅支持Responses，新run改协议后成功请求；单账号还触发了明确的requests-per-minute超限，私有临时入口节流串行，不提交端点或凭证。真实转录发现模型将工具schema可选字段填默认，document_search把新region与legacy四flat同时传入，所有文档查询都被严格互斥校验拒绝。根因是模型定义同时展示等价裁剪参数。现只从documents.Definition移除主动追加的四flat，fallback也改为canonical region；Execute与旧CLI仍接受flat，用户真正混用时继续拒绝，不清除历史错误或放宽公共doc-library契约。提示词明确region对象；保留原会话系统消息，恢复时采用更新工具定义。documents全包22.392s、drawing定义专项0.003s、runner提示词0.114s和相关vet通过；正式CLI用./cmd/compare-figure重建并实际执行help，paced入口单独构建。真实恢复后五次文档查询/读取已成功返回官方p.101–102的Dsphere等正文，原冲突未再发生；此证据不代表两图已完成。
