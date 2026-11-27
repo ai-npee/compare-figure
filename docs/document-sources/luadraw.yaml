@@ -8,3 +8,6 @@ sources:
     include:
       - luadraw-surface-rendering.md
     extensions: [.md]
+output:
+  version: 2
+  include_bbox: false

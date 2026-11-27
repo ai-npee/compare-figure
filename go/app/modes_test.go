@@ -102,7 +102,12 @@ func TestSemiAutomaticDocumentQueryDefaultImageAndBoundedOutput(t *testing.T) {
 	t.Setenv("COMPARE_FIGURE_OUTPUT_ROOT", t.TempDir())
 	t.Setenv("OPENAI_API_KEY", "")
 	first := callNative(t, "luadraw-doc-search", "Dpolyline3d")
-	text := first["text"].(string)
+	text := ""
+	for _, item := range first["results"].([]any) {
+		if body, ok := item.(map[string]any)["text"].(string); ok {
+			text += body
+		}
+	}
 	if !strings.Contains(text, "The method g:Dpolyline3d(L") {
 		t.Fatal(text)
 	}

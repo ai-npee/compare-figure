@@ -10,3 +10,6 @@ sources:
     extensions: [.md]
   - id: asymptote
     root: ../../vendor/asymptote-3.16
+output:
+  version: 2
+  include_bbox: false

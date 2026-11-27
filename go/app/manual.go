@@ -56,6 +56,8 @@ Docs options:
   --max-chars N              Search/frequent total character budget
   --line-chars N             Frequent line/snippet size
   --regex                    Treat grep query as a regular expression
+  --output-version 1|2       Output protocol (host default 2; 1 retains legacy machine fields)
+  --include-bbox=true|false   Return available percentage regions (default false in v2)
   --include-image            Attach a relevant manual image (default false; search only)
   --inline-images            Include image bytes in JSON
   --cache-dir DIR            Documentation index cache
@@ -69,6 +71,7 @@ Use --help with either command for this usage. Results are JSON on stdout.
 // manualCLI runs non-model LuaDraw compile and documentation operations.
 func manualCLI(ctx context.Context, command string, args []string, in io.Reader, out io.Writer) int {
 	command = strings.ToLower(command)
+	args = normalizeBBoxFlag(args)
 	if command == "luadraw-doc" {
 		return docsServiceCLI(ctx, args, in, out)
 	}
@@ -77,10 +80,19 @@ func manualCLI(ctx context.Context, command string, args []string, in io.Reader,
 	if !compile && !docs {
 		return writeError(out, fmt.Errorf("unknown manual command %q (use compile or docs)", command), 2)
 	}
+	if docs {
+		for _, arg := range args {
+			name, _, _ := strings.Cut(arg, "=")
+			if name == "--stdin" || name == "--jsonl" || name == "--request" {
+				return docsServiceCLI(ctx, args, in, out)
+			}
+		}
+	}
 	fs := flag.NewFlagSet(command, flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 	var source, query, mode, doc, entryID, outDir, engine, resourceRoot, drawRoot, cacheDir, drawingMode, docSource string
-	var page, zoom, limit, offset, startLine, endLine, snippetChars, maxChars, lineChars int
+	var page, zoom, limit, offset, startLine, endLine, snippetChars, maxChars, lineChars, outputVersion int
+	var includeBBox bool
 	var left, top, right, bottom float64
 	var includeImage, inlineImages, regex, recursive bool
 	includeImage = compile
@@ -97,6 +109,8 @@ func manualCLI(ctx context.Context, command string, args []string, in io.Reader,
 	fs.StringVar(&resourceRoot, "resource-root", "", "runtime resources")
 	fs.StringVar(&drawRoot, "luadraw-root", "", "LuaDraw distribution")
 	fs.StringVar(&cacheDir, "cache-dir", "", "documentation cache")
+	fs.IntVar(&outputVersion, "output-version", 0, "document output protocol 1 or 2")
+	fs.BoolVar(&includeBBox, "include-bbox", false, "include available PDF percentage regions")
 	fs.IntVar(&page, "page", 0, "PDF page")
 	fs.IntVar(&zoom, "zoom", 0, "view zoom")
 	fs.IntVar(&limit, "limit", 0, "search result count")
@@ -118,7 +132,7 @@ func manualCLI(ctx context.Context, command string, args []string, in io.Reader,
 		fs.Usage()
 		return 0
 	}
-	ordered, err := flagsBeforePositionals(args, map[string]bool{"include-image": true, "inline-images": true, "regex": true, "recursive": true})
+	ordered, err := flagsBeforePositionals(args, map[string]bool{"include-image": true, "inline-images": true, "regex": true, "recursive": true, "include-bbox": true})
 	if err != nil {
 		return writeError(out, err, 2)
 	}
@@ -128,6 +142,15 @@ func manualCLI(ctx context.Context, command string, args []string, in io.Reader,
 			return 0
 		}
 		return writeError(out, err, 2)
+	}
+	providedVersion := false
+	fs.Visit(func(f *flag.Flag) {
+		if f.Name == "output-version" {
+			providedVersion = true
+		}
+	})
+	if providedVersion && outputVersion != 1 && outputVersion != 2 {
+		return writeError(out, fmt.Errorf("--output-version must be 1 or 2"), 2)
 	}
 	pos := fs.Args()
 	if compile {
@@ -165,7 +188,7 @@ func manualCLI(ctx context.Context, command string, args []string, in io.Reader,
 		return writeError(out, fmt.Errorf("docs %s requires --doc PATH", mode), 2)
 	}
 	arguments := map[string]any{"mode": mode, "query": query, "doc": doc, "source": docSource, "include_image": includeImage, "regex": regex, "recursive": recursive, "entry_id": entryID}
-	values := map[string]any{"page": page, "zoom": zoom, "limit": limit, "offset": offset, "start-line": startLine, "end-line": endLine, "snippet-chars": snippetChars, "max-chars": maxChars, "line-chars": lineChars, "left": left, "top": top, "right": right, "bottom": bottom}
+	values := map[string]any{"output-version": outputVersion, "include-bbox": includeBBox, "page": page, "zoom": zoom, "limit": limit, "offset": offset, "start-line": startLine, "end-line": endLine, "snippet-chars": snippetChars, "max-chars": maxChars, "line-chars": lineChars, "left": left, "top": top, "right": right, "bottom": bottom}
 	fs.Visit(func(f *flag.Flag) {
 		if value, ok := values[f.Name]; ok {
 			arguments[strings.ReplaceAll(f.Name, "-", "_")] = value
@@ -222,4 +245,19 @@ func flagsBeforePositionals(args []string, boolFlags map[string]bool) ([]string,
 		}
 	}
 	return append(flags, positional...), nil
+}
+
+// Accept both --include-bbox=false and --include-bbox false while retaining
+// Go bool-flag shorthand (--include-bbox means true).
+func normalizeBBoxFlag(args []string) []string {
+	out := make([]string, 0, len(args))
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		if (arg == "--include-bbox" || arg == "-include-bbox") && i+1 < len(args) && (args[i+1] == "true" || args[i+1] == "false") {
+			arg += "=" + args[i+1]
+			i++
+		}
+		out = append(out, arg)
+	}
+	return out
 }

@@ -8,4 +8,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 )
 
-replace doc-library => github.com/LingNc/doc-library v0.0.0-20261124124631-a705bca4420c
+replace doc-library => github.com/LingNc/doc-library v0.0.0-20261127125450-ce677c8064e7

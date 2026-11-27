@@ -399,13 +399,21 @@ func (s *service) handle(ctx context.Context, request map[string]any) (any, erro
 			if mode == "luadraw" && library != "" {
 				resource = library
 			}
-			key := resource + "\n" + cache + "\n" + mode
+			output, e := documents.OutputFromOptions(runner.Obj(request, "options"))
+			if e != nil {
+				return nil, e
+			}
+			outputKey, e := json.Marshal(output)
+			if e != nil {
+				return nil, e
+			}
+			key := resource + "\n" + cache + "\n" + mode + "\n" + string(outputKey)
 			if s.docs == nil {
 				s.docs = map[string]*documents.Docs{}
 			}
 			tool := s.docs[key]
 			if tool == nil {
-				tool, e = documents.New(resource, cache, mode)
+				tool, e = documents.NewWithOutput(resource, cache, mode, output)
 				if e != nil {
 					return nil, e
 				}
@@ -413,7 +421,7 @@ func (s *service) handle(ctx context.Context, request map[string]any) (any, erro
 			}
 			args := runner.Clone(arguments)
 			if _, nested := request["arguments"].(map[string]any); !nested {
-				for _, key := range []string{"operation", "id", "request_id", "out_dir", "resource_root", "luadraw_root", "cache_dir", "inline_images", "drawing_mode", "doc_source"} {
+				for _, key := range []string{"operation", "id", "request_id", "out_dir", "resource_root", "luadraw_root", "cache_dir", "inline_images", "drawing_mode", "doc_source", "options"} {
 					delete(args, key)
 				}
 			}
@@ -426,7 +434,7 @@ func (s *service) handle(ctx context.Context, request map[string]any) (any, erro
 			if e != nil {
 				return nil, e
 			}
-			text := runner.Str(response, "text", "")
+			compact := response["version"] == "doc-library/2"
 			documentImages, _ := response["images"].([]any)
 			images := []cf.ImageArtifact{}
 			for _, item := range documentImages {
@@ -449,8 +457,13 @@ func (s *service) handle(ctx context.Context, request map[string]any) (any, erro
 				}
 				images = append(images, artifact)
 			}
-			response["document_images"] = documentImages
-			response["version"], response["ok"], response["text"], response["images"], response["out_dir"] = "compare-figure-tools/1", true, text, images, target
+			if compact {
+				response["output_version"] = 2
+			} else {
+				response["output_version"] = 1
+				response["document_images"] = documentImages
+			}
+			response["version"], response["ok"], response["images"], response["out_dir"] = "compare-figure-tools/1", true, images, target
 			return response, nil
 		}
 		options := runner.Clone(runner.Obj(request, "options"))

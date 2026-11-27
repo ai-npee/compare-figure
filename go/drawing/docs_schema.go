@@ -11,6 +11,8 @@ func docsToolDefinition() map[string]any {
 		"limit": prop("integer", "search/frequent result limit"), "offset": prop("integer", "search result offset"), "start_line": prop("integer", "source read first line"), "end_line": prop("integer", "source read last line"),
 		"snippet_chars": prop("integer", "search snippet characters, default 1200, 64-8000"), "max_chars": prop("integer", "search/frequent total characters, default 6000/4096, 64-32000"), "line_chars": prop("integer", "frequent line characters, default 256"), "regex": prop("boolean", "grep regex mode; default literal"),
 		"entry_id": prop("string", "Stable short or full frequent paragraph ID"), "recursive": prop("boolean", "List nested directories; default false"),
-		"include_image": map[string]any{"type": "boolean", "default": false, "description": "Search only: explicitly attach one relevant PDF crop; default false. Ignored by view, which always renders"},
+		"output_version": map[string]any{"type": "integer", "enum": []int{1, 2}, "description": "Output protocol override; host defaults to compact version 2"},
+		"include_bbox":   prop("boolean", "Return available percentage regions; omit to inherit startup default, explicit false disables them"),
+		"include_image":  map[string]any{"type": "boolean", "default": false, "description": "Search only: explicitly attach one relevant PDF crop; default false. Ignored by view, which always renders"},
 	})
 }

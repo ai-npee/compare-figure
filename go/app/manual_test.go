@@ -93,7 +93,7 @@ func TestManualCLIDocsReadRealSourceWithoutModel(t *testing.T) {
 	if err := json.Unmarshal(out.Bytes(), &result); err != nil {
 		t.Fatal(err, out.String())
 	}
-	if result["ok"] != true || !strings.Contains(result["text"].(string), "luadraw_base.lua") {
+	if result["ok"] != true || result["results"].([]any)[0].(map[string]any)["doc"] != "files/luadraw_base.lua" {
 		t.Fatal(result)
 	}
 }

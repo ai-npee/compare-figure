@@ -2,7 +2,7 @@
 
 文档索引、段落、PDF 抽取与频次现由独立 [doc-library](https://github.com/LingNc/doc-library) 固定上游依赖提供。`document_search`／CLI `document-search` 是通用入口，旧 `luadraw_doc`、`luadraw-doc` 和 Go `luadraw.NewDocs` 保留。默认仍检索 LuaDraw；`--drawing-mode asymptote` 检索 Asymptote，`--drawing-mode mixed` 同时提供两者，`--doc-source luadraw|asymptote` 可筛选来源。下方旧命令示例仍适用，也可将命令名换为 `document-search`。
 
-该工具不要求参考图、Markdown 书稿、自动绘图会话或模型密钥。新增 Go `documents.New(resourceRoot,cacheDir,mode)` 与 `NewConfig` 可配置多个文档根；结构化 `ExecuteResponse` 包含 results/cache/provenance。模式配置见 [绘图库说明](drawing-modes.md)，完整功能对照、输出和缓存差异见 [兼容矩阵](doc-library-compatibility.md)。默认资料不是任意 TeX 包的手册全集。
+该工具不要求参考图、Markdown 书稿、自动绘图会话或模型密钥。新增 Go `documents.New(resourceRoot,cacheDir,mode)` 与 `NewConfig` 可配置多个文档根；宿主 `documents.New` 默认使用输出 v2；结构化 `ExecuteResponse` 以 `results` 承载正文，不重复输出 `text/cache/provenance`。显式 v1 保留旧字段。模式配置见 [绘图库说明](drawing-modes.md)，完整功能对照、输出和缓存差异见 [兼容矩阵](doc-library-compatibility.md)。默认资料不是任意 TeX 包的手册全集。
 
 ## 原创图工作方式
 
@@ -14,9 +14,9 @@
 
 曲面网格和相交场景的渲染选择、解析裁切示例与适用边界，见[LuaDraw 曲面渲染实践](luadraw-surface-rendering.md)。它同时以 `luadraw-notes` 来源接入工具：这份项目补充不是官方手册，不改动固定 vendor，也不索引整套项目文档或运行目录。
 
-引用源由 [LuaDraw 配置](document-sources/luadraw.yaml)、[mixed 配置](document-sources/mixed.yaml) 和 [Asymptote 配置](document-sources/asymptote.yaml) 声明，都是标准 doc-library `Config` YAML；相对 `root` 按 YAML 所在目录解析。`documents.New` 只负责按绘图模式加载配置并调用 `NewConfig`，没有写死经验文件名、来源别名或扩展筛选规则。后续补充资料只需改对应 YAML 的 `sources/include` 和增加实际文档；若使用导出包，也应将新增文档列入资源导出清单。
+引用源由 [LuaDraw 配置](document-sources/luadraw.yaml)、[mixed 配置](document-sources/mixed.yaml) 和 [Asymptote 配置](document-sources/asymptote.yaml) 声明，都是标准 doc-library `Config` YAML；相对 `root` 按 YAML 所在目录解析。`documents.New` 按绘图模式加载配置并调用 `NewConfig`；源 YAML 未指定 `output.version` 时补宿主默认 2，显式配置的版本保留。没有写死经验文件名、来源别名或扩展筛选规则。后续补充资料只需改对应 YAML 的 `sources/include` 和增加实际文档；若使用导出包，也应将新增文档列入资源导出清单。
 
-不传 `source` 就搜索当前绘图模式配置的全部资料；`source:"luadraw"` **只查官方来源**。同时查询官方及补充可用 `sources:["luadraw","luadraw-notes"]`。返回结果保留真实来源，后续 `read/view` 使用该精确来源。显式 `NewConfig` 继续遵守调用方自己的配置；旧版或独立 LuaDraw 目录缺少 YAML 时退回原官方来源，无效的已选配置则报错而不静默回退。
+不传 `source` 就搜索当前绘图模式配置的全部资料；`source:"luadraw"` **只查官方来源**。同时查询官方及补充可用 `sources:["luadraw","luadraw-notes"]`。返回结果保留真实来源，后续 `read/view` 使用该精确来源。显式 `NewConfig` 继续遵守调用方自己的核心配置，包括输出选择；未指定版本时保持 doc-library 核心默认 v1，不补宿主 v2；旧版或独立 LuaDraw 目录缺少 YAML 时退回原官方来源，无效的已选配置则报错而不静默回退。
 
 ```json
 {"mode":"search","query":"Dscene3d 网格 毛刺","limit":5}
@@ -67,7 +67,15 @@ build/compare-figure luadraw-doc --mode read --doc files/luadraw_graph3d.lua --s
 build/compare-figure luadraw-doc --mode view --doc doc/luadraw-doc-en.pdf --page 14 --left 5 --top 10 --right 95 --bottom 80 --out work/manual-view
 ```
 
-源码按行读取最多400行，PDF按页/段落块定位。搜索提供文档、行范围或PDF页码/bbox，`snippet_chars`控制每个片段，`max_chars`控制正文总预算（工具元信息另计）。`view`百分比裁切与搜索bbox点坐标不同，按返回的 `bbox_pct` 可选区域。PDF图片默认作为路径返回；外部需要图片字节时使用 `--inline-images`。
+源码按行读取最多400行，PDF按页/段落块定位。模型文字使用 `source · doc · p.N` 或 `source · doc · Lstart-end` 定位，不显示缓存/哈希首行、PDF 点坐标或页面尺寸。`snippet_chars` 控制每个片段，`max_chars` 控制正文总预算（位置及 warning 另计）。默认不输出 bbox；需要区域定位时传 `include_bbox:true` 或 CLI `--include-bbox=true`，只补 `bbox_pct`（left/top/right/bottom 百分比），可直接用于 `view` 裁切。省略 `include_bbox` 沿用启动默认，显式 true/false 覆盖本次；`--include-bbox=false` 可关闭启动时已开启的 bbox。隐藏输出不改变 PDF 内部抽取、段落合并及裁图所需的几何计算。`include_image` 独立控制搜索附图，显式 `view` 仍渲染图片；与 bbox 是否输出无关。PDF图片默认作为路径返回；外部需要图片字节时使用 `--inline-images`。
+
+CLI `--output-version 1|2` 选择启动默认输出版本，例如：
+
+```bash
+build/compare-figure document-search --query Dpolyline3d --output-version 2 --include-bbox=false
+build/compare-figure document-search --mode read --doc doc/luadraw-doc-en.pdf --page 14 --include-bbox=true
+build/compare-figure document-search --query Dpolyline3d --output-version 1
+```
 
 ## JSON 与 JSONL
 
@@ -83,7 +91,8 @@ build/compare-figure luadraw-doc --mode view --doc doc/luadraw-doc-en.pdf --page
 {
   "operation": "docs",
   "cache_dir": "work/shared-doc-cache",
-  "arguments": {"mode":"search","query":"Dpolyline3d","include_image":false}
+  "options": {"doc_output":{"version":2,"include_bbox":false}},
+  "arguments": {"mode":"search","query":"Dpolyline3d","include_image":false,"include_bbox":true}
 }
 ```
 
@@ -93,9 +102,9 @@ build/compare-figure luadraw-doc --stdin --cache-dir work/shared-doc-cache
 build/compare-figure luadraw-doc --jsonl --cache-dir work/shared-doc-cache
 ```
 
-将单个JSON写给 `--stdin`；JSONL每行一个JSON，stdout每行一个JSON响应，共用长驻索引实例。`--request`、`--stdin`、`--jsonl`互斥；专用入口只执行docs，不允许通过JSON切换到run/compile。JSON字段可覆盖CLI默认值，未指定字段沿用显式CLI参数。旧接口 `tools --request FILE`、`tools --jsonl` 继续支持 envelope。
+将单个JSON写给 `--stdin`；JSONL每行一个JSON，stdout每行一个JSON响应，共用长驻索引实例。`--request`、`--stdin`、`--jsonl`互斥；专用入口只执行docs，不允许通过JSON切换到run/compile。JSON字段可覆盖CLI默认值，未指定字段沿用显式CLI参数。envelope 的 `options.doc_output` 是启动默认；工具 `arguments.output_version`（整数 1 或 2）和 `arguments.include_bbox`（可选布尔 true/false）优先于启动值，省略才继承。因此上例使用 v2，并为本次请求开启 bbox。裸工具参数也支持这两个覆盖字段。旧接口 `tools --request FILE`、`tools --jsonl` 继续支持 envelope。
 
-响应主要字段为 `ok`、`text`、`images`、`out_dir` 和 `version`。普通文字请求的images为空；显式view返回路径、MIME和尺寸，inline_images请求另含base64。单次错误退出2；JSONL坏行单独返回错误、继续下一行，结束时有错误则退出1。调用方必须读取ok，不能把错误JSON当文档正文。
+app 外层协议 `version` 仍为 `compare-figure-tools/1`，新增整数 `output_version` 表明本次有效文档输出版本，不把外层版本改为 `/2`。v2 响应保留 `ok`、`results`、`images`、`out_dir` 及分页/warnings 等机器字段，正文只在各 `results[].text` 中出现，省略顶层 `text`、`cache` 和 `provenance`；PDF 结果保留 source/doc/page，bbox 仅显式开启时输出 `bbox_pct`，不输出点坐标或页面尺寸。v1 保留原有 `text/results/cache/provenance` 字段供旧消费者使用；模型文字仍采用上述紧凑格式。普通文字请求的images为空；显式view返回路径、MIME和图片尺寸，inline_images请求另含base64。单次错误退出2；JSONL坏行单独返回错误、继续下一行，结束时有错误则退出1。调用方必须读取ok，不能把错误JSON当文档正文。
 
 外部 Python 程序可以通过子进程调用，生产工具本身不依赖Python：
 
@@ -112,7 +121,8 @@ completed = subprocess.run(
 reply = json.loads(completed.stdout)
 if not reply["ok"]:
     raise RuntimeError(reply)
-print(reply["text"])
+for result in reply.get("results", []):
+    print(result["text"])
 ```
 
 ## Go 直接调用
@@ -137,7 +147,7 @@ _ = imagePath
 return err
 ```
 
-保留同一个Docs实例可复用内存索引；`Definition()`返回模型工具schema，`Execute()`处理该schema的参数。`FrequentSnippet(ctx, limit, lineChars, maxChars)`仅获取被动摘要，不增加计数；显式Execute frequent会计数。
+`documents.New`（以及 `luadraw.NewDocs` 宿主兼容入口）的启动默认是 v2；直接 `documents.NewConfig` 保留核心输出配置及未指定时的 v1 默认。`Execute` 继续返回模型文字和图片路径，机器消费者直接调用 `ExecuteResponse` 时按其 `version`（`doc-library/1` 或 `doc-library/2`）处理结构化响应；只有 app 封装层保持 `version: "compare-figure-tools/1"` 并另加整数 `output_version`。保留同一个Docs实例可复用内存索引；`Definition()`返回模型工具schema，`Execute()`处理该schema的参数。`FrequentSnippet(ctx, limit, lineChars, maxChars)`仅获取被动摘要，不增加计数；显式Execute frequent会计数。
 
 ## 缓存位置与频次规则
 

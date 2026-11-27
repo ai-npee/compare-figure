@@ -57,6 +57,9 @@ func New(root, reference, contextText string, threshold float64, timeout time.Du
 	if modeErr != nil {
 		return nil, modeErr
 	}
+	if _, err := documents.OutputFromOptions(options); err != nil {
+		return nil, err
+	}
 	options["drawing_mode"] = mode
 	if timeout <= 0 {
 		timeout = 180 * time.Second
@@ -121,7 +124,11 @@ func (h *Harness) Definitions() []map[string]any {
 	if cache == "" {
 		cache = luadraw.CacheDirectory(stringValue(h.Options["resource_root"], ""))
 	}
-	docs, e := documents.New(resourceRoot, cache, mode)
+	output, e := documents.OutputFromOptions(h.Options)
+	var docs *documents.Docs
+	if e == nil {
+		docs, e = documents.NewWithOutput(resourceRoot, cache, mode, output)
+	}
 	if e == nil {
 		h.docs = docs
 		tools = append(tools, docs.Definition())

@@ -49,7 +49,7 @@ func TestLuaDrawDocsCLIJSONArgsEnvelopeAndCache(t *testing.T) {
 	cache := filepath.Join(t.TempDir(), "chosen-cache")
 	requests := `{"mode":"search","query":"Dpolyline3d","limit":1}` + "\n" +
 		`{"operation":"docs","arguments":{"mode":"read","doc":"files/luadraw_base.lua","start_line":1,"end_line":2},"cache_dir":""}`
-	code, output := runDocsCLI(t, []string{"--jsonl", "--resource-root", resources, "--cache-dir", cache}, requests)
+	code, output := runDocsCLI(t, []string{"--jsonl", "--output-version=1", "--resource-root", resources, "--cache-dir", cache}, requests)
 	if code != 0 {
 		t.Fatalf("CLI returned %d: %s", code, output)
 	}
@@ -73,7 +73,7 @@ func TestLuaDrawDocsCLIJSONArgsEnvelopeAndCache(t *testing.T) {
 	}
 
 	freqRequest := `{"mode":"frequent","limit":8,"max_chars":2048}`
-	code, output = runDocsCLI(t, []string{"--stdin", "--resource-root", resources, "--cache-dir", cache}, freqRequest)
+	code, output = runDocsCLI(t, []string{"--stdin", "--output-version=1", "--resource-root", resources, "--cache-dir", cache}, freqRequest)
 	if code != 0 {
 		t.Fatalf("frequent failed: %d %s", code, output)
 	}
@@ -88,7 +88,7 @@ func TestLuaDrawDocsCLIJSONLContinuesAndRejectsOtherOperations(t *testing.T) {
 	resources := docsTestResources(t)
 	cache := filepath.Join(t.TempDir(), "cache")
 	requests := "{not json}\n" + `{"id":"bad-op","operation":"run","arguments":{}}` + "\n" + `{"mode":"search","query":"Dpolyline3d","limit":1}` + "\n"
-	code, output := runDocsCLI(t, []string{"--jsonl", "--resource-root", resources, "--cache-dir", cache}, requests)
+	code, output := runDocsCLI(t, []string{"--jsonl", "--output-version=1", "--resource-root", resources, "--cache-dir", cache}, requests)
 	if code != 1 {
 		t.Fatalf("expected aggregate error exit 1, got %d: %s", code, output)
 	}

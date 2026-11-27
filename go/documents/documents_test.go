@@ -138,8 +138,11 @@ func TestBackendSourceSelectionAndExplicitLatexConfig(t *testing.T) {
 			if len(results(t, r)) != want {
 				t.Fatalf("backend sources: %#v", r)
 			}
-			if mode == "latex" && !strings.Contains(r["text"].(string), "No bundled reference for native LaTeX") {
-				t.Fatal(r)
+			if mode == "latex" {
+				text, _, err := d.Execute(context.Background(), map[string]any{"query": "needle"}, "")
+				if err != nil || !strings.Contains(text, "No bundled reference for native LaTeX") {
+					t.Fatalf("%s %v", text, err)
+				}
 			}
 			if d.Definition()["function"].(map[string]any)["name"] != "document_search" {
 				t.Fatal("unexpected generic tool name")
@@ -237,7 +240,7 @@ func assertSources(t *testing.T, response map[string]any, want ...string) {
 		t.Fatalf("source identities got %v want %v: %#v", got, want, response)
 	}
 	for _, source := range want {
-		if !got[source] || !strings.Contains(response["text"].(string), "source="+source) {
+		if !got[source] {
 			t.Fatalf("missing structured/text source %s: %#v", source, response)
 		}
 	}
@@ -266,12 +269,12 @@ func TestModeSourceConfigUsesDeclaredSourcesAndExactSelectors(t *testing.T) {
 			hit := results(t, note)[0].(map[string]any)
 			read := execute(t, d, map[string]any{"mode": "read", "source": hit["source"], "doc": hit["doc"], "start_line": 1, "end_line": 3})
 			assertSources(t, read, "project-guide")
-			if !strings.Contains(read["text"].(string), "projectonlyfacet") {
+			if !strings.Contains(resultText(t, read), "projectonlyfacet") {
 				t.Fatal("project follow-up lost body")
 			}
 			official := execute(t, d, map[string]any{"mode": "read", "source": "luadraw", "doc": "doc/official.tex", "start_line": 1, "end_line": 1})
 			assertSources(t, official, "luadraw")
-			if !strings.Contains(official["text"].(string), "officialneedle") {
+			if !strings.Contains(resultText(t, official), "officialneedle") {
 				t.Fatal("official root/read changed")
 			}
 			assertSources(t, execute(t, d, map[string]any{"source": "luadraw", "query": "projectonlyfacet"}))
@@ -416,13 +419,13 @@ func TestBundledLuaDrawRealSurfaceNotesKeywords(t *testing.T) {
 	for _, keyword := range []string{"cutfacet2", "Dscene3d"} {
 		r := execute(t, d, map[string]any{"mode": "search", "query": keyword, "kinds": []string{"source"}, "extensions": []string{".md"}, "limit": 20})
 		assertSources(t, r, "luadraw-notes")
-		if !strings.Contains(r["text"].(string), keyword) {
+		if !strings.Contains(resultText(t, r), keyword) {
 			t.Fatalf("real configured notes keyword missing: %s", keyword)
 		}
 	}
 	read := execute(t, d, map[string]any{"mode": "read", "source": "luadraw-notes", "doc": "luadraw-surface-rendering.md", "start_line": 23, "end_line": 29})
 	assertSources(t, read, "luadraw-notes")
-	if !strings.Contains(read["text"].(string), "cutfacet2") {
+	if !strings.Contains(resultText(t, read), "cutfacet2") {
 		t.Fatal("real configured note follow-up did not read expected source lines")
 	}
 }
@@ -455,8 +458,8 @@ func TestBundledLuaDrawRealQueriesReadViewNavigationAndWarmCache(t *testing.T) {
 		if strings.Contains(r["text"].(string), "Dpolyline3d(L") && strings.Contains(r["text"].(string), "draw_options") {
 			foundSignature = true
 		}
-		if r["page"] == nil || len(r["bbox"].([]any)) != 4 || len(r["bbox_pct"].([]any)) != 4 {
-			t.Fatalf("PDF coordinates missing: %#v", r)
+		if r["page"] == nil || r["bbox"] != nil || r["bbox_pct"] != nil {
+			t.Fatalf("compact PDF location/projection incorrect: %#v", r)
 		}
 	}
 	if !foundSignature {
@@ -468,7 +471,7 @@ func TestBundledLuaDrawRealQueriesReadViewNavigationAndWarmCache(t *testing.T) {
 	}
 	for _, name := range []string{"doc/src/luadraw-doc-en.tex", "files/luadraw_graph3d.lua"} {
 		r := execute(t, d, map[string]any{"mode": "read", "doc": name, "start_line": 1, "end_line": 3})
-		if len(results(t, r)) != 1 || !strings.Contains(r["text"].(string), "1:") {
+		if len(results(t, r)) != 1 || results(t, r)[0].(map[string]any)["start_line"] != float64(1) {
 			t.Fatal(r)
 		}
 	}
@@ -510,11 +513,12 @@ func TestBundledLuaDrawRealQueriesReadViewNavigationAndWarmCache(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	warm := execute(t, other, map[string]any{"mode": "search", "query": "LuaDraw"})["cache"].(map[string]any)
+	warm := execute(t, other, map[string]any{"mode": "search", "query": "LuaDraw", "output_version": 1})["cache"].(map[string]any)
 	if warm["misses"] != float64(0) || warm["hits"].(float64) == 0 {
 		t.Fatalf("cold repeated index: %#v", warm)
 	}
-	if first["provenance"].(map[string]any)["revision"] != documents.DependencyRevision {
+	legacy := execute(t, d, map[string]any{"query": "LuaDraw", "output_version": 1})
+	if legacy["provenance"].(map[string]any)["revision"] != documents.DependencyRevision {
 		t.Fatal("dependency provenance missing")
 	}
 	t.Logf("LuaDraw real queries: %d indexed files; all %v warm cache hits", int(warm["files"].(float64)), warm["hits"])
@@ -527,7 +531,7 @@ func TestBundledAsymptoteRealTexinfoExamplesAndMixed(t *testing.T) {
 		t.Fatal(err)
 	}
 	texinfo := execute(t, d, map[string]any{"mode": "read", "doc": "doc/asymptote.texi", "start_line": 1, "end_line": 12})
-	if len(results(t, texinfo)) != 1 || !strings.Contains(texinfo["text"].(string), "Asymptote") {
+	if len(results(t, texinfo)) != 1 || !strings.Contains(resultText(t, texinfo), "Asymptote") {
 		t.Fatal(texinfo)
 	}
 	search := execute(t, d, map[string]any{"mode": "search", "query": "draw", "extensions": []string{".asy"}, "limit": 3})
@@ -550,4 +554,19 @@ func TestBundledAsymptoteRealTexinfoExamplesAndMixed(t *testing.T) {
 			}
 		}
 	}
+}
+
+func resultText(t *testing.T, response map[string]any) string {
+	t.Helper()
+	var text []string
+	for _, item := range results(t, response) {
+		r := item.(map[string]any)
+		if body, ok := r["text"].(string); ok {
+			text = append(text, body)
+		}
+		if doc, ok := r["doc"].(string); ok {
+			text = append(text, doc)
+		}
+	}
+	return strings.Join(text, "\n")
 }

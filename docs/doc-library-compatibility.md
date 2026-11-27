@@ -34,7 +34,9 @@ d, err = documents.NewConfig(documents.Config{
 | `asymptote` | `source=asymptote` | 从 [上游资源清单](asymptote-upstream.json)的 `resource_root` 发现；没有声明时要求唯一 `vendor/asymptote-*` |
 | `latex` | 无默认专用库 | 返回成功响应及明确说明，不加载 LuaDraw 参考；调用方可用 NewConfig 配置自己的 LaTeX 文档 |
 
-通用工具名为 `document_search`，旧 `luadraw.NewDocs(rootVendor, cacheDir)`、`Definition()` 的 `luadraw_doc` 名称、`Execute` 三返回与四参数 `FrequentSnippet` 都保留。结构化 ExecuteResponse 增加 `results`、`cache`、`warnings` 和固定上游 `provenance`，仍提供 `text` 与 `images`。
+通用工具名为 `document_search`，旧 `luadraw.NewDocs(rootVendor, cacheDir)`、`Definition()` 的 `luadraw_doc` 名称、`Execute` 三返回与四参数 `FrequentSnippet` 都保留。宿主 `documents.New` 默认 v2；来源 YAML 未指定 `output.version` 时补 2，显式值保留。直接 `NewConfig` 保留核心配置选择及未指定时的 v1 默认。结构化 `ExecuteResponse` 的 v2 正文只在 `results`，保留图片、warnings、分页等机器信息，省略顶层 `text/cache/provenance`；v1 保留原字段。app 外层 `version` 仍为 `compare-figure-tools/1`，另加整数 `output_version`，不以文档版本替换 app 协议版本。
+
+runner 的 `docs.output: {version: 2, include_bbox: false}` 传入 `options.doc_output` 作为启动默认。独立 CLI 可用 `--output-version 1|2` 和 `--include-bbox=true|false`；JSON envelope 也可给 `options.doc_output`。单次 `arguments.output_version`（1 或 2）和可选布尔 `arguments.include_bbox` 优先，省略才继承，显式 false 能关闭启动时开启的 bbox。
 
 ## 能力对照
 
@@ -49,13 +51,13 @@ d, err = documents.NewConfig(documents.Config{
 | read PDF | doc 或 query，加 page 或 `#page=N` | 保留，冲突的两个页选择器报错；1-based 物理页，行范围指该页规范段落块 |
 | view PDF | 整页或 left/top/right/bottom 百分比区域，zoom 为图片宽 | 保留；旧平铺百分比转为库 region，也接受 region；显式区域预放大整页渲染后归一到请求宽度，保持普通裁图清晰度 |
 | 窄区域极端放大 | 最终zoom≤5000，内部整页宽最高12000 | 上游整页zoom≤5000、DPI≤600。极窄区域可能比旧内部12000上限的极端裁图清晰度低；没有绕开库另写PDF渲染器 |
-| search 附图 | 默认不附图，include_image显式请求 | 保留；只对实际PDF结果附图，显式view始终渲染 |
-| PDF 定位 | page、bbox_pts、bbox_pct、页面尺寸 | 保留于text，并额外在results中结构化给出source/doc/page/bbox/bbox_pct/page_width/page_height |
+| search 附图 | 默认不附图，include_image显式请求 | 保留；只对实际PDF结果附图，显式view始终渲染。include_image与include_bbox独立 |
+| PDF 定位 | page、bbox_pts、bbox_pct、页面尺寸 | 模型文字为 source · doc · p.N，源码为 source · doc · Lstart-end；默认无bbox，include_bbox:true仅加百分比bbox_pct。v2不输出点坐标/页面尺寸；v1保留旧机器定位字段。PDF内部几何仍用于抽取、合并和裁图 |
 | list | 根目录/子目录、默认一层，可recursive | 保留整个LuaDraw根的导航；recursive列文件，不再额外列出已递归经过的每个目录行 |
 | find | 路径子串/文件名glob、scope | 保留，按来源和路径稳定排序；支持库的递归glob |
 | grep | 字面/RE2正则，doc范围，默认区分大小写 | 保留；适配器为未显式设置case_sensitive的grep补true，保持旧行为；显式false可不区分大小写。直接产生真实命中行并计入正文频次，search默认大小写行为不变 |
 | 分页 | limit、offset | 保留；结构化next_offset及warning说明可能还有结果，不承诺总结果数 |
-| 片段预算 | snippet_chars与max_chars；旧search将位置header算入正文预算 | 保留正文预算。当前max_chars约束各result.text的总和；text中的来源header、行号、cache说明和warning在预算外，不能把整段tool text当作严格max_chars上限 |
+| 片段预算 | snippet_chars与max_chars；旧search将位置header算入正文预算 | 保留正文预算。max_chars约束各result.text的总和；模型文字的位置header、行号和warning在预算外，不能把整段tool text当作严格max_chars上限。v2不重复输出顶层text |
 | 被动开场摘要 | 8行/每行1024、总计4096字符上限，不计频 | 保留。完整摘要包括位置、ID、次数也≤4096字符；不主动渲染、不触发PDF抽取 |
 | 主动frequent | 排名区间、doc/行范围、entry_id前缀 | 保留；主动返回项计频，passive=true不计频；旧负limit表示默认8条的调用也兼容 |
 | 正文频次 | read/search/view及主动frequent，稳定段落ID | 保留；grep真实命中也作为条目。多源ID包含source，文件内容变更后只隐藏该文件旧条目，不清空整个库的未变文件 |
@@ -65,8 +67,8 @@ d, err = documents.NewConfig(documents.Config{
 | 初始化依赖 | 构造时统一要求三项Poppler工具 | 改为按需：text-only无需Poppler；PDF读取需pdftotext，显式图片需pdftoppm。不执行文档中的代码 |
 | 缓存 | 全库v4索引及全局频次JSON，主要依赖mtime/size | 改为根/配置namespace、逐文件内容SHA和跨进程锁；同size、同mtime内容替换仍失效；用户传入的cacheDir仍生效 |
 | 缓存格式/旧ID | 固定luadraw-doc-index-v4.json与frequency文件、旧ID | 不迁移旧缓存字节或旧entry_id。缓存可重建；重建后用新的返回ID。不同来源/过滤配置有隔离namespace |
-| 文本元数据 | LuaDraw版本、schema、mtime、创建时间；行数/页数总量 | 保留index_sha256说明并增加namespace/cache counters；不再伪造上游未返回的总行数/总页数和旧schema4元数据，tests改验真实位置与结果 |
-| Go/JSON工具契约 | text+可选图片；独立CLI支持JSON/JSONL | 旧Go三返回保留；新增结构化响应入口由CLI接线。旧CLI别名和JSONL逐行隔离由app层维护 |
+| 文本元数据 | LuaDraw版本、schema、mtime、创建时间；行数/页数总量 | 模型文字不显示哈希、cache首行、PDF点坐标或页面尺寸；v2机器输出也省略cache/provenance和顶层text。v1保留旧机器字段；内部缓存及内容SHA失效规则继续有效 |
+| Go/JSON工具契约 | text+可选图片；独立CLI支持JSON/JSONL | 旧Go三返回保留模型文字/图片；机器响应按output_version区分v1旧字段与v2仅results正文。旧CLI别名、app外层compare-figure-tools/1和JSONL逐行隔离由app层维护 |
 | PDF到TeX源行 | 不具备精确映射 | 仍不具备；PDF物理页/bbox、Texinfo/TeX文本行数不代表SyncTeX反向映射 |
 
 原模块没有“手册标题”“texdoc”等虚构文件别名。受支持的别名是 read 的 query/doc 互换、真实PDF的 `#page=N`、独立page以及旧工具入口名；这些保留。不存在文件不会被默默改写成另一个文件。

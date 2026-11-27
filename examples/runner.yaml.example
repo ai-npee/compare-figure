@@ -41,6 +41,10 @@ figure_check:
 
 docs:
   # cache_dir 默认当前Skill目录下 build/doc-cache；COMPARE_FIGURE_CACHE 可覆写。
+  # 启动默认传入 options.doc_output；单次工具 arguments 可覆盖。
+  output:
+    version: 2  # 1 保留旧机器字段；2 仅 results 正文，无顶层 text/cache/provenance
+    include_bbox: false  # true 按需输出 bbox_pct；与 include_image 独立
   frequent:
     # 通过 document_search 工具主动 frequent/read 获取更多内容
     prompt_enabled: true  # 新会话上下文后附上过去高频查阅段落；续跑不重复注入

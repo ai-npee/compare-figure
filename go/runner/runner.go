@@ -387,6 +387,9 @@ func Run(ctx context.Context, opts Options) (Object, error) {
 	}
 	options["luadraw_root"] = abs(luaRoot)
 	options["doc_cache_dir"] = Str(Obj(config, "docs"), "cache_dir", luadraw.CacheDirectory(resourceRoot))
+	if err = configureDocumentationOutput(config, options); err != nil {
+		return nil, err
+	}
 	if opts.ImagesDir != "" && opts.Original == "" {
 		options["images_dir"] = abs(opts.ImagesDir)
 	}

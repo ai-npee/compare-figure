@@ -1,5 +1,13 @@
 # 开发记录
 
+## 紧凑检索输出、可选区域与准确续页
+
+用户确认前述输出提案后，doc-library实现Config.Output(version/include_bbox)与Request.output_version/可选IncludeBBox。独立库与CLI仍默认v1；显式v2去顶层Text镜像、常规cache、点坐标/页尺寸以及PDF块索引wire，结果正文只在results中出现一次。开启区域仅附bbox_pct，source/doc/page或源码行始终保留。Go Response保留内部Text/Cache/PDF块索引供宿主操作，status/index仍可看缓存。位置投影放在裁图和频次记录之后，关闭bbox不禁用内部几何。Output从缓存身份排除并用旧Config形状精确序列化，旧namespace/key/频次继续共用。统一真实候选collector修复预算早停缺next_offset以及末页恰好limit虚报，snippet截断与结果续页分开；只返回实际项计频，lookahead不计频。已知routine二进制跳过可隐藏，提取失败/无OCR/损坏缓存等警告保留。
+
+本项目New保持签名并委托NewWithOutput，读取来源YAML后合并启动OutputSettings；宿主默认v2，显式YAML1保留，NewConfig沿核心default1。runner docs.output不补假false，原样进入options.doc_output，开场frequent、Harness定义和工具执行同源。单次include_bbox显式false能关闭startuptrue，null/省略继承，output_version0继承；CLI两bool写法、JSON/JSONL/envelope都有回归。模型formatter保留出处、source逐行编号、频次ID，去hash/point/页尺寸/PDF伪行号，只按可用区域出单一pct。标准分页/截断合并成各一条footer，未知warning不丢。app保tools/1外壳、output_version整数标文档协议；v2不重新注入text/cache/provenance或document_images重复数组。配置示例、SKILL、CLI说明及两完整system模板同步；不改已存历史会话。
+
+doc-library核心/CLI全仓test/vet、核心race、Linux与Windows交叉构建通过（Windows未实跑）。主线实际官方PDF同3命中正文一致，v1 2091bytes→v2 878bytes，此例减少58%，不称通用压缩率；bbox关闭/开启自动图同444×92，pct区域图348×24已看对应文字，覆盖/继承及共享cache通过。用户明确批准把已验收ce677c8推送现有doc-library上游，不授权标签或Release；本项目正式固定remote pseudo v0.0.0-20261127125450-ce677c8064e7并下载校验，不用相邻replace。正式构建与app83.438s/documents21.677s/distribution0.265s、全仓vet通过，app含可移动源码包独立构建。host临时联调中原2断言（旧短语和诊断cache默认）已修并专项五包全通过，drawing完整59.820s通过；不把临时modfile当正式包证据。真实验收数据与最终生产包验证保存在忽略build/output-validation。本轮无付费模型请求、不动固定vendor或用户书图。
+
 ## 曲面经验参考与声明式文档来源
 
 eb9原图局部网格坑洼调查及方法对照只在本地隔离目录完成，未修改原接受稿/vendor；同单环面Dfacet比Dscene3d网格干净，但双环面直接Dmixfacet有整facet阶梯。用户指出上游Discussion #353作者的解析裁切方案，实际尝试cutfacet2按另一环面的隐式方程裁外侧patch再Dmixfacet，固定原geometry/view/grid/size/width改善局部坑洼与交界，红线经有限采样可见性筛选；不是严格Boolean或通用精确隐藏线证明。已整理正式docs/luadraw-surface-rendering.md，明确项目补充身份、方法适用条件、连续f每边最多一次过零、实体并集外表面语义及whole+zoom验证，不复制书图/运行转录/完整场景专用程序。

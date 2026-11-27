@@ -22,7 +22,7 @@ func (d *Docs) Definition() map[string]any {
 	props["source"].(map[string]any)["description"] = "Exact configured reference source ID. Bundled IDs include luadraw (upstream), luadraw-notes (project experience, not upstream, if configured), and asymptote. Omit source to search all selected sources, or select several with sources. For read/view use the exact returned source ID and relative doc path."
 	props["sources"].(map[string]any)["description"] = "Exact configured source IDs, mutually exclusive with source. Select multiple collections explicitly; omitting both selectors uses all sources configured for the backend. No source aliases or implicit expansion."
 	props["doc"].(map[string]any)["description"] = "Exact source-root-relative file for read/view, directory for list/grep/find. list doc=\".\" lists root files and subdirectories (directory paths end in /); requests have no persistent current directory. Discover unknown paths with find before read; e.g. Asymptote manual is doc/asymptote.texi, not asymptote.texi."
-	return map[string]any{"type": "function", "function": map[string]any{"name": "document_search", "description": "Search/read/navigate local reference collections. Select source when paths occur in multiple collections. Search returns text and PDF page/bbox provenance; view explicitly renders pages or percentage regions. PDF coordinates do not map to TeX source lines.", "parameters": schema}}
+	return map[string]any{"type": "function", "function": map[string]any{"name": "document_search", "description": "Search/read/navigate local reference collections. Select source when paths occur in multiple collections. Search returns text with source/document/page provenance; include_bbox opts into available percentage regions; view explicitly renders pages or percentage regions. PDF coordinates do not map to TeX source lines.", "parameters": schema}}
 }
 
 func decodeRequest(args map[string]any, outdir string) (Request, error) {
@@ -98,7 +98,21 @@ func (d *Docs) execute(ctx context.Context, args map[string]any, outdir string) 
 		default:
 			return Response{}, fmt.Errorf("unknown mode %q", mode)
 		}
-		response := Response{Version: doclibrary.Version, OK: true, Mode: mode, Text: d.emptyMessage, Results: []doclibrary.Result{}, Images: []doclibrary.Image{}}
+		version := d.output.Version
+		if request.OutputVersion != 0 {
+			version = request.OutputVersion
+		}
+		if version != 1 && version != 2 {
+			return Response{}, fmt.Errorf("document output version must be 1 or 2")
+		}
+		wireVersion := doclibrary.Version
+		if version == 2 {
+			wireVersion = doclibrary.CompactVersion
+		}
+		response := Response{Version: wireVersion, OK: true, Mode: mode, Text: d.emptyMessage, Results: []doclibrary.Result{}, Images: []doclibrary.Image{}}
+		if version == 2 {
+			response.Warnings = []string{d.emptyMessage}
+		}
 		if mode == "schema" {
 			response.Schema = doclibrary.Schema()
 		}
@@ -117,7 +131,6 @@ func (d *Docs) execute(ctx context.Context, args map[string]any, outdir string) 
 			return response, err
 		}
 	}
-	response.Text = formatResponse(response)
 	return response, nil
 }
 
@@ -131,15 +144,21 @@ func (d *Docs) Execute(ctx context.Context, args map[string]any, outdir string) 
 	if len(response.Images) > 0 {
 		image = response.Images[0].Path
 	}
-	return response.Text, image, nil
+	if d.library == nil {
+		return d.emptyMessage, image, nil
+	}
+	return formatResponse(response), image, nil
 }
 
-// ExecuteResponse exposes the library's structured results and cache counters in
-// addition to the existing text/images payload. Locations are source-qualified.
+// ExecuteResponse keeps the core wire protocol: v2 has results as its only body,
+// while v1 retains legacy text/cache/provenance. Locations are source-qualified.
 func (d *Docs) ExecuteResponse(ctx context.Context, args map[string]any, outdir string) (map[string]any, error) {
 	response, err := d.execute(ctx, args, outdir)
 	if err != nil {
 		return nil, err
+	}
+	if response.Version == doclibrary.Version && d.library != nil {
+		response.Text = formatResponse(response)
 	}
 	data, err := json.Marshal(response)
 	if err != nil {
@@ -149,33 +168,28 @@ func (d *Docs) ExecuteResponse(ctx context.Context, args map[string]any, outdir 
 	if err = json.Unmarshal(data, &result); err != nil {
 		return nil, err
 	}
-	result["provenance"] = map[string]any{"dependency": "doc-library", "revision": DependencyRevision, "coordinates": "PDF physical page and top-left bbox; source lines are text-file lines, not PDF-to-TeX mapping"}
+	if response.Version == doclibrary.Version {
+		result["provenance"] = map[string]any{"dependency": "doc-library", "revision": DependencyRevision, "coordinates": "PDF physical page and top-left bbox; source lines are text-file lines, not PDF-to-TeX mapping"}
+	}
 	return result, nil
 }
 
 func formatResponse(response Response) string {
-	meta := fmt.Sprintf("doc-library | index_sha256 %s | namespace %s | cache hits=%d misses=%d files=%d", response.Cache.Fingerprint, response.Cache.Namespace, response.Cache.Hits, response.Cache.Misses, response.Cache.Files)
 	var rows []string
+	truncated := response.Truncated
 	for _, result := range response.Results {
-		where := fmt.Sprintf("%s source=%s", result.Doc, result.Source)
+		where := result.Source + " · " + result.Doc
 		if result.Page > 0 {
-			where = fmt.Sprintf("%s#page=%d source=%s", result.Doc, result.Page, result.Source)
-			if result.StartLine > 0 {
-				where += fmt.Sprintf(" blocks %d-%d", result.StartLine, result.EndLine)
-			}
-			if result.BBox != nil {
-				b := *result.BBox
-				where += fmt.Sprintf(" page_size_pts=%.1fx%.1f bbox_pts=%.1f,%.1f,%.1f,%.1f", result.PageWidth, result.PageHeight, b[0], b[1], b[2], b[3])
-			}
-			if result.BBoxPct != nil {
-				b := *result.BBoxPct
-				where += fmt.Sprintf(" bbox_pct=%.2f,%.2f,%.2f,%.2f", b[0], b[1], b[2], b[3])
-			}
+			where += fmt.Sprintf(" · p.%d", result.Page)
 		} else if result.StartLine > 0 {
-			where = fmt.Sprintf("%s lines %d-%d source=%s", result.Doc, result.StartLine, result.EndLine, result.Source)
+			where += fmt.Sprintf(" · L%d–%d", result.StartLine, result.EndLine)
 		}
 		if response.Mode == "frequent" {
 			where += fmt.Sprintf(" [%s] hits=%d", prefix(result.EntryID, 12), result.Hits)
+		}
+		if result.BBoxPct != nil {
+			b := *result.BBoxPct
+			where += fmt.Sprintf("\nbbox_pct=[%.2f,%.2f,%.2f,%.2f]", b[0], b[1], b[2], b[3])
 		}
 		text := result.Text
 		if response.Mode == "read" && result.Kind == "source" {
@@ -189,15 +203,32 @@ func formatResponse(response Response) string {
 			where += "\n" + text
 		}
 		rows = append(rows, where)
+		truncated = truncated || result.Truncated
 	}
 	if len(rows) == 0 {
 		rows = append(rows, "No matches.")
 	}
-	body := strings.Join(rows, "\n\n")
-	if len(response.Warnings) > 0 {
-		body += "\n" + strings.Join(response.Warnings, "\n")
+	for _, warning := range response.Warnings {
+		if !routineScanWarning(warning) && !standardOutputWarning(warning, truncated, response.NextOffset) {
+			rows = append(rows, warning)
+		}
 	}
-	return meta + "\n" + body
+	if truncated {
+		rows = append(rows, "内容已截断；可用 read 继续精读。")
+	}
+	if response.NextOffset != nil {
+		rows = append(rows, fmt.Sprintf("继续检索：offset=%d", *response.NextOffset))
+	}
+	return strings.Join(rows, "\n\n")
+}
+func routineScanWarning(warning string) bool {
+	return strings.HasSuffix(warning, ": binary or invalid UTF-8 skipped") || strings.HasSuffix(warning, ": skipped binary file")
+}
+func standardOutputWarning(warning string, truncated bool, next *int) bool {
+	if truncated && (warning == "result snippet truncated; increase snippet_chars, line_chars, or max_chars to read more" || warning == "result text budget reached; increase max_chars or narrow the request") {
+		return true
+	}
+	return next != nil && warning == fmt.Sprintf("more results available at offset=%d", *next)
 }
 
 func prefix(s string, n int) string {
@@ -245,11 +276,13 @@ func (d *Docs) FrequentSnippet(ctx context.Context, limit, lineChars, maxChars i
 	var rows []string
 	used := 0
 	for _, r := range response.Results {
-		location := r.Doc
+		location := r.Source + " · " + r.Doc
 		if r.Page > 0 {
-			location += fmt.Sprintf("#page=%d", r.Page)
+			location += fmt.Sprintf(" · p.%d", r.Page)
+		} else if r.StartLine > 0 {
+			location += fmt.Sprintf(" · L%d–%d", r.StartLine, r.EndLine)
 		}
-		row := fmt.Sprintf("[%s] %s:%s:%d-%d hits=%d %s", prefix(r.EntryID, 12), r.Source, location, r.StartLine, r.EndLine, r.Hits, strings.Join(strings.Fields(r.Text), " "))
+		row := fmt.Sprintf("[%s] %s hits=%d %s", prefix(r.EntryID, 12), location, r.Hits, strings.Join(strings.Fields(r.Text), " "))
 		row = fit(row, lineChars)
 		if used > 0 {
 			used++

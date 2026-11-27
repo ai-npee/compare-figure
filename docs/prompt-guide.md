@@ -36,6 +36,12 @@ system, user, err := runner.DrawingPrompts(resources, mode, variables)
 
 runner 保持原有上下文预算：先取任务上下文前 4000 个 Unicode 字符，再按既有独立预算附加被动高频文档摘要；没有更改输入指纹或文档计数规则。被动摘要不加访问次数，显式工具阅读才计数。上下文和文档都是参考资料，其内容不能覆盖系统工作流。
 
+## 文档结果与 bbox
+
+两份 system 模板的文档步骤使用相同输出约定，完整查文档→写源码→编译→看实际 PDF→比较→提交流程保留。模型文字位置为 `source · doc · p.N` 或 `source · doc · Lstart-end`，不含缓存/哈希首行、PDF 点坐标或页面尺寸。需要裁图定位才传 `include_bbox:true`，返回 `bbox_pct` 可直接用于百分比区域；省略继承启动默认，显式 true/false 覆盖本次。`include_image` 独立控制附图。
+
+宿主文档默认 v2，机器正文只在 `results`，省略顶层 `text/cache/provenance`；`output_version:1|2` 可单次覆盖启动版本，v1 保留旧机器字段。runner `docs.output` 传入 `options.doc_output` 作为启动默认，JSON envelope 同理，`arguments` 优先。app 外层仍为 `compare-figure-tools/1` 并加整数 `output_version`。PDF 内部几何提取和合并继续执行。具体调用见 [文档工具契约](luadraw-doc.md)。
+
 ## 引擎、续跑与分发
 
 绘图 mode 与 TeX engine 独立。LuaDraw 优先官方 `luadraw.sty`/LuaLaTeX，缺失时仍以同一个 LuaDraw 程序经 standalone Lua/texlua 生成 TikZ，再由可用 XeLaTeX/pdfLaTeX 编译。Asymptote 的 `engine=auto` 尊重源码显式独立 `settings.tex` 语句；显式宿主 engine 参数优先。中文字体和 TeX 前导必须与实际引擎一致。

@@ -123,8 +123,12 @@ func TestReadLineCapAndQueryAlias(t *testing.T) {
 		t.Fatal(err)
 	}
 	response := docResponse(t, d, map[string]any{"mode": "read", "query": "doc/src/long.tex", "start_line": 1, "end_line": 999, "max_chars": 32000})
+	text, _, err := d.Execute(context.Background(), map[string]any{"mode": "read", "query": "doc/src/long.tex", "start_line": 1, "end_line": 999, "max_chars": 32000}, t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
 	results := docResults(t, response)
-	if len(results) != 1 || results[0].(map[string]any)["end_line"] != float64(400) || !strings.Contains(response["text"].(string), "400: line-400") || strings.Contains(response["text"].(string), "401: line-401") {
+	if len(results) != 1 || results[0].(map[string]any)["end_line"] != float64(400) || !strings.Contains(text, "400: line-400") || strings.Contains(text, "401: line-401") {
 		t.Fatalf("400 line cap failed: %#v", response)
 	}
 }

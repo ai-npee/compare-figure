@@ -19,7 +19,11 @@ func documentationMemory(ctx context.Context, config, options Object) (string, e
 	if maxChars == 0 || lines == 0 {
 		return "", nil
 	}
-	docs, err := documents.New(Str(options, "resource_root", ""), Str(options, "doc_cache_dir", ""), Str(options, "drawing_mode", "luadraw"))
+	output, err := documents.OutputFromOptions(options)
+	if err != nil {
+		return "", err
+	}
+	docs, err := documents.NewWithOutput(Str(options, "resource_root", ""), Str(options, "doc_cache_dir", ""), Str(options, "drawing_mode", "luadraw"), output)
 	if err != nil {
 		return "", err
 	}
@@ -53,4 +57,14 @@ func boundedDocumentationMemory(text string, lines, lineChars, maxChars int) str
 		remaining -= len(chars) + 1
 	}
 	return strings.Join(result, "\n")
+}
+
+// configureDocumentationOutput forwards startup settings without manufacturing
+// optional false values, so the source configuration still supplies defaults.
+func configureDocumentationOutput(config, options Object) error {
+	if output, exists := Obj(config, "docs")["output"]; exists {
+		options["doc_output"] = output
+	}
+	_, err := documents.OutputFromOptions(options)
+	return err
 }

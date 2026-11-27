@@ -13,6 +13,7 @@ import (
 )
 
 func docsServiceCLI(ctx context.Context, args []string, in io.Reader, out io.Writer) int {
+	args = normalizeBBoxFlag(args)
 	fs := flag.NewFlagSet("luadraw-doc", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 	requestPath := fs.String("request", "", "JSON request file, or - for stdin")
@@ -29,6 +30,8 @@ func docsServiceCLI(ctx context.Context, args []string, in io.Reader, out io.Wri
 	drawRoot := fs.String("luadraw-root", "", "LuaDraw distribution")
 	outDir := fs.String("out", "", "output directory")
 	inlineImages := fs.Bool("inline-images", false, "include image bytes")
+	outputVersion := fs.Int("output-version", 0, "output protocol 1 or 2")
+	includeBBox := fs.Bool("include-bbox", false, "include available PDF percentage regions")
 	includeImage := fs.Bool("include-image", false, "attach a relevant PDF crop")
 	regex := fs.Bool("regex", false, "grep query is a regular expression")
 	recursive := fs.Bool("recursive", false, "list nested directories")
@@ -71,6 +74,9 @@ func docsServiceCLI(ctx context.Context, args []string, in io.Reader, out io.Wri
 
 	provided := map[string]bool{}
 	fs.Visit(func(f *flag.Flag) { provided[f.Name] = true })
+	if provided["output-version"] && *outputVersion != 1 && *outputVersion != 2 {
+		return writeError(out, fmt.Errorf("--output-version must be 1 or 2"), 2)
+	}
 	defaults := map[string]any{}
 	set := func(name string, value any) {
 		if provided[name] {
@@ -96,6 +102,8 @@ func docsServiceCLI(ctx context.Context, args []string, in io.Reader, out io.Wri
 	set("top", *top)
 	set("right", *right)
 	set("bottom", *bottom)
+	set("output-version", *outputVersion)
+	set("include-bbox", *includeBBox)
 	set("include-image", *includeImage)
 	set("regex", *regex)
 	set("recursive", *recursive)
@@ -204,12 +212,12 @@ func prepareDocsRequest(object map[string]any, defaults map[string]any) (map[str
 	if id, ok := object["id"]; ok {
 		request["id"] = id
 	}
-	for _, key := range []string{"out_dir", "resource_root", "luadraw_root", "cache_dir", "inline_images", "drawing_mode"} {
+	for _, key := range []string{"out_dir", "resource_root", "luadraw_root", "cache_dir", "inline_images", "drawing_mode", "options"} {
 		if value, ok := object[key]; ok && value != nil && value != "" {
 			request[key] = value
 		}
 	}
-	for _, key := range []string{"out_dir", "resource_root", "luadraw_root", "cache_dir", "inline_images", "drawing_mode"} {
+	for _, key := range []string{"out_dir", "resource_root", "luadraw_root", "cache_dir", "inline_images", "drawing_mode", "options"} {
 		if value, ok := request[key]; !ok || value == "" {
 			if fallback, exists := defaults["_"+key]; exists && fallback != "" {
 				request[key] = fallback
@@ -226,6 +234,18 @@ func prepareDocsRequest(object map[string]any, defaults map[string]any) (map[str
 	}
 	merged := cloneDocsDefaults(defaults)
 	for key, value := range args {
+		if (key == "include_bbox" || key == "output_version") && value == nil {
+			continue
+		}
+		if key == "output_version" && (value == float64(0) || value == 0) {
+			continue
+		}
+		if _, nested := object["arguments"]; !nested {
+			switch key {
+			case "operation", "id", "out_dir", "resource_root", "luadraw_root", "cache_dir", "inline_images", "drawing_mode", "options":
+				continue
+			}
+		}
 		merged[key] = value
 	}
 	request["arguments"] = merged

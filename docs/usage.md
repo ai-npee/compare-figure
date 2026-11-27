@@ -154,7 +154,7 @@ build/compare-figure compare --original reference.png --pdf candidate.pdf --out 
 {"operation":"docs","arguments":{"mode":"view","doc":"doc/luadraw-doc-en.pdf","page":91,"left":10,"top":15,"right":85,"bottom":90},"inline_images":true}
 ```
 
-文档搜索默认只返回用法、源码/例子位置、PDF页码/bbox，不自动附图。模型需要查看时主动调用 `mode:view`，指定检索到的doc和page即可看整页，或附百分比区域和zoom局部重渲染。搜索bbox单位为PDF点，裁切参数为百分比；显式 `include_image:true` 可按需给搜索附图。暖查询不重新抽整套手册。更多请求示例和库接口见 [Go说明](../docs/go-native.md)。
+宿主文档输出默认 v2，机器正文只在 `results`，省略顶层 `text/cache/provenance`；模型文字保留用法及真实来源，位置为 `source · doc · p.N` 或 `source · doc · Lstart-end`，默认无bbox，不显示PDF点坐标或页面尺寸。模型需要查看时主动调用 `mode:view`，指定检索到的source/doc/page即可看整页，或附百分比区域和zoom局部重渲染。显式 `include_bbox:true`（CLI `--include-bbox=true`）仅补 `bbox_pct` 百分比，可直接用于裁切；省略继承启动默认，显式 false 可关闭。PDF几何仍供内部抽取、合并和裁图使用。`include_image:true` 独立控制搜索附图。暖查询不重新抽整套手册。更多请求示例和库接口见 [Go说明](../docs/go-native.md)。
 
 文档库还提供 `list/find/grep/read/frequent`：先列真实路径或按文件名定位，再顺着include关系精读；`read`兼容PDF的 `doc`/`query` + `page`，不自动渲染图片。检索按完整段落合并去重，`snippet_chars`调每条长度、`max_chars`调总预算。高频模式可按当前排名行或稳定 `entry_id` 选择；模型主动查看才贡献计数，自动追加到新会话上下文的摘要不计数。默认摘要最多8行、每行1024字符、总计4096字符，可在示例的 `docs.frequent` 配置中关闭。缓存放本Skill的 `build/doc-cache`，不随包分发。详细参数见 [Go说明](../docs/go-native.md)。
 

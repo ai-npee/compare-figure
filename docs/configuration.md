@@ -123,17 +123,26 @@ figure_check:
 
 `figure_check` 也可放在 `latex.figure_check`；`compile` 也可放在 `latex.compile`；显式顶层位置优先。`view` 也兼容 `tools.view`。`min_overlap` 是比例值（`0.17` 即 17%），CLI `--pass-threshold` 则使用百分比数值（`17`）。
 
-### 文档频次提示
+### 文档输出与频次提示
 
 ```yaml
 docs:
   cache_dir: work/doc-cache
+  output:
+    version: 2                 # 1 或 2；宿主默认 2
+    include_bbox: false        # 默认不输出 bbox_pct
   frequent:
     prompt_enabled: true
     prompt_max_chars: 4096
     prompt_lines: 8
     line_chars: 1024
 ```
+
+`docs.output` 经 `options.doc_output` 传给文档工具，作为启动默认。单次工具参数 `output_version`（整数 1 或 2）和可选 `include_bbox`（布尔 true/false）覆盖启动值，省略才继承；显式 false 也会覆盖 true。独立 CLI 用 `--output-version 1|2`、`--include-bbox=true|false`；它不读取 runner YAML。JSON envelope 的 `options.doc_output` 同样表示启动默认，`arguments` 中的对应字段优先。
+
+宿主 `documents.New` 默认 v2；文档源 YAML 未给 `output.version` 时补 2，显式值保留。直接 `NewConfig` 保留调用方的核心选择和未指定时的 v1 默认。v2 机器响应正文只在 `results`，省略顶层 `text/cache/provenance`；v1 保留旧字段。app 外层 `version` 仍是 `compare-figure-tools/1`，新增整数 `output_version` 标识实际输出版本。
+
+模型文字用 `source · doc · p.N` 或 `source · doc · Lstart-end` 定位，不含缓存/哈希、PDF 点坐标或页面尺寸。bbox 默认关闭，开启只输出百分比 `bbox_pct`。PDF 几何仍供内部抽取、合并及裁图使用；`include_image` 与 bbox 独立。
 
 `docs.frequent` 只控制新 runner 会话开头的 `document_search` 高频摘要；默认最多 8 条、每行 1024 字符、总预算 4096 字符。实现硬上限同样为每行 1024、总量 4096；显式设置更小值仍会生效，设置 0 可关闭对应摘要。主动调用工具仍使用 `document_search`（旧 `luadraw_doc` 兼容）。缓存可由 CLI/环境单独指定。
 

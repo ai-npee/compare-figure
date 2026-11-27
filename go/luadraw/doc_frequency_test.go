@@ -32,7 +32,7 @@ func passiveEntries(t *testing.T, d *Docs) []any {
 func TestFrequencySharedCacheConcurrentReadsExactAndPassive(t *testing.T) {
 	root, cache, d := frequencyFixture(t)
 	ctx := context.Background()
-	response := docResponse(t, d, map[string]any{"mode": "read", "doc": "doc/src/notes.tex", "start_line": 1, "end_line": 2})
+	response := docResponse(t, d, map[string]any{"mode": "read", "doc": "doc/src/notes.tex", "start_line": 1, "end_line": 2, "output_version": 1})
 	namespace := response["cache"].(map[string]any)["namespace"].(string)
 	freqPath := filepath.Join(cache, namespace, "frequency-v1.json")
 	before, err := os.ReadFile(freqPath)
