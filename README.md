@@ -4,6 +4,12 @@
 
 可以根据参考图片还原图形，也可以从文字描述创作数学图、几何图、函数图和示意图；支持结合 Markdown 的插图上下文，或为 LaTeX 文稿绘制可嵌入的图稿。内置 LuaDraw／Asymptote 官方文档检索、编译、图片比对与本地会话查看器，帮助完成“查文档 → 绘图 → 编译 → 看图 → 修正”的过程。
 
+## 重绘效果
+
+![原始位图经过 compare-figure 工具调用，重绘为可编辑的矢量图](assets/showcase/two-tori.svg)
+
+[查看矢量 PDF](assets/showcase/two-tori.pdf)
+
 ## 快速安装
 
 复制给你的 Agent：

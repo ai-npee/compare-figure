@@ -29,6 +29,8 @@ dist/
 # Pinned upstream manuals are reference dependencies, not generated previews.
 !vendor/luadraw-3.7/luadraw/doc/*.pdf
 !vendor/asymptote-3.16/doc/*.pdf
+# User-approved README showcase; other generated figures remain local.
+!assets/showcase/two-tori.pdf
 !vendor/luadraw-3.7/luadraw/doc/src/tkz/*.jpg
 !vendor/luadraw-3.7/luadraw/doc/src/tkz/*.png
 .DS_Store

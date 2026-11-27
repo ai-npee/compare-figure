@@ -1,5 +1,9 @@
 # 开发记录
 
+## README 双环重绘效果展示
+
+用户明确指定两个环的原始位图与最后调整好的最佳图作为首页示例，不需来源书籍或图号说明。README在简介之后直接嵌入assets/showcase/two-tori.svg，并提供同版PDF链接；版面是原始位图→compare-figure与Agent调用工具流程→最终矢量图。右侧选用解析裁切并保留可见红交线的最终PDF，不回退旧BSP或无红线控制，也不将输出PDF截图作为矢量展示。生成入口后来按用户建议改为XeLaTeX（fontspec/Noto Sans CJK）排版PDF，再用pdftocairo -svg转换，最终PDF 87,990B，子集字体、1张原位图及2294矢量绘图对象；SVG 1,065,256B，1张内嵌图像及2384路径，无外部图片/字体引用或脚本。原右图PDF无栅格对象，排版仅去除页白边并等比嵌入；不重新描绘图形。修正了最初Droid字体不含拉丁字母造成方框，以及上/下trim坐标转换问题。主线实际查看最终PDF预览与Chromium1200×580 SVG截图，中文/Agent/LuaDraw/PDF和中点均正常，左右图、红线、箭头完整。README链接与资源白名单检查通过；本轮仅首页素材和生成脚本，不改Go运行逻辑。展示只授权两份组合SVG/PDF公开，不额外提交原始JPG、会话、密钥或实验日志，其他运行产物继续忽略；.gitignore只为该展示PDF加例外。不改运行代码/vendor/接受稿，不重跑模型，未将首页宣传素材加入运行Skill导出。
+
 ## 紧凑检索输出、可选区域与准确续页
 
 用户确认前述输出提案后，doc-library实现Config.Output(version/include_bbox)与Request.output_version/可选IncludeBBox。独立库与CLI仍默认v1；显式v2去顶层Text镜像、常规cache、点坐标/页尺寸以及PDF块索引wire，结果正文只在results中出现一次。开启区域仅附bbox_pct，source/doc/page或源码行始终保留。Go Response保留内部Text/Cache/PDF块索引供宿主操作，status/index仍可看缓存。位置投影放在裁图和频次记录之后，关闭bbox不禁用内部几何。Output从缓存身份排除并用旧Config形状精确序列化，旧namespace/key/频次继续共用。统一真实候选collector修复预算早停缺next_offset以及末页恰好limit虚报，snippet截断与结果续页分开；只返回实际项计频，lookahead不计频。已知routine二进制跳过可隐藏，提取失败/无OCR/损坏缓存等警告保留。
