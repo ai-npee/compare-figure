@@ -1,5 +1,9 @@
 # 开发记录
 
+## Responses 文档工具裁剪字段兼容
+
+图11.86/11.87新LuaDraw任务使用的网关现仅支持Responses，新run改协议后成功请求；单账号还触发了明确的requests-per-minute超限，私有临时入口节流串行，不提交端点或凭证。真实转录发现模型将工具schema可选字段填默认，document_search把新region与legacy四flat同时传入，所有文档查询都被严格互斥校验拒绝。根因是模型定义同时展示等价裁剪参数。现只从documents.Definition移除主动追加的四flat，fallback也改为canonical region；Execute与旧CLI仍接受flat，用户真正混用时继续拒绝，不清除历史错误或放宽公共doc-library契约。提示词明确region对象；保留原会话系统消息，恢复时采用更新工具定义。documents全包22.392s、drawing定义专项0.003s、runner提示词0.114s和相关vet通过；正式CLI用./cmd/compare-figure重建并实际执行help，paced入口单独构建。真实恢复后五次文档查询/读取已成功返回官方p.101–102的Dsphere等正文，原冲突未再发生；此证据不代表两图已完成。
+
 ## README 双环重绘效果展示
 
 用户明确指定两个环的原始位图与最后调整好的最佳图作为首页示例，不需来源书籍或图号说明。README在简介之后直接嵌入assets/showcase/two-tori.svg，并提供同版PDF链接；版面是原始位图→compare-figure与Agent调用工具流程→最终矢量图。右侧选用解析裁切并保留可见红交线的最终PDF，不回退旧BSP或无红线控制，也不将输出PDF截图作为矢量展示。生成入口后来按用户建议改为XeLaTeX（fontspec/Noto Sans CJK）排版PDF，再用pdftocairo -svg转换，最终PDF 87,990B，子集字体、1张原位图及2294矢量绘图对象；SVG 1,065,256B，1张内嵌图像及2384路径，无外部图片/字体引用或脚本。原右图PDF无栅格对象，排版仅去除页白边并等比嵌入；不重新描绘图形。修正了最初Droid字体不含拉丁字母造成方框，以及上/下trim坐标转换问题。主线实际查看最终PDF预览与Chromium1200×580 SVG截图，中文/Agent/LuaDraw/PDF和中点均正常，左右图、红线、箭头完整。README链接与资源白名单检查通过；本轮仅首页素材和生成脚本，不改Go运行逻辑。展示只授权两份组合SVG/PDF公开，不额外提交原始JPG、会话、密钥或实验日志，其他运行产物继续忽略；.gitignore只为该展示PDF加例外。不改运行代码/vendor/接受稿，不重跑模型，未将首页宣传素材加入运行Skill导出。

@@ -69,6 +69,8 @@ build/compare-figure luadraw-doc --mode view --doc doc/luadraw-doc-en.pdf --page
 
 源码按行读取最多400行，PDF按页/段落块定位。模型文字使用 `source · doc · p.N` 或 `source · doc · Lstart-end` 定位，不显示缓存/哈希首行、PDF 点坐标或页面尺寸。`snippet_chars` 控制每个片段，`max_chars` 控制正文总预算（位置及 warning 另计）。默认不输出 bbox；需要区域定位时传 `include_bbox:true` 或 CLI `--include-bbox=true`，只补 `bbox_pct`（left/top/right/bottom 百分比），可直接用于 `view` 裁切。省略 `include_bbox` 沿用启动默认，显式 true/false 覆盖本次；`--include-bbox=false` 可关闭启动时已开启的 bbox。隐藏输出不改变 PDF 内部抽取、段落合并及裁图所需的几何计算。`include_image` 独立控制搜索附图，显式 `view` 仍渲染图片；与 bbox 是否输出无关。PDF图片默认作为路径返回；外部需要图片字节时使用 `--inline-images`。
 
+模型工具的裁剪坐标统一放在 `region:{left,top,right,bottom}` 对象中，不展示同义的顶层裁剪字段；旧 CLI 的 `--left/--top/--right/--bottom` 和旧 JSON flat 参数仍兼容。两种坐标写法不能同时传入。
+
 CLI `--output-version 1|2` 选择启动默认输出版本，例如：
 
 ```bash

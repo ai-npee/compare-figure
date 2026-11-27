@@ -10,6 +10,8 @@ Python模块和测试仅放dev/python，使用conda base（本机/home/lingnc/mi
 
 ## 状态与范围
 
+- 两张新LuaDraw任务图11.86/11.87使用新独立runs。现有网关禁Chat Completions、只支持Responses，因此仅新配置api改responses，model/key/endpoint不变。捕获429确切为user requests-per-minute limit exceeded，任务临时入口以至少20秒请求间隔与429退避串行运行；不将诊断/节流脚本或私有配置提交。实跑暴露模型为每个optional字段填默认，document_search同时传四flat=0和region导致连续冲突。模型Definition与fallback现只暴露canonical region；Execute/CLI仍支持旧flat，真实混用继续拒绝，不放宽来源/裁剪边界、不篡改旧转录。共享提示词同步region对象写法，修复后从原检查点恢复，不称前述错误调用已完成绘图。
+
 - 用户新指定双环图用于README效果展示：原始位图→compare-figure/Agent工具流程箭头→最后解析裁切且保留可见红线的最佳PDF。展示不写来源书籍、图号或实验参数，不宣称一键全自动；只核准assets/showcase/two-tori.svg与two-tori.pdf作为公共首页素材，原图嵌在展示内，不额外提交原始JPG或完整run/session。右图由最终PDF保留矢量，不以PNG代替。生成入口scripts/build_showcase.py接收显式original/redrawn路径，按用户追加要求使用XeLaTeX（fontspec/Noto）排PDF、pdftocairo -svg转SVG，右图只裁空白不改路径；中间TeX/日志在build临时目录。PDF约88KB、1张原位图/2294矢量绘图对象；SVG约1.07MB、1内嵌图/2384paths、无外链/JS，字形与整图已实际看过，Chromium最终SVG1200×580截图显示正常。预览和校验放build/showcase-validation；README直接嵌SVG并提供PDF链接。不修改固定vendor、原session或重跑模型；其余生成PDF/位图继续忽略，展示素材不自动加入运行Skill分发清单。
 
 - 最新文档源规则：用户要求补充经验可被模型document_search实际检索，并优先通过doc-library来源配置管理；经验正文docs/luadraw-surface-rendering.md，标准来源YAML在docs/document-sources/{luadraw,mixed,asymptote}.yaml。documents.New仅按mode加载通用Config，根/配置缓存相对YAML，cacheDir显式参数优先；严格拒未知字段/第二YAML文档/无效配置，只有缺文件回旧官方来源；legacy独立root不误挂祖先配置。source精确、不再暗扩luadraw，省略source=当前配置全部，sources数组可显式查两者，notes独立ID和include仅一md；doclibrary核心/固定vendor不改。此前临时写死notes源及family扩展已完全移除，后续禁止为单篇经验再写Go特判。自动/半自动/独立CLI共用此New入口，需新进程或重新初始化加载配置。README/SKILL/检索文档及mixedpolicy同步，参考与三配置均随Skill导出。documents全包20.945s/vet/build、distribution0.187s、runner提示词/高频专项0.016s及实际732文件导出SHA与包内search/read/exactsource核验通过；旧luadraw兼容包回归72.292s亦通过。实搜Dscene3d 网格 毛刺首条source=luadraw-notes，官方source=luadraw不含notes。没有付费模型或原会话改写。

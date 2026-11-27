@@ -10,6 +10,69 @@ import (
 	"doc-library/pkg/doclibrary"
 )
 
+func TestModelDefinitionExposesOnlyCanonicalRegion(t *testing.T) {
+	for _, schema := range []map[string]any{
+		(&Docs{}).Definition()["function"].(map[string]any)["parameters"].(map[string]any),
+		doclibrary.Schema()["request"].(map[string]any),
+	} {
+		props := schema["properties"].(map[string]any)
+		region := props["region"].(map[string]any)
+		if region["type"] != "object" {
+			t.Fatalf("region is not an object: %#v", region)
+		}
+		for _, key := range []string{"left", "top", "right", "bottom"} {
+			if _, exists := props[key]; exists {
+				t.Fatalf("model exposes duplicate flat crop field %s", key)
+			}
+			if region["properties"].(map[string]any)[key].(map[string]any)["type"] != "number" {
+				t.Fatalf("canonical region lacks numeric %s: %#v", key, region)
+			}
+		}
+	}
+}
+
+func TestDefaultFilledModelSearchAndLegacyCropCompatibility(t *testing.T) {
+	root := t.TempDir()
+	if err := os.WriteFile(filepath.Join(root, "guide.tex"), []byte("needle source body\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	d, err := NewConfig(Config{Sources: []Source{{ID: "fixture", Root: root}}, CacheDir: t.TempDir()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Responses gateways can fill every optional model field, including region.
+	args := map[string]any{
+		"mode": "search", "query": "needle", "source": "", "sources": []string{},
+		"doc": "", "kinds": []string{}, "extensions": []string{}, "regex": false,
+		"case_sensitive": false, "match": "any", "limit": 0, "offset": 0,
+		"snippet_chars": 0, "max_chars": 0, "line_chars": 0, "start_line": 0,
+		"end_line": 0, "page": 0, "out_dir": "", "dpi": 0, "zoom": 0,
+		"recursive": false, "include_image": false, "inline_images": false,
+		"entry_id": "", "passive": false, "output_version": 0, "include_bbox": false,
+	}
+	args["region"] = map[string]any{"left": 0, "top": 0, "right": 100, "bottom": 100}
+	response, err := d.execute(context.Background(), args, "")
+	if err != nil || len(response.Results) != 1 || !strings.Contains(response.Results[0].Text, "needle") || len(response.Images) != 0 {
+		t.Fatalf("default-filled search: %#v %v", response, err)
+	}
+	args["region"] = map[string]any{"left": 0, "top": 0, "right": 0, "bottom": 0}
+	if _, err := d.execute(context.Background(), args, ""); err == nil || !strings.Contains(err.Error(), "region must have positive area") {
+		t.Fatalf("zero-area canonical region accepted: %v", err)
+	}
+	legacy := map[string]any{"mode": "search", "query": "needle", "left": 10, "top": 15, "right": 85, "bottom": 90}
+	request, err := decodeRequest(legacy, "")
+	if err != nil || request.Region == nil || *request.Region != (doclibrary.Region{Left: 10, Top: 15, Right: 85, Bottom: 90}) {
+		t.Fatalf("legacy crop lost: %#v %v", request.Region, err)
+	}
+	if text, image, err := d.Execute(context.Background(), legacy, ""); err != nil || !strings.Contains(text, "needle") || image != "" {
+		t.Fatalf("legacy Execute: %s %s %v", text, image, err)
+	}
+	legacy["region"] = map[string]any{"left": 20, "top": 25, "right": 75, "bottom": 80}
+	if _, _, err := d.Execute(context.Background(), legacy, ""); err == nil || !strings.Contains(err.Error(), "use region or flat crop percentages, not both") {
+		t.Fatalf("conflicting explicit crops accepted: %v", err)
+	}
+}
+
 func TestModelFormatUsesProjectedLocationsAndIndependentFooters(t *testing.T) {
 	box := [4]float64{1, 2, 3, 4}
 	next := 7

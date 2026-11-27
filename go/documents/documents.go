@@ -15,9 +15,6 @@ import (
 func (d *Docs) Definition() map[string]any {
 	schema := doclibrary.Schema()["request"].(map[string]any)
 	props := schema["properties"].(map[string]any)
-	for _, key := range []string{"left", "top", "right", "bottom"} {
-		props[key] = map[string]any{"type": "number", "description": "Legacy PDF crop percentage; alternatively use region"}
-	}
 	props["case_sensitive"].(map[string]any)["description"] = "Grep defaults to true for legacy compatibility; other modes default to false. Set false explicitly for case-insensitive grep."
 	props["source"].(map[string]any)["description"] = "Exact configured reference source ID. Bundled IDs include luadraw (upstream), luadraw-notes (project experience, not upstream, if configured), and asymptote. Omit source to search all selected sources, or select several with sources. For read/view use the exact returned source ID and relative doc path."
 	props["sources"].(map[string]any)["description"] = "Exact configured source IDs, mutually exclusive with source. Select multiple collections explicitly; omitting both selectors uses all sources configured for the backend. No source aliases or implicit expansion."

@@ -28,9 +28,21 @@ func TestDocumentDefinitionsAndExecutionShareStartupOutput(t *testing.T) {
 	check := func(def map[string]any) {
 		t.Helper()
 		props := def["function"].(map[string]any)["parameters"].(map[string]any)["properties"].(map[string]any)
-		for _, key := range []string{"include_bbox", "output_version"} {
+		for _, key := range []string{"include_bbox", "output_version", "region"} {
 			if _, ok := props[key]; !ok {
 				t.Fatalf("missing %s", key)
+			}
+		}
+		region := props["region"].(map[string]any)
+		if region["type"] != "object" || region["additionalProperties"] != false {
+			t.Fatalf("invalid canonical region: %#v", region)
+		}
+		for _, key := range []string{"left", "top", "right", "bottom"} {
+			if _, exists := props[key]; exists {
+				t.Fatalf("model exposes legacy flat crop field %s", key)
+			}
+			if region["properties"].(map[string]any)[key].(map[string]any)["type"] != "number" {
+				t.Fatalf("canonical region lacks numeric %s", key)
 			}
 		}
 	}
