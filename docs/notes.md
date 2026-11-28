@@ -1,5 +1,11 @@
 # 开发记录
 
+## 模型文档工具恢复稀疏参数
+
+用户再次指出原需求仅精简输出，但新模型调用充满空字段。git/真实转录追溯：fea71ed（2026-11-25 12:09:30+08）从原手工20字段模型定义改用公共库完整request27+legacyflat4=31；31874cd（11-27 21:16:23）升级紧凑输出依赖后新增include_bbox/output_version成33；e68e63a仅移除flat变29，并未解决接口过宽。旧双环会话31字段schema却实际frequent仅4字段；新两图改Responses后首个document_search在11-28 01:33:35填33字段，删flat后仍填29。转录原始_response_items与tool_calls参数字符串相等，本地decode没有补字段。Responses wire从657d23f起重建函数工具而丢strict，缺省也未明确false；服务端内部归一化未直接观察，不能把全部填默认归咎网关。
+
+修复：模型Definition改21字段白名单（具体见检索接口完整表），不再暴露out_dir/dpi/passive/inline_images/output_version/kinds/extensions/match或旧flat；CLI/Execute保留完整兼容，公共doc-library不变。fallback直接复用模型Definition，不维护第二份不一致schema。include_bbox可省略，宿主通常默认关闭，输出继续默认v2。Responses wire缺省strict:false，显式true/false保留，parameters不改required/type/null。提示词明确只填本次用到的参数，不再要求模型选择输出协议。测试用真实httptest抓三协议requestbody与稀疏4字段functioncall，原arguments逐字不变；四字段search/frequent实际执行通过且无cache/namespace/bbox噪声；原legacy裁剪及显式混用拒绝继续通过。documents24.474s/session6.122s/drawing.003s/runnerprompts.121s、相关vet与正式CLI构建成功，未重跑付费模型、未改历史会话。
+
 ## 两张配对 LuaDraw 自动重绘完成
 
 图11.86与图11.87分别建立独立本地run，沿用gpt-6.1-sol，通过Responses协议和请求间隔串行执行，最终退出码均0。正式result确认各一次正常submit，重叠71.498639%/57.023110%，物理墨迹尺寸偏差0.408975%/0.487711%，accepted_as_is=false、warnings=[]，保留uncertain=true。主线逐张实际查看最终预览，单页PDF分别14/245矢量绘图对象、无嵌入位图；最终TeX分别只复制到隔离输入目录后用正式CLI/LuaLaTeX无模型重编成功。第一张保留上开口后侧交线的可见性疑点；第二张按原印刷图作示意，高度参数0.85/-0.4不代表精确球柱相交体。可编辑Lua和自包含TeX同时留存。原书、旧实验及旧会话不改，私有run、原始图片及真实配置不入库。

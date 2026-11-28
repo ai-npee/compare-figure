@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -102,6 +103,110 @@ func TestProtocolRequestBodies(t *testing.T) {
 		}
 	})
 }
+func TestToolStrictnessAndSparseParametersWire(t *testing.T) {
+	const parametersJSON = `{"type":"object","properties":{"operation":{"type":"string"},"query":{"type":"string"},"source":{"type":"string"},"max_results":{"type":"integer"},"region":{"type":"object","properties":{"x":{"type":"number"},"y":{"type":"number"}},"required":["x"]}},"required":["operation"]}`
+	const arguments = `{"operation":"search", "query":"surface mesh", "source":"manual", "max_results":4}`
+	for _, api := range []string{"responses", "openai", "anthropic"} {
+		for _, tc := range []struct {
+			name   string
+			strict any
+		}{
+			{name: "default false"},
+			{name: "explicit true", strict: true},
+			{name: "explicit false", strict: false},
+		} {
+			t.Run(api+"/"+tc.name, func(t *testing.T) {
+				var parameters map[string]any
+				if err := json.Unmarshal([]byte(parametersJSON), &parameters); err != nil {
+					t.Fatal(err)
+				}
+				function := map[string]any{"name": "document_search", "description": "Search documentation", "parameters": parameters}
+				if tc.strict != nil {
+					function["strict"] = tc.strict
+				}
+				capturedRequest := make(chan map[string]any, 1)
+				srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					var request map[string]any
+					if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+						t.Errorf("decode request: %v", err)
+						w.WriteHeader(http.StatusBadRequest)
+						return
+					}
+					capturedRequest <- request
+					w.Header().Set("Content-Type", "application/json")
+					switch api {
+					case "responses":
+						if r.URL.Path != "/responses" {
+							t.Errorf("endpoint = %q", r.URL.Path)
+						}
+						_ = json.NewEncoder(w).Encode(map[string]any{"status": "completed", "output": []any{map[string]any{"type": "function_call", "call_id": "call_search", "name": "document_search", "arguments": arguments}}})
+					case "openai":
+						_, _ = w.Write([]byte(`{"choices":[{"message":{"role":"assistant","content":"ok"},"finish_reason":"stop"}]}`))
+					case "anthropic":
+						_, _ = w.Write([]byte(`{"content":[{"type":"text","text":"ok"}],"stop_reason":"end_turn"}`))
+					}
+				}))
+				defer srv.Close()
+				c := NewClient(srv.URL, "m", "k", time.Second, map[string]any{"api": api})
+				message, err := c.Complete(context.Background(), []Message{{"role": "user", "content": "Search documentation"}}, []map[string]any{{"type": "function", "function": function}}, "auto", 99)
+				if err != nil {
+					t.Fatal(err)
+				}
+				request := <-capturedRequest
+				tools := arr(request["tools"])
+				if len(tools) != 1 {
+					t.Fatalf("wire tools = %#v", tools)
+				}
+				wireTool := asMap(tools[0])
+				var wireParameters any
+				switch api {
+				case "responses":
+					strict, ok := wireTool["strict"].(bool)
+					if !ok || strict != (tc.strict == true) {
+						t.Errorf("wire strict = %#v, want explicit %t", wireTool["strict"], tc.strict == true)
+					}
+					wireParameters = wireTool["parameters"]
+					calls := arr(message["tool_calls"])
+					if len(calls) != 1 {
+						t.Fatalf("tool calls = %#v", calls)
+					}
+					callFunction := asMap(asMap(calls[0])["function"])
+					if callFunction["name"] != "document_search" || callFunction["arguments"] != arguments {
+						t.Fatalf("function call changed: %#v", callFunction)
+					}
+					var decodedArguments map[string]any
+					if err := json.Unmarshal([]byte(callFunction["arguments"].(string)), &decodedArguments); err != nil {
+						t.Fatal(err)
+					}
+					if len(decodedArguments) != 4 {
+						t.Errorf("argument keys = %d, want 4: %#v", len(decodedArguments), decodedArguments)
+					}
+				case "openai":
+					wireFunction := asMap(wireTool["function"])
+					strict, present := wireFunction["strict"]
+					if present != (tc.strict != nil) || strict != tc.strict {
+						t.Errorf("Chat Completions strict changed: %#v", wireFunction)
+					}
+					wireParameters = wireFunction["parameters"]
+				case "anthropic":
+					if _, present := wireTool["strict"]; present {
+						t.Errorf("unexpected Anthropic strict: %#v", wireTool)
+					}
+					wireParameters = wireTool["input_schema"]
+				}
+				// Decode a fresh expectation so input mutation cannot hide schema expansion.
+				var wantParameters map[string]any
+				if err := json.Unmarshal([]byte(parametersJSON), &wantParameters); err != nil {
+					t.Fatal(err)
+				}
+				if !reflect.DeepEqual(wireParameters, wantParameters) {
+					t.Errorf("sparse schema changed (required/type/null/additionalProperties):\n got %#v\nwant %#v", wireParameters, wantParameters)
+				}
+			})
+		}
+	}
+}
+
 func TestResponsesAndAnthropicSSEWire(t *testing.T) {
 	for _, api := range []string{"responses", "anthropic"} {
 		t.Run(api, func(t *testing.T) {

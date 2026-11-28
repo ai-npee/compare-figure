@@ -28,9 +28,14 @@ func TestDocumentDefinitionsAndExecutionShareStartupOutput(t *testing.T) {
 	check := func(def map[string]any) {
 		t.Helper()
 		props := def["function"].(map[string]any)["parameters"].(map[string]any)["properties"].(map[string]any)
-		for _, key := range []string{"include_bbox", "output_version", "region"} {
+		for _, key := range []string{"include_bbox", "region"} {
 			if _, ok := props[key]; !ok {
 				t.Fatalf("missing %s", key)
+			}
+		}
+		for _, key := range []string{"out_dir", "dpi", "passive", "inline_images", "output_version"} {
+			if _, ok := props[key]; ok {
+				t.Fatalf("host-only setting advertised to model: %s", key)
 			}
 		}
 		region := props["region"].(map[string]any)

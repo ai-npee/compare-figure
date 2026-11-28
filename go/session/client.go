@@ -212,7 +212,9 @@ func (c *Client) Complete(ctx context.Context, messages []Message, tools []map[s
 			ts := []any{}
 			for _, d := range tools {
 				fn := asMap(d["function"])
-				ts = append(ts, map[string]any{"type": "function", "name": fn["name"], "description": fn["description"], "parameters": fn["parameters"]})
+				// Keep optional parameters optional unless the tool explicitly opts into strict mode.
+				strict, _ := fn["strict"].(bool)
+				ts = append(ts, map[string]any{"type": "function", "name": fn["name"], "description": fn["description"], "parameters": fn["parameters"], "strict": strict})
 			}
 			body["tools"] = ts
 			body["tool_choice"] = choice

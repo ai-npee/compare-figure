@@ -13,13 +13,21 @@ import (
 // Definition returns the shared model tool. The legacy LuaDraw wrapper renames
 // this definition only; both entry points execute the same library.
 func (d *Docs) Definition() map[string]any {
-	schema := doclibrary.Schema()["request"].(map[string]any)
-	props := schema["properties"].(map[string]any)
+	// The CLI/library request also contains host output and transport settings.
+	// Expose only operations the model chooses for this call, not that full API.
+	all := doclibrary.Schema()["request"].(map[string]any)["properties"].(map[string]any)
+	props := map[string]any{}
+	for _, key := range []string{"mode", "query", "source", "sources", "doc", "page", "region", "zoom", "limit", "offset", "start_line", "end_line", "snippet_chars", "max_chars", "line_chars", "regex", "case_sensitive", "entry_id", "recursive", "include_image", "include_bbox"} {
+		props[key] = all[key]
+	}
+	schema := map[string]any{"type": "object", "properties": props, "additionalProperties": false}
+	props["mode"] = map[string]any{"type": "string", "enum": []string{"search", "read", "view", "list", "find", "grep", "frequent"}}
+	props["include_bbox"] = map[string]any{"type": "boolean", "description": "Optional: request available bbox percentages. Omit for the startup default (normally off)."}
 	props["case_sensitive"].(map[string]any)["description"] = "Grep defaults to true for legacy compatibility; other modes default to false. Set false explicitly for case-insensitive grep."
 	props["source"].(map[string]any)["description"] = "Exact configured reference source ID. Bundled IDs include luadraw (upstream), luadraw-notes (project experience, not upstream, if configured), and asymptote. Omit source to search all selected sources, or select several with sources. For read/view use the exact returned source ID and relative doc path."
 	props["sources"].(map[string]any)["description"] = "Exact configured source IDs, mutually exclusive with source. Select multiple collections explicitly; omitting both selectors uses all sources configured for the backend. No source aliases or implicit expansion."
 	props["doc"].(map[string]any)["description"] = "Exact source-root-relative file for read/view, directory for list/grep/find. list doc=\".\" lists root files and subdirectories (directory paths end in /); requests have no persistent current directory. Discover unknown paths with find before read; e.g. Asymptote manual is doc/asymptote.texi, not asymptote.texi."
-	return map[string]any{"type": "function", "function": map[string]any{"name": "document_search", "description": "Search/read/navigate local reference collections. Select source when paths occur in multiple collections. Search returns text with source/document/page provenance; include_bbox opts into available percentage regions; view explicitly renders pages or percentage regions. PDF coordinates do not map to TeX source lines.", "parameters": schema}}
+	return map[string]any{"type": "function", "function": map[string]any{"name": "document_search", "strict": false, "description": "Search/read/navigate local references. Supply only arguments needed for this call; omit unused options, empty strings and default-filled objects. Search returns text with source/document/page provenance; include_bbox optionally requests percentage locations. PDF coordinates do not map to TeX source lines.", "parameters": schema}}
 }
 
 func decodeRequest(args map[string]any, outdir string) (Request, error) {

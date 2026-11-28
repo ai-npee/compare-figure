@@ -31,6 +31,48 @@ func TestModelDefinitionExposesOnlyCanonicalRegion(t *testing.T) {
 	}
 }
 
+func TestSparseModelCallsKeepHostSettingsOutOfDefinition(t *testing.T) {
+	fn := (&Docs{}).Definition()["function"].(map[string]any)
+	if fn["strict"] != false {
+		t.Fatal("model options must remain optional")
+	}
+	schema := fn["parameters"].(map[string]any)
+	if required, exists := schema["required"]; exists {
+		t.Fatalf("sparse calls must not require unused options: %#v", required)
+	}
+	props := schema["properties"].(map[string]any)
+	for _, key := range []string{"out_dir", "dpi", "passive", "inline_images", "output_version", "kinds", "extensions", "match", "left", "top", "right", "bottom"} {
+		if _, exists := props[key]; exists {
+			t.Fatalf("host/legacy parameter advertised to model: %s", key)
+		}
+	}
+	if props["include_bbox"].(map[string]any)["type"] != "boolean" {
+		t.Fatal("bbox must remain an optional boolean")
+	}
+	root := t.TempDir()
+	if err := os.WriteFile(filepath.Join(root, "guide.tex"), []byte("needle source body\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	d, err := NewConfig(Config{Sources: []Source{{ID: "fixture", Root: root}}, CacheDir: t.TempDir(), Output: OutputSettings{Version: 2}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, args := range []map[string]any{
+		{"mode": "search", "query": "needle", "limit": 5, "max_chars": 5000},
+		{"mode": "frequent", "query": "needle", "limit": 5, "max_chars": 5000},
+	} {
+		text, image, err := d.Execute(context.Background(), args, "")
+		if err != nil || !strings.Contains(text, "needle") || image != "" || len(args) != 4 {
+			t.Fatalf("sparse call failed or mutated: %#v %s %s %v", args, text, image, err)
+		}
+		for _, noise := range []string{"namespace", "cache hits", "bbox_pct", "page_size", "index_sha256"} {
+			if strings.Contains(text, noise) {
+				t.Fatalf("compact output leaked %s: %s", noise, text)
+			}
+		}
+	}
+}
+
 func TestDefaultFilledModelSearchAndLegacyCropCompatibility(t *testing.T) {
 	root := t.TempDir()
 	if err := os.WriteFile(filepath.Join(root, "guide.tex"), []byte("needle source body\n"), 0600); err != nil {

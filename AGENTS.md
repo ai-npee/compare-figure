@@ -10,6 +10,8 @@ Python模块和测试仅放dev/python，使用conda base（本机/home/lingnc/mi
 
 ## 状态与范围
 
+- 用户指出仅要求精简输出却模型参数全填：追溯fea71ed(11月25日)将原手工20字段模型定义替为core27+flat4=31，31874cd(11月27日)加include_bbox/output_version成33；Responses转换从657d23f起一直丢strict，旧Chat真实只填4–5字段、新Responses填33/删flat后29字段。e68e63a仅修冲突不解决输入膨胀。现在Definition专用白名单21个按需字段、不直接暴露完整CLI请求；去模型out_dir/dpi/passive/inline_images/output_version/kinds/extensions/match，正常与fallback共享定义，保留CLI/Execute兼容。Responses wire明确默认strict:false并保留显式true/false，不改参数schema/历史arguments；include_bbox可省略，默认关闭(显式启动配置仍遵循继承)，compactv2输出不回退。文档完整列21参；普通search/frequent四字段实测通过，三协议httptestwire/稀疏回参测试、documents24.474s/session6.122s/drawing.003s/runnerprompts.121s、相关vet/build通过，无付费模型、旧会话/公共库/vendor改动。服务端内部如何归一化未抓包，不把早前全部填默认归咎gateway定论。
+
 - 新图11.86/11.87的两独立LuaDraw run均真实完成，主线串行job退出0/0并已收齐；同gpt-6.1-sol，LuaDraw3.7/LuaLaTeX。最终重叠71.498639%/57.023110%，尺寸偏差0.408975%/0.487711%，各一次正常submit、accepted_as_is=false/warnings=[]，均保留uncertain=true。两最终PDF已实际看图，分别14/245矢量对象，零位图；各自submitted.tex单独复制到隔离输入目录后无模型重编通过。第一张不确定为柱上口内后侧交线可见段，第二张为匹配印刷示意采用上下高度0.85/-0.4缩放，不能称精确球柱交体。最终PDF/TeX/Lua与配置/日志仅私有runs，不提交或公开原书素材；旧会话与原书未改。双环README展示95c4bac及region schema修复e68e63a已推main；本条只补完成记录，不重新Release。
 
 - 两张新LuaDraw任务图11.86/11.87使用新独立runs。现有网关禁Chat Completions、只支持Responses，因此仅新配置api改responses，model/key/endpoint不变。捕获429确切为user requests-per-minute limit exceeded，任务临时入口以至少20秒请求间隔与429退避串行运行；不将诊断/节流脚本或私有配置提交。实跑暴露模型为每个optional字段填默认，document_search同时传四flat=0和region导致连续冲突。模型Definition与fallback现只暴露canonical region；Execute/CLI仍支持旧flat，真实混用继续拒绝，不放宽来源/裁剪边界、不篡改旧转录。共享提示词同步region对象写法，修复后从原检查点恢复，不称前述错误调用已完成绘图。
