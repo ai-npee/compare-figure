@@ -85,7 +85,7 @@ func TestManualCLIDocsReadRealSourceWithoutModel(t *testing.T) {
 		t.Skip(err)
 	}
 	var out bytes.Buffer
-	args := []string{"--mode", "read", "--doc", "files/luadraw_base.lua", "--resource-root", resources, "--cache-dir", filepath.Join(t.TempDir(), "cache"), "--out", filepath.Join(t.TempDir(), "out"), "--start-line", "1", "--end-line", "2", "--include-image=false"}
+	args := []string{"--mode", "read", "--doc", "vendor/luadraw-3.7/luadraw/files/luadraw_base.lua", "--resource-root", resources, "--cache-dir", filepath.Join(t.TempDir(), "cache"), "--out", filepath.Join(t.TempDir(), "out"), "--start-line", "1", "--end-line", "2", "--include-image=false"}
 	if code := manualCLI(context.Background(), "luadraw-doc-search", args, nil, &out); code != 0 {
 		t.Fatal(code, out.String())
 	}
@@ -93,7 +93,7 @@ func TestManualCLIDocsReadRealSourceWithoutModel(t *testing.T) {
 	if err := json.Unmarshal(out.Bytes(), &result); err != nil {
 		t.Fatal(err, out.String())
 	}
-	if result["ok"] != true || result["results"].([]any)[0].(map[string]any)["doc"] != "files/luadraw_base.lua" {
+	if result["ok"] != true || result["results"].([]any)[0].(map[string]any)["doc"] != "vendor/luadraw-3.7/luadraw/files/luadraw_base.lua" {
 		t.Fatal(result)
 	}
 }

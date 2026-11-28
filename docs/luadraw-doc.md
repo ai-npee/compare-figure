@@ -16,7 +16,7 @@
 
 引用源由 [LuaDraw 配置](document-sources/luadraw.yaml)、[mixed 配置](document-sources/mixed.yaml) 和 [Asymptote 配置](document-sources/asymptote.yaml) 声明，都是标准 doc-library `Config` YAML；相对 `root` 按 YAML 所在目录解析。`documents.New` 按绘图模式加载配置并调用 `NewConfig`；源 YAML 未指定 `output.version` 时补宿主默认 2，显式配置的版本保留。没有写死经验文件名、来源别名或扩展筛选规则。后续补充资料只需改对应 YAML 的 `sources/include` 和增加实际文档；若使用导出包，也应将新增文档列入资源导出清单。
 
-`source` 不是必填项：不传就搜索当前绘图模式配置的全部资料；`source:"luadraw"` 同时检索官方资源和纳入配置的补充文档。`mixed` 下可用 `source:"asymptote"` 只查 Asymptote，也可省略来源同时查询两套绘图库。`luadraw-notes` 不再是独立来源。LuaDraw 配置以包根为 `root`，用 `include` 仅开放 `vendor/luadraw-3.7/luadraw/**` 与 `docs/luadraw-surface-rendering.md`；其他项目文档、配置和 runs 不可读。返回的 `doc` 使用包根相对路径，`read/view` 按返回值填写。显式 `NewConfig` 仍遵守调用方的配置；旧版或独立 LuaDraw 目录缺少 YAML 时退回原官方根和旧相对路径。
+`source` 不是必填项：不传就搜索当前绘图模式配置的全部资料；`source:"luadraw"` 同时检索官方资源和纳入配置的补充文档。`mixed` 下可用 `source:"asymptote"` 只查 Asymptote，也可省略来源同时查询两套绘图库。`luadraw-notes` 不再是独立来源。LuaDraw 配置以包根为 `root`，用 `include` 开放 `vendor/luadraw-3.7/luadraw/**`、`docs/luadraw-surface-rendering.md` 与 `knowledge/luadraw/**/*.md`；Asymptote 同样以包根配置官方目录与对应经验目录。其他项目文档、配置和 runs 不可读。返回的 `doc` 使用包根相对路径，`read/view` 按返回值填写。显式 `NewConfig` 仍遵守调用方的配置；旧版或独立 LuaDraw 目录缺少 YAML 时退回原官方根和旧相对路径。
 
 ```json
 {"source":"luadraw","mode":"search","query":"Dscene3d 网格 毛刺","limit":5}
@@ -27,6 +27,10 @@
 来源根与索引范围改变后，文档路径、缓存命名空间和高频条目 ID 会变化，首次需要重建该索引；之后官方与补充文档在新的统一来源下共同累计排序。不会删除旧缓存或伪造迁移旧频次。
 
 配置和参考原文一起随源码 Skill 导出，安装包也可检索、精读这些经验；不是只在仓库里的链接。
+
+## 共享经验维护
+
+新增独立 `document_note` 工具，委托 doc-library 的 `Note` API；支持 create/list/read/update/delete/restore。模型可维护同一经验目录内任何贡献者的文档；更新和删除需先读取并提交最新 revision，删除归档可恢复。经验保存在 Skill 内 knowledge/luadraw、knowledge/asymptote，归入对应原来源；保存不会增加频次，新增/修订/删除在后续检索中生效。官方目录只读，运行经验不随源码 Skill 导出。查询工具仍是 21 个可选参数，经验工具另有 8 个按需参数，完整示例与版本冲突处理见[共享经验说明](experience-notes.md)。
 
 ## 构建和依赖
 
@@ -52,7 +56,7 @@ Windows 输出名使用 `../build/compare-figure.exe`。首次构建会下载固
 
 `list` 默认列直接子项，包含文件和文件夹；文件夹以 `/` 结尾，JSON有 `kind:"directory"`，`recursive:true` 可递归列允许的文档。结果受 `limit`/`offset` 分页；空目录或不含允许文档的目录不会被索引展示。缺路径的错误提示只是最多32项建议，目录优先，并非完整目录清单。
 
-Asymptote 手册实际路径是 `doc/asymptote.texi`，不是根目录的 `asymptote.texi`；可 `find` 定位后再 `read`。`read` 给了 `doc` 和行范围就读那段，不会根据 `query` 自动把错误路径或不相关行号修正为匹配段落。先 `search`/`grep` 查 `orthographic` 获得真实路径/行号再读。
+Asymptote 标准配置下手册路径是 `vendor/asymptote-3.16/doc/asymptote.texi`；无 YAML 的旧官方根回退才是 `doc/asymptote.texi`。可 `find` 定位后再 `read`。`read` 给了 `doc` 和行范围就读那段，不会根据 `query` 自动把错误路径或不相关行号修正为匹配段落。先 `search`/`grep` 查 `orthographic` 获得真实路径/行号再读。
 
 ## CLI 参数调用
 

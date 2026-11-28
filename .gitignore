@@ -19,6 +19,8 @@ runner.yml
 runs/
 build/
 dist/
+# Runtime experience notes are local shared data, not release resources.
+knowledge/
 预览/
 *.jsonl
 *.png

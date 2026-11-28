@@ -82,13 +82,50 @@ func testHarness(t *testing.T, opts map[string]any) *Harness {
 	return h
 }
 
-func TestDefinitionsRetainElevenTools(t *testing.T) {
+func TestDocumentNoteToolCreatesAndReadsConfiguredExperience(t *testing.T) {
+	resources := t.TempDir()
+	configPath := filepath.Join(resources, "docs", "document-sources", "luadraw.yaml")
+	if err := os.MkdirAll(filepath.Dir(configPath), 0755); err != nil {
+		t.Fatal(err)
+	}
+	config := "sources:\n  - id: luadraw\n    root: ../..\n    include:\n      - knowledge/luadraw/**/*.md\n    notes_dir: knowledge/luadraw\n"
+	if err := os.WriteFile(configPath, []byte(config), 0600); err != nil {
+		t.Fatal(err)
+	}
+	h := testHarness(t, map[string]any{"resource_root": resources, "doc_cache_dir": t.TempDir()})
+	created, _, err := h.Execute(context.Background(), "document_note", map[string]any{
+		"action": "create", "source": "luadraw", "title": "Tool-created method", "content": "Keep the scale fixed and inspect the crossing.",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var response struct {
+		OK    bool `json:"ok"`
+		Notes []struct {
+			Source string `json:"source"`
+			Doc    string `json:"doc"`
+		} `json:"notes"`
+	}
+	if err = json.Unmarshal([]byte(created), &response); err != nil || !response.OK || len(response.Notes) != 1 {
+		t.Fatalf("invalid create response: %s (%v)", created, err)
+	}
+	note := response.Notes[0]
+	if note.Source != "luadraw" || !strings.HasPrefix(note.Doc, "knowledge/luadraw/") {
+		t.Fatalf("unexpected note identity: %#v", note)
+	}
+	read, _, err := h.Execute(context.Background(), "document_note", map[string]any{"action": "read", "source": note.Source, "doc": note.Doc})
+	if err != nil || !strings.Contains(read, "Keep the scale fixed and inspect the crossing.") {
+		t.Fatalf("tool read failed: %s (%v)", read, err)
+	}
+}
+
+func TestDefinitionsIncludeSharedExperienceTool(t *testing.T) {
 	h := testHarness(t, nil)
 	defs := h.Definitions()
-	if len(defs) != 11 {
+	if len(defs) != 12 {
 		t.Fatalf("got %d definitions", len(defs))
 	}
-	expected := []string{"write_file", "edit_file", "read_file", "grep", "compile", "view_pdf", "compare_figure", "submit", "image_context", "view_image", "document_search"}
+	expected := []string{"write_file", "edit_file", "read_file", "grep", "compile", "view_pdf", "compare_figure", "submit", "image_context", "view_image", "document_search", "document_note"}
 	for i, d := range defs {
 		fn := d["function"].(map[string]any)
 		if fn["name"] != expected[i] {

@@ -114,7 +114,7 @@ func TestSemiAutomaticDocumentQueryDefaultImageAndBoundedOutput(t *testing.T) {
 	if images := first["images"].([]any); len(images) != 0 {
 		t.Fatalf("default search attached images: %v", first)
 	}
-	view := callNative(t, "docs", "--mode", "view", "--doc", "doc/luadraw-doc-en.pdf", "--page", "1", "--left", "10", "--top", "15", "--right", "85", "--bottom", "90")
+	view := callNative(t, "docs", "--mode", "view", "--doc", "vendor/luadraw-3.7/luadraw/doc/luadraw-doc-en.pdf", "--page", "1", "--left", "10", "--top", "15", "--right", "85", "--bottom", "90")
 	images := view["images"].([]any)
 	if len(images) != 1 {
 		t.Fatalf("explicit view should render one page crop: %v", view)
@@ -125,7 +125,7 @@ func TestSemiAutomaticDocumentQueryDefaultImageAndBoundedOutput(t *testing.T) {
 	}
 	count := fileCount(t, view["out_dir"].(string))
 	for i := 0; i < 2; i++ {
-		next := callNative(t, "docs", "--mode", "view", "--doc", "doc/luadraw-doc-en.pdf", "--page", "1", "--left", "10", "--top", "15", "--right", "85", "--bottom", "90")
+		next := callNative(t, "docs", "--mode", "view", "--doc", "vendor/luadraw-3.7/luadraw/doc/luadraw-doc-en.pdf", "--page", "1", "--left", "10", "--top", "15", "--right", "85", "--bottom", "90")
 		if next["images"].([]any)[0].(map[string]any)["path"] != imagePath {
 			t.Fatal(next)
 		}

@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"compare-figure/distribution"
+	"compare-figure/documents"
 	"compare-figure/luadraw"
 )
 
@@ -31,6 +32,83 @@ func TestAgentToolCLIRequiresWorkspaceAndInitialReference(t *testing.T) {
 	var result map[string]any
 	if err := json.Unmarshal(out.Bytes(), &result); err != nil || result["ok"] != false || result["images"] == nil {
 		t.Fatalf("error JSON contract: %v %s", err, out.String())
+	}
+}
+
+func TestAgentToolCLIDocumentNoteDispatchesConfiguredSharedNotes(t *testing.T) {
+	projectRoot, err := distribution.FindRoot("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	resources := t.TempDir()
+	for _, relative := range []string{"SKILL.md", "prompts/luadraw_figure.system.md", "vendor/luadraw-3.7/luadraw/files/luadraw.sty", "scripts/luadraw_runtime.lua"} {
+		data, readErr := os.ReadFile(filepath.Join(projectRoot, relative))
+		if readErr != nil {
+			t.Fatal(readErr)
+		}
+		target := filepath.Join(resources, relative)
+		if err = os.MkdirAll(filepath.Dir(target), 0755); err != nil {
+			t.Fatal(err)
+		}
+		if err = os.WriteFile(target, data, 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err = os.MkdirAll(filepath.Join(resources, "vendor", "luadraw-3.7", "luadraw", "doc"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	configPath := filepath.Join(resources, "docs", "document-sources", "luadraw.yaml")
+	if err = os.MkdirAll(filepath.Dir(configPath), 0755); err != nil {
+		t.Fatal(err)
+	}
+	config := "sources:\n  - id: luadraw\n    root: ../..\n    include:\n      - knowledge/luadraw/**/*.md\n    notes_dir: knowledge/luadraw\n"
+	if err = os.WriteFile(configPath, []byte(config), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = documents.New(resources, t.TempDir(), "luadraw"); err != nil {
+		t.Fatalf("isolated documents config invalid: %v", err)
+	}
+	workspace := filepath.Join(t.TempDir(), "agent")
+	reference := writeAgentTestImage(t, t.TempDir(), "reference.png")
+	invoke := func(name, args string, initial bool) map[string]any {
+		t.Helper()
+		cliArgs := []string{"--workspace", workspace, "--name", name, "--args", args}
+		if initial {
+			cliArgs = append(cliArgs, "--original", reference, "--resource-root", resources)
+		}
+		var out bytes.Buffer
+		if code := agentToolCLI(context.Background(), cliArgs, nil, &out); code != 0 {
+			t.Fatalf("%s failed: code=%d output=%s", name, code, out.String())
+		}
+		var response map[string]any
+		if err := json.Unmarshal(out.Bytes(), &response); err != nil || response["ok"] != true {
+			t.Fatalf("%s invalid response: %v %s", name, err, out.String())
+		}
+		return response
+	}
+	created := invoke("document_note", `{"action":"create","source":"luadraw","title":"Agent-shared","content":"Record the checked construction."}`, true)
+	var note struct {
+		Doc string `json:"doc"`
+	}
+	var noteResponse struct {
+		Notes []struct {
+			Doc string `json:"doc"`
+		} `json:"notes"`
+	}
+	if err = json.Unmarshal([]byte(created["text"].(string)), &noteResponse); err != nil || len(noteResponse.Notes) != 1 {
+		t.Fatalf("invalid created note: %v %#v", err, created)
+	}
+	note = noteResponse.Notes[0]
+	if !strings.HasPrefix(note.Doc, "knowledge/luadraw/") {
+		t.Fatalf("unexpected note path: %s", note.Doc)
+	}
+	args, err := json.Marshal(map[string]string{"action": "read", "source": "luadraw", "doc": note.Doc})
+	if err != nil {
+		t.Fatal(err)
+	}
+	read := invoke("document_note", string(args), false)
+	if !strings.Contains(read["text"].(string), "Record the checked construction.") {
+		t.Fatalf("subsequent agent call could not read shared note: %#v", read)
 	}
 }
 

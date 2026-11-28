@@ -48,7 +48,7 @@ func TestLuaDrawDocsCLIJSONArgsEnvelopeAndCache(t *testing.T) {
 	resources := docsTestResources(t)
 	cache := filepath.Join(t.TempDir(), "chosen-cache")
 	requests := `{"mode":"search","query":"Dpolyline3d","limit":1}` + "\n" +
-		`{"operation":"docs","arguments":{"mode":"read","doc":"files/luadraw_base.lua","start_line":1,"end_line":2},"cache_dir":""}`
+		`{"operation":"docs","arguments":{"mode":"read","doc":"vendor/luadraw-3.7/luadraw/files/luadraw_base.lua","start_line":1,"end_line":2},"cache_dir":""}`
 	code, output := runDocsCLI(t, []string{"--jsonl", "--output-version=1", "--resource-root", resources, "--cache-dir", cache}, requests)
 	if code != 0 {
 		t.Fatalf("CLI returned %d: %s", code, output)

@@ -31,7 +31,7 @@ d, err = documents.NewConfig(documents.Config{
 | --- | --- | --- |
 | `luadraw`（默认） | `source=luadraw` | 固定 LuaDraw vendor 资源与配置明确纳入的项目补充文档共用一个来源；返回项目相对路径，二进制文件不作为正文索引 |
 | `mixed` | `luadraw`、`asymptote` | 可跨源搜索；重名文档 read/view 必须指定 source |
-| `asymptote` | `source=asymptote` | 从 [上游资源清单](asymptote-upstream.json)的 `resource_root` 发现；没有声明时要求唯一 `vendor/asymptote-*` |
+| `asymptote` | `source=asymptote` | 标准 YAML 配置纳入固定官方资源及本机 `knowledge/asymptote/` 经验，返回包根相对路径；无 YAML 时才按[上游资源清单](asymptote-upstream.json)发现官方根 |
 | `latex` | 无默认专用库 | 返回成功响应及明确说明，不加载 LuaDraw 参考；调用方可用 NewConfig 配置自己的 LaTeX 文档 |
 
 通用工具名为 `document_search`，旧 `luadraw.NewDocs(rootVendor, cacheDir)`、`Definition()` 的 `luadraw_doc` 名称、`Execute` 三返回与四参数 `FrequentSnippet` 都保留。宿主 `documents.New` 默认 v2；来源 YAML 未指定 `output.version` 时补 2，显式值保留。直接 `NewConfig` 保留核心配置选择及未指定时的 v1 默认。结构化 `ExecuteResponse` 的 v2 正文只在 `results`，保留图片、warnings、分页等机器信息，省略顶层 `text/cache/provenance`；v1 保留原字段。app 外层 `version` 仍为 `compare-figure-tools/1`，另加整数 `output_version`，不以文档版本替换 app 协议版本。

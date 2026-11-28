@@ -41,6 +41,9 @@ func TestSparseModelCallsKeepHostSettingsOutOfDefinition(t *testing.T) {
 		t.Fatalf("sparse calls must not require unused options: %#v", required)
 	}
 	props := schema["properties"].(map[string]any)
+	if len(props) != 21 {
+		t.Fatalf("model tool schema has %d properties, want 21", len(props))
+	}
 	for _, key := range []string{"out_dir", "dpi", "passive", "inline_images", "output_version", "kinds", "extensions", "match", "left", "top", "right", "bottom"} {
 		if _, exists := props[key]; exists {
 			t.Fatalf("host/legacy parameter advertised to model: %s", key)

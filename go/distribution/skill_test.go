@@ -75,6 +75,54 @@ func TestExportIncludesAsymptoteAndPreservesLuaDrawResources(t *testing.T) {
 	}
 }
 
+func TestExportOmitsRuntimeKnowledgeAndPreservesExistingDestinationNotes(t *testing.T) {
+	root, err := FindRoot("")
+	if err != nil {
+		t.Skip(err)
+	}
+	out := filepath.Join(t.TempDir(), "export")
+	preserved := map[string]string{
+		"knowledge/luadraw/keep.md":                       "destination note\n",
+		"knowledge/luadraw/.history/deleted/archive.json": `{"revision":"fixture"}`,
+		"knowledge/asymptote/keep.md":                     "another destination note\n",
+	}
+	for name, body := range preserved {
+		path := filepath.Join(out, filepath.FromSlash(name))
+		if err = os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+			t.Fatal(err)
+		}
+		if err = os.WriteFile(path, []byte(body), 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err = Export(context.Background(), ExportOptions{Root: root, Out: out}); err != nil {
+		t.Fatal(err)
+	}
+	manifestData, err := os.ReadFile(filepath.Join(out, "manifest.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var manifest struct {
+		Files []struct {
+			Path string `json:"path"`
+		} `json:"files"`
+	}
+	if err = json.Unmarshal(manifestData, &manifest); err != nil {
+		t.Fatal(err)
+	}
+	for _, record := range manifest.Files {
+		if strings.HasPrefix(filepath.ToSlash(record.Path), "knowledge/") {
+			t.Fatalf("runtime knowledge was included in Skill export: %s", record.Path)
+		}
+	}
+	for name, want := range preserved {
+		got, e := os.ReadFile(filepath.Join(out, filepath.FromSlash(name)))
+		if e != nil || string(got) != want {
+			t.Fatalf("export did not preserve existing destination file %s: %q %v", name, got, e)
+		}
+	}
+}
+
 func TestCanonicalSkillVersionAndBody(t *testing.T) {
 	root := t.TempDir()
 	source := "---\nname: compare-figure\ndescription: Figure redraw\nmetadata:\n  version: \"0.1.0\"\n---\n\n# Mode 1\nKeep original tool receipt.\n"

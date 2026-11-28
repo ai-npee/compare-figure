@@ -1,6 +1,6 @@
 # compare-figure
 
-图形比对与独立原生Go矢量绘图阶段。生产比较/会话基线固定DocVision `20faca6aaaf8d9469b3ee68e5ff7477437b7a0d7`；当前Go runner提供luadraw/mixed/latex/asymptote四策略，默认LuaDraw3.7，支持真实宿主检测、LuaDraw两阶段回退、通用文档附图、11工具、三协议会话、复核与幂等续跑。
+图形比对与独立原生Go矢量绘图阶段。生产比较/会话基线固定DocVision `20faca6aaaf8d9469b3ee68e5ff7477437b7a0d7`；当前Go runner提供luadraw/mixed/latex/asymptote四策略，默认LuaDraw3.7，支持真实宿主检测、LuaDraw两阶段回退、通用文档附图、12工具（含document_note）、三协议会话、复核与幂等续跑。
 
 ## 快速开始
 
@@ -9,6 +9,8 @@
 Python模块和测试仅放dev/python，使用conda base（本机/home/lingnc/miniconda3/bin/conda）；共享环境只读，RE2本机依赖在忽略的.deps/，不得修改共享环境。旧compare.py及dev/python/viewer.html保留历史评分/查看用途；根viewer.html为现专用会话工具。
 
 ## 状态与范围
+
+- 最新用户授权通用共享经验能力放doc-library：独立Note API/CLI与notes_dir配置已实现create/list/read/update/delete/restore，所有贡献者共享维护、SHA revision防陈旧覆盖、删除归档可恢复；保存不增加频次，后续查询即时反映新增改删。宿主document_note仅薄封装、独立8字段（只action必填）且strictfalse，原document_search仍21个按需字段。Harness第12工具及半自动agent-tool已接通，四mode共享提示词与Skill指引已更新。luadraw/asymptote各配置包内knowledge目录并归原source，Asy同样改包根相对doc（vendor/asymptote-3.16/...）；旧无YAML回退仍官方根。运行knowledge及归档Git忽略且不入公共导出，导出保留目标既有knowledge；官方vendor不改。doclib全仓test/vet/LinuxCLIbuild、核心race/Windows核心测试交叉编译通过；host四包完整和跨实例CRUD/CLI派发/缓存频次/导出保留专项通过。暂用build/notes-integration/go.mod本地替换验收，不写本机路径进正式模块；主线临时modfile全仓test/vet/CLIbuild通过：app97.925s/documents26.750s/drawing61.738s/luadraw82.979s/render86.643s/runner255.158s/session6.128s；实际导出734文件全部SHA吻合，含经验说明/工具代码且不含运行knowledge。用户本轮已明确选择允许推送并完成接入，doclib功能b132bd3/说明232d27c已推送，正式固定remote pseudo v0.0.0-20261128105755-232d27c81bf4；生产CLI已构建，正式documents22.530s/app83.913s/distribution0.455s与全仓vet通过，无本机replace。公共sum服务因其无法连接GitHub返回404，单次direct/GOSUMDBoff下载后47个模块文件与已发布Git逐字核验一致、h1固定进go.sum；不称sumdb已验证。独立正式导出734文件SHA与size全核验，无knowledge清单项或本机replace；export/go以GOPROXYoff独立构建成功，导出CLI两个工作区交叉create/list/read/update、旧revision拒绝、delete/墓碑read/restore与各次后续search/frequent排除旧内容均通过。证据build/notes-public-validation/validation-report.json，无模型或TeX运行。
 
 - 用户最新要求将补充使用文档在索引层并入luadraw，覆盖下文历史luadraw-notes独立源规则。两mode YAML的luadraw改root项目根、include只含vendor/luadraw-3.7/luadraw/**与docs/luadraw-surface-rendering.md，exclude剪枝私有运行/构建/源码目录；asymptote仍独立。source可省略，显式luadraw同时检索官方与补充，同来源缓存/高频排序；旧notesID不再提供，不做暗alias或Go特判。doc返回真实包根相对路径vendor/...与docs/...，read/view照返回路径；legacy无YAML官方根旧路径保持。根变化导致新namespace/entryID首次重建，不删旧缓存、不假迁频次。fixture六mode边界/缓存重开频次同序、documents全包21.880s/真实241files暖240hits0miss、vet/build通过；core/pin/vendor/旧runs不改，不调用模型。项目补充仍不是官方内容，按实际文档路径辨别。
 

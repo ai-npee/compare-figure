@@ -1,12 +1,14 @@
 # doc-library 来源配置；路径相对此 YAML，不相对启动工作目录。
-# 官方资料与项目经验共用 luadraw 来源；仅开放下面两项白名单。
+# 官方资料、固定项目参考与可写经验共用 luadraw 来源；仅开放声明的白名单。
 sources:
   - id: luadraw
     root: ../..
     include:
       - vendor/luadraw-3.7/luadraw/**
       - docs/luadraw-surface-rendering.md
-    # 跳过无关项目目录的遍历；可检索范围仍由上面两项 include 限定。
+      - knowledge/luadraw/**/*.md
+    notes_dir: knowledge/luadraw
+    # 跳过无关项目目录的遍历；可检索范围仍由上面声明的 include 限定。
     exclude: [.git/**, build/**, runs/**, dist/**, .deps/**, dev/**, go/**, scripts/**]
 output:
   version: 2

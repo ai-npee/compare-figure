@@ -17,7 +17,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const DependencyRevision = "ce677c8064e71413f97fa7f8467ec5df6bc8a775"
+const DependencyRevision = "232d27c81bf4d720655b69e853531f2293f513a9"
 
 type OutputSettings = doclibrary.OutputSettings
 

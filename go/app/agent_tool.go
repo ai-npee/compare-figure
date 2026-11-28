@@ -391,7 +391,7 @@ func agentToolCLI(ctx context.Context, args []string, in io.Reader, out io.Write
 
 func knownAgentTool(name string) bool {
 	switch name {
-	case "write_file", "edit_file", "read_file", "grep", "compile", "view_pdf", "compare_figure", "submit", "image_context", "view_image", "luadraw_doc", "document_search":
+	case "write_file", "edit_file", "read_file", "grep", "compile", "view_pdf", "compare_figure", "submit", "image_context", "view_image", "luadraw_doc", "document_search", "document_note":
 		return true
 	default:
 		return false

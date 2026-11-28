@@ -35,12 +35,12 @@ JSON 请求使用顶层 `drawing_mode`。同一任务的编译、比较和提交
 
 ## 文档工具
 
-`document_search` 是模型工具，独立命令为 `document-search`。底层直接使用 [doc-library](https://github.com/LingNc/doc-library) 的固定上游 Go 模块，索引、段落、位置、频次和缓存不再在本项目维护另一份实现。
+`document_search` 是模型工具，独立命令为 `document-search`。底层直接使用 [doc-library](https://github.com/LingNc/doc-library) 的固定上游 Go 模块，索引、段落、位置、频次和缓存不再在本项目维护另一份实现。`document_note` 通过同一库维护[共享经验](experience-notes.md)：LuaDraw 与 Asymptote 各有对应 knowledge 目录，支持查看、修订、可恢复删除；经验留在原来源中参与检索。
 
 ```bash
 compare-figure document-search --drawing-mode mixed --doc-source asymptote --query projection
 compare-figure document-search --drawing-mode mixed --doc-source luadraw --query graph3d
-compare-figure document-search --drawing-mode asymptote --mode read --doc doc/asymptote.texi --start-line 1 --end-line 40
+compare-figure document-search --drawing-mode asymptote --mode read --doc vendor/asymptote-3.16/doc/asymptote.texi --start-line 1 --end-line 40
 ```
 
 模型工具参数以 `source` 选择文档库。`search/read/view/list/find/grep/frequent` 继续可用，旧 `luadraw_doc`、`luadraw-doc` 和 docs JSON 请求保留。Texinfo 在此作为普通 UTF-8 文本检索和按行读取，不是 Texinfo 语义解析器。功能与兼容边界见 [差异矩阵](doc-library-compatibility.md)。

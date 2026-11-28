@@ -1,5 +1,13 @@
 # 开发记录
 
+## 共享经验文档由doc-library管理
+
+用户授权模型保存可复用经验，并可查看和修订所有贡献者的文档、删除过时或错误方法。通用能力落在doc-library：Source.notes_dir显式授权源根内Markdown，Library.Note与CLI note提供create/list/read/update/delete/restore，原只读Request/schema不扩充。SHA revision在修改/删除/恢复时校验，来源目录锁跨进程/不同缓存目录生效，原子替换保留硬链接原件，历史和删除墓碑留在不参与检索的.history；可恢复删除不等于物理擦除缓存。保存不加频，后续查询扫描变化，旧频次按内容校验隐藏。
+
+compare-figure只新增document_note薄封装，8字段只action必填，查询仍21可选字段。Harness12工具、agent-tool派发、共享workflow和Skill说明已同步；luadraw/asymptote各在Skill根knowledge下写入，对应YAML归原source，mixed明确来源，latex默认只读。Asy配置同样以包根为root，文档路径随之加vendor/asymptote-3.16前缀。运行经验与历史不提交或公共导出，导出时保留目标目录经验；新安装首次写入自动建目录。
+
+本地验收：doclib全仓test/vet及LinuxCLI构建、核心race2.875s/Windows核心测试交叉编译（未Windows实跑）通过；host documents/drawing/app/distribution完整通过，两个实例共享修改、过期版本拒绝、增删改对检索/频次立即可见、CLI派发、导出清单不含knowledge且保留目标经验均有回归。全仓临时依赖回归test/vet/build亦通过（runner255.158s）。随后用户本轮明确允许推送并完成接入，doclib公开232d27c已固定remote pseudo v0.0.0-20261128105755-232d27c81bf4；正式CLI构建、documents22.530s/app83.913s/distribution0.455s与全仓vet通过。公共sum服务返回其连接GitHub失败的404，本次direct下载并将47个模块文件与公开Git提交逐字核对、h1写入go.sum；不宣称sumdb核验成功。未调用模型、未改官方vendor/既有会话。独立正式导出734文件SHA/size全吻合，无knowledge清单项，export/go使用公开固定依赖/GOPROXYoff独立构建成功。导出CLI两工作区共享create/list/read/update、旧revision拒绝、delete/读取删除正文/restore、每次后续search反映变化和frequent排除已删及归档内容均通过，证据build/notes-public-validation/validation-report.json；无模型/TeX运行。
+
 ## LuaDraw 官方与补充文档统一来源
 
 按用户要求撤销独立luadraw-notes来源，改为配置层同一luadraw索引：root设为包根，include仅vendor/luadraw-3.7/luadraw/**与docs/luadraw-surface-rendering.md，exclude跳过.git/build/runs/dist/.deps/dev/go/scripts目录遍历。无需修改doc-library核心或增加宿主source别名，Asymptote仍独立。source可省略；显式luadraw可查官方和经验，两者参与同来源缓存、高频累计和排序。结果doc统一真实包根相对路径，后续read/view使用返回值。由于root和文档身份变化，采用新缓存namespace/entryID并首次重建，不删除旧数据或把旧计数冒充已迁移。

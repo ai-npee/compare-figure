@@ -200,7 +200,7 @@ func sourceConfigFixture(t *testing.T) string {
 	for path, body := range map[string]string{
 		"vendor/luadraw-3.7/luadraw/doc/official.tex":   "Dscene3d officialneedle sharedmarker\n",
 		"vendor/luadraw-3.7/luadraw/files/graph.lua":    "official source\n",
-		"vendor/asymptote-3.16/doc/manual.texi":         "asymptoteneedle sharedmarker\n",
+		"vendor/asymptote-3.16/doc/asymptote.texi":      "asymptoteneedle sharedmarker\n",
 		"docs/luadraw-surface-rendering.md":             "# Project experience\n\nprojectonlyfacet sharedmarker\n",
 		"docs/unrelated.md":                             "projectonlyfacet sharedmarker unrelated\n",
 		"docs/configuration.md":                         "projectonlyfacet sharedmarker private configuration\n",
@@ -287,7 +287,7 @@ func TestModeSourceConfigUsesDeclaredSourcesAndExactSelectors(t *testing.T) {
 					r := execute(t, d, args)
 					want := append([]string(nil), test.want...)
 					if mode == "mixed" && len(selector) == 0 {
-						want = append(want, "doc/manual.texi")
+						want = append(want, "vendor/asymptote-3.16/doc/asymptote.texi")
 						assertSources(t, r, "luadraw", "asymptote")
 					} else {
 						assertSources(t, r, "luadraw")
@@ -312,7 +312,7 @@ func TestModeSourceConfigUsesDeclaredSourcesAndExactSelectors(t *testing.T) {
 			for _, path := range []string{
 				"docs/unrelated.md", "docs/configuration.md", "docs/notes.md", "docs/private/run.md",
 				"runner.yaml", "secrets/key.txt", "runs/private/session.md",
-				"vendor/luadraw-3.7/luadraw-private/secret.tex", "vendor/asymptote-3.16/doc/manual.texi",
+				"vendor/luadraw-3.7/luadraw-private/secret.tex", "vendor/asymptote-3.16/doc/asymptote.texi",
 				"docs/document-sources/" + mode + ".yaml", "doc/official.tex", "../outside.md",
 			} {
 				if _, _, err := d.Execute(context.Background(), map[string]any{"mode": "read", "source": "luadraw", "doc": path}, ""); err == nil {
@@ -328,7 +328,7 @@ func TestModeSourceConfigUsesDeclaredSourcesAndExactSelectors(t *testing.T) {
 			if mode == "mixed" {
 				asy := execute(t, d, map[string]any{"source": "asymptote", "query": "sharedmarker"})
 				assertSources(t, asy, "asymptote")
-				assertResultDocs(t, asy, "doc/manual.texi")
+				assertResultDocs(t, asy, "vendor/asymptote-3.16/doc/asymptote.texi")
 			}
 		})
 	}
@@ -628,7 +628,7 @@ func TestBundledAsymptoteRealTexinfoExamplesAndMixed(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	texinfo := execute(t, d, map[string]any{"mode": "read", "doc": "doc/asymptote.texi", "start_line": 1, "end_line": 12})
+	texinfo := execute(t, d, map[string]any{"mode": "read", "doc": "vendor/asymptote-3.16/doc/asymptote.texi", "start_line": 1, "end_line": 12})
 	if len(results(t, texinfo)) != 1 || !strings.Contains(resultText(t, texinfo), "Asymptote") {
 		t.Fatal(texinfo)
 	}
@@ -636,7 +636,7 @@ func TestBundledAsymptoteRealTexinfoExamplesAndMixed(t *testing.T) {
 	if len(results(t, search)) != 3 {
 		t.Fatal("Asy example search missing")
 	}
-	pdf := execute(t, d, map[string]any{"mode": "read", "doc": "doc/asymptote.pdf#page=1"})
+	pdf := execute(t, d, map[string]any{"mode": "read", "doc": "vendor/asymptote-3.16/doc/asymptote.pdf#page=1"})
 	if len(results(t, pdf)) == 0 {
 		t.Fatal("Asy PDF extraction missing")
 	}

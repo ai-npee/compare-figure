@@ -22,7 +22,7 @@ import (
 	"compare-figure/render"
 )
 
-// Harness is an independent LuaDraw drawing session and its eleven tools.
+// Harness is an independent drawing session with drawing and documentation tools.
 type Harness struct {
 	Root, Reference                  string
 	Options                          map[string]any
@@ -135,6 +135,7 @@ func (h *Harness) Definitions() []map[string]any {
 	} else {
 		tools = append(tools, docsToolDefinition())
 	}
+	tools = append(tools, documents.NoteDefinition())
 	return tools
 }
 
@@ -202,6 +203,14 @@ func (h *Harness) Execute(ctx context.Context, name string, args map[string]any)
 		text, err = h.imageContext(args)
 	case "view_image":
 		text, img, err = h.viewImage(args)
+	case "document_note":
+		if h.docs == nil {
+			_ = h.Definitions()
+		}
+		if h.docs == nil {
+			return "", "", errors.New("documentation resources unavailable")
+		}
+		text, err = h.docs.Note(ctx, args)
 	case "document_search", "luadraw_doc":
 		if h.docs == nil {
 			_ = h.Definitions()
