@@ -4,6 +4,8 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"reflect"
+	"sort"
 	"strings"
 	"testing"
 
@@ -196,14 +198,18 @@ func sourceConfigFixture(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
 	for path, body := range map[string]string{
-		"vendor/luadraw-3.7/luadraw/doc/official.tex": "Dscene3d officialneedle sharedmarker\n",
-		"vendor/luadraw-3.7/luadraw/files/graph.lua":  "official source\n",
-		"vendor/asymptote-3.16/doc/manual.texi":       "asymptoteneedle sharedmarker\n",
-		"docs/mesh-advice.md":                         "# Project experience\n\nprojectonlyfacet sharedmarker\n",
-		"docs/unrelated.md":                           "projectonlyfacet sharedmarker unrelated\n",
-		"docs/configuration.md":                       "projectonlyfacet sharedmarker private configuration\n",
-		"docs/notes.md":                               "projectonlyfacet sharedmarker private history\n",
-		"docs/private/run.md":                         "projectonlyfacet sharedmarker private run\n",
+		"vendor/luadraw-3.7/luadraw/doc/official.tex":   "Dscene3d officialneedle sharedmarker\n",
+		"vendor/luadraw-3.7/luadraw/files/graph.lua":    "official source\n",
+		"vendor/asymptote-3.16/doc/manual.texi":         "asymptoteneedle sharedmarker\n",
+		"docs/luadraw-surface-rendering.md":             "# Project experience\n\nprojectonlyfacet sharedmarker\n",
+		"docs/unrelated.md":                             "projectonlyfacet sharedmarker unrelated\n",
+		"docs/configuration.md":                         "projectonlyfacet sharedmarker private configuration\n",
+		"docs/notes.md":                                 "projectonlyfacet sharedmarker private history\n",
+		"docs/private/run.md":                           "projectonlyfacet sharedmarker private run\n",
+		"runner.yaml":                                   "projectonlyfacet sharedmarker private config\n",
+		"secrets/key.txt":                               "projectonlyfacet sharedmarker secret\n",
+		"runs/private/session.md":                       "projectonlyfacet sharedmarker runtime\n",
+		"vendor/luadraw-3.7/luadraw-private/secret.tex": "projectonlyfacet sharedmarker sibling\n",
 	} {
 		writeSourceFixture(t, root, path, body)
 	}
@@ -223,10 +229,11 @@ func writeSourceFixture(t *testing.T, root, path, body string) {
 
 const fixtureSourceConfig = `sources:
   - id: luadraw
-    root: ../../vendor/luadraw-3.7/luadraw
-  - id: project-guide
-    root: ..
-    include: [mesh-advice.md]
+    root: ../..
+    include:
+      - vendor/luadraw-3.7/luadraw/**
+      - docs/luadraw-surface-rendering.md
+    exclude: [.git/**, build/**, runs/**, dist/**, .deps/**, dev/**, go/**, scripts/**]
 `
 
 func assertSources(t *testing.T, response map[string]any, want ...string) {
@@ -247,63 +254,153 @@ func assertSources(t *testing.T, response map[string]any, want ...string) {
 }
 
 func TestModeSourceConfigUsesDeclaredSourcesAndExactSelectors(t *testing.T) {
-	root := sourceConfigFixture(t)
 	for _, mode := range []string{"luadraw", "mixed"} {
 		t.Run(mode, func(t *testing.T) {
-			config := fixtureSourceConfig
-			if mode == "mixed" {
-				config += "  - id: asymptote\n    root: ../../vendor/asymptote-3.16\n"
+			root := sourceConfigFixture(t)
+			// Exercise the shipped YAML against an isolated tree, including files
+			// outside its allowlist. No adapter-specific source expansion is needed.
+			config, err := os.ReadFile(filepath.Join(resourceRoot(t), "docs", "document-sources", mode+".yaml"))
+			if err != nil {
+				t.Fatal(err)
 			}
-			writeSourceFixture(t, root, "docs/document-sources/"+mode+".yaml", config)
+			writeSourceFixture(t, root, "docs/document-sources/"+mode+".yaml", string(config))
 			d, err := documents.New(root, t.TempDir(), mode)
 			if err != nil {
 				t.Fatal(err)
 			}
-			// Neither the ID nor filename is special to the adapter. Adding this
-			// reference required only the declarative source entry above.
-			note := execute(t, d, map[string]any{"query": "projectonlyfacet", "limit": 20})
-			assertSources(t, note, "project-guide")
-			if len(results(t, note)) != 1 || results(t, note)[0].(map[string]any)["doc"] != "mesh-advice.md" {
-				t.Fatalf("source include allowlist leaked other files: %#v", note)
-			}
-			hit := results(t, note)[0].(map[string]any)
-			read := execute(t, d, map[string]any{"mode": "read", "source": hit["source"], "doc": hit["doc"], "start_line": 1, "end_line": 3})
-			assertSources(t, read, "project-guide")
-			if !strings.Contains(resultText(t, read), "projectonlyfacet") {
-				t.Fatal("project follow-up lost body")
-			}
-			official := execute(t, d, map[string]any{"mode": "read", "source": "luadraw", "doc": "doc/official.tex", "start_line": 1, "end_line": 1})
-			assertSources(t, official, "luadraw")
-			if !strings.Contains(resultText(t, official), "officialneedle") {
-				t.Fatal("official root/read changed")
-			}
-			assertSources(t, execute(t, d, map[string]any{"source": "luadraw", "query": "projectonlyfacet"}))
-			assertSources(t, execute(t, d, map[string]any{"sources": []string{"luadraw"}, "query": "projectonlyfacet"}))
-			for _, args := range []map[string]any{
-				{"mode": "search", "query": "sharedmarker", "sources": []string{"luadraw", "project-guide"}, "limit": 20},
-				{"mode": "grep", "query": "sharedmarker", "sources": []string{"luadraw", "project-guide"}, "limit": 20},
-				{"mode": "list", "sources": []string{"luadraw", "project-guide"}, "recursive": true, "limit": 20},
-				{"mode": "frequent", "sources": []string{"luadraw", "project-guide"}, "limit": 20},
-			} {
-				assertSources(t, execute(t, d, args), "luadraw", "project-guide")
-				delete(args, "sources")
-				args["source"] = "luadraw"
-				assertSources(t, execute(t, d, args), "luadraw")
-			}
-			assertSources(t, execute(t, d, map[string]any{"mode": "find", "source": "luadraw", "query": "mesh-advice"}))
-			assertSources(t, execute(t, d, map[string]any{"mode": "find", "query": "mesh-advice"}), "project-guide")
-			for _, name := range []string{"unrelated.md", "configuration.md", "notes.md", "private/run.md"} {
-				if _, _, err := d.Execute(context.Background(), map[string]any{"mode": "read", "source": "project-guide", "doc": name}, ""); err == nil {
-					t.Fatalf("non-allowlisted project file readable: %s", name)
+			const official = "vendor/luadraw-3.7/luadraw/doc/official.tex"
+			const note = "docs/luadraw-surface-rendering.md"
+			for _, selector := range []map[string]any{{}, {"source": "luadraw"}, {"sources": []string{"luadraw"}}} {
+				for _, test := range []struct {
+					mode, query string
+					want        []string
+				}{
+					{"search", "sharedmarker", []string{official, note}},
+					{"grep", "sharedmarker", []string{official, note}},
+					{"find", "*", []string{official, "vendor/luadraw-3.7/luadraw/files/graph.lua", note}},
+					{"list", "", []string{official, "vendor/luadraw-3.7/luadraw/files/graph.lua", note}},
+				} {
+					args := map[string]any{"mode": test.mode, "query": test.query, "recursive": true, "limit": 50}
+					for key, value := range selector {
+						args[key] = value
+					}
+					r := execute(t, d, args)
+					want := append([]string(nil), test.want...)
+					if mode == "mixed" && len(selector) == 0 {
+						want = append(want, "doc/manual.texi")
+						assertSources(t, r, "luadraw", "asymptote")
+					} else {
+						assertSources(t, r, "luadraw")
+					}
+					assertResultDocs(t, r, want...)
 				}
 			}
-			if _, _, err := d.Execute(context.Background(), map[string]any{"mode": "read", "source": "luadraw", "doc": hit["doc"]}, ""); err == nil {
-				t.Fatal("official read unexpectedly selected project reference")
+			for _, path := range []string{official, note} {
+				r := execute(t, d, map[string]any{"mode": "read", "source": "luadraw", "doc": path, "start_line": 1, "end_line": 3})
+				assertSources(t, r, "luadraw")
+				assertResultDocs(t, r, path)
+				if !strings.Contains(resultText(t, r), "sharedmarker") {
+					t.Fatal("source follow-up lost body")
+				}
+			}
+			for _, old := range []map[string]any{{"source": "luadraw-notes"}, {"sources": []string{"luadraw-notes"}}} {
+				old["query"] = "sharedmarker"
+				if _, _, err := d.Execute(context.Background(), old, ""); err == nil || !strings.Contains(err.Error(), "unknown source") {
+					t.Fatalf("removed source must be unknown, not an alias: %v", err)
+				}
+			}
+			for _, path := range []string{
+				"docs/unrelated.md", "docs/configuration.md", "docs/notes.md", "docs/private/run.md",
+				"runner.yaml", "secrets/key.txt", "runs/private/session.md",
+				"vendor/luadraw-3.7/luadraw-private/secret.tex", "vendor/asymptote-3.16/doc/manual.texi",
+				"docs/document-sources/" + mode + ".yaml", "doc/official.tex", "../outside.md",
+			} {
+				if _, _, err := d.Execute(context.Background(), map[string]any{"mode": "read", "source": "luadraw", "doc": path}, ""); err == nil {
+					t.Fatalf("non-allowlisted file readable: %s", path)
+				}
+				if path != "../outside.md" {
+					for _, operation := range []string{"list", "find", "grep", "search"} {
+						r := execute(t, d, map[string]any{"mode": operation, "source": "luadraw", "doc": path, "query": "sharedmarker", "recursive": true})
+						assertResultDocs(t, r)
+					}
+				}
 			}
 			if mode == "mixed" {
-				assertSources(t, execute(t, d, map[string]any{"source": "asymptote", "query": "sharedmarker"}), "asymptote")
+				asy := execute(t, d, map[string]any{"source": "asymptote", "query": "sharedmarker"})
+				assertSources(t, asy, "asymptote")
+				assertResultDocs(t, asy, "doc/manual.texi")
 			}
 		})
+	}
+}
+
+func assertResultDocs(t *testing.T, response map[string]any, want ...string) {
+	t.Helper()
+	var got []string
+	for _, item := range results(t, response) {
+		r := item.(map[string]any)
+		doc := r["doc"].(string)
+		if r["kind"] == "directory" {
+			allowed := false
+			for _, path := range want {
+				if strings.HasPrefix(path, doc) {
+					allowed = true
+					break
+				}
+			}
+			if !allowed {
+				t.Fatalf("directory outside document allowlist exposed: %s", doc)
+			}
+		} else {
+			got = append(got, doc)
+		}
+	}
+	sort.Strings(got)
+	sort.Strings(want)
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("document allowlist got %v want %v: %#v", got, want, response)
+	}
+}
+
+func TestMergedLuaDrawCacheAndFrequencySurviveReopen(t *testing.T) {
+	root := sourceConfigFixture(t)
+	writeSourceFixture(t, root, "docs/document-sources/luadraw.yaml", fixtureSourceConfig)
+	cache := t.TempDir()
+	d, err := documents.New(root, cache, "luadraw")
+	if err != nil {
+		t.Fatal(err)
+	}
+	const official = "vendor/luadraw-3.7/luadraw/doc/official.tex"
+	const note = "docs/luadraw-surface-rendering.md"
+	first := execute(t, d, map[string]any{"query": "sharedmarker", "source": "luadraw", "output_version": 1})
+	assertResultDocs(t, first, official, note)
+	for i := 0; i < 3; i++ {
+		execute(t, d, map[string]any{"mode": "read", "source": "luadraw", "doc": note, "start_line": 3, "end_line": 3})
+	}
+	before := execute(t, d, map[string]any{"mode": "frequent", "source": "luadraw", "passive": true})
+	assertSources(t, before, "luadraw")
+	assertResultDocs(t, before, official, note)
+	ranked := results(t, before)
+	if ranked[0].(map[string]any)["doc"] != note || ranked[0].(map[string]any)["hits"].(float64) <= ranked[1].(map[string]any)["hits"].(float64) {
+		t.Fatalf("notes and official entries do not share frequency ordering: %#v", before)
+	}
+	reopened, err := documents.New(root, cache, "luadraw")
+	if err != nil {
+		t.Fatal(err)
+	}
+	after := execute(t, reopened, map[string]any{"mode": "frequent", "source": "luadraw", "passive": true})
+	if !reflect.DeepEqual(results(t, before), results(t, after)) {
+		t.Fatalf("frequency identities/order/hits did not persist: before=%#v after=%#v", before, after)
+	}
+	entry := results(t, after)[0].(map[string]any)
+	selected := execute(t, reopened, map[string]any{"mode": "frequent", "source": "luadraw", "entry_id": entry["entry_id"], "passive": true})
+	assertResultDocs(t, selected, note)
+	warm := execute(t, reopened, map[string]any{"query": "sharedmarker", "output_version": 1})
+	assertSources(t, warm, "luadraw")
+	assertResultDocs(t, warm, official, note)
+	info := warm["cache"].(map[string]any)
+	if info["misses"] != float64(0) || info["hits"] != float64(3) || info["namespace"] != first["cache"].(map[string]any)["namespace"] {
+		t.Fatalf("reopened merged source lost warm index namespace: %#v", info)
 	}
 }
 
@@ -351,13 +448,13 @@ func TestModeSourceConfigRelativePathsRelocateAndCacheArgumentWins(t *testing.T)
 	if err := os.CopyFS(moved, os.DirFS(original)); err != nil {
 		t.Fatal(err)
 	}
-	writeSourceFixture(t, original, "docs/mesh-advice.md", "stale-original-reference\n")
+	writeSourceFixture(t, original, "docs/luadraw-surface-rendering.md", "stale-original-reference\n")
 	t.Chdir(t.TempDir())
 	d, err := documents.New(moved, "", "luadraw")
 	if err != nil {
 		t.Fatal(err)
 	}
-	assertSources(t, execute(t, d, map[string]any{"query": "projectonlyfacet"}), "project-guide")
+	assertSources(t, execute(t, d, map[string]any{"query": "projectonlyfacet"}), "luadraw")
 	entries, err := os.ReadDir(filepath.Join(moved, "build", "configured-cache"))
 	if err != nil || len(entries) == 0 {
 		t.Fatalf("relative cache did not relocate with config: %v", err)
@@ -389,12 +486,13 @@ func TestMissingModeConfigAndLegacyRootsKeepOfficialSources(t *testing.T) {
 		t.Fatal(err)
 	}
 	assertSources(t, execute(t, d, map[string]any{"query": "sharedmarker"}), "luadraw")
+	assertResultDocs(t, execute(t, d, map[string]any{"mode": "read", "source": "luadraw", "doc": "doc/official.tex"}), "doc/official.tex")
 	writeSourceFixture(t, root, "docs/document-sources/luadraw.yaml", fixtureSourceConfig)
 	legacy, err := documents.New(filepath.Join(root, "vendor", "luadraw-3.7", "luadraw"), t.TempDir(), "luadraw")
 	if err != nil {
 		t.Fatal(err)
 	}
-	assertSources(t, execute(t, legacy, map[string]any{"query": "projectonlyfacet"}), "project-guide")
+	assertSources(t, execute(t, legacy, map[string]any{"query": "projectonlyfacet"}), "luadraw")
 	writeSourceFixture(t, root, "independent/nested/official/doc/manual.tex", "legacyofficialneedle\n")
 	independent := filepath.Join(root, "independent", "nested", "official")
 	t.Chdir(root) // Neither ancestor config nor cwd config may attach to this root.
@@ -418,13 +516,13 @@ func TestBundledLuaDrawRealSurfaceNotesKeywords(t *testing.T) {
 	}
 	for _, keyword := range []string{"cutfacet2", "Dscene3d"} {
 		r := execute(t, d, map[string]any{"mode": "search", "query": keyword, "kinds": []string{"source"}, "extensions": []string{".md"}, "limit": 20})
-		assertSources(t, r, "luadraw-notes")
+		assertSources(t, r, "luadraw")
 		if !strings.Contains(resultText(t, r), keyword) {
 			t.Fatalf("real configured notes keyword missing: %s", keyword)
 		}
 	}
-	read := execute(t, d, map[string]any{"mode": "read", "source": "luadraw-notes", "doc": "luadraw-surface-rendering.md", "start_line": 23, "end_line": 29})
-	assertSources(t, read, "luadraw-notes")
+	read := execute(t, d, map[string]any{"mode": "read", "source": "luadraw", "doc": "docs/luadraw-surface-rendering.md", "start_line": 23, "end_line": 29})
+	assertSources(t, read, "luadraw")
 	if !strings.Contains(resultText(t, read), "cutfacet2") {
 		t.Fatal("real configured note follow-up did not read expected source lines")
 	}
@@ -469,27 +567,27 @@ func TestBundledLuaDrawRealQueriesReadViewNavigationAndWarmCache(t *testing.T) {
 	if len(imageHit["images"].([]any)) != 1 {
 		t.Fatal("explicit PDF image missing")
 	}
-	for _, name := range []string{"doc/src/luadraw-doc-en.tex", "files/luadraw_graph3d.lua"} {
+	for _, name := range []string{"vendor/luadraw-3.7/luadraw/doc/src/luadraw-doc-en.tex", "vendor/luadraw-3.7/luadraw/files/luadraw_graph3d.lua"} {
 		r := execute(t, d, map[string]any{"mode": "read", "doc": name, "start_line": 1, "end_line": 3})
 		if len(results(t, r)) != 1 || results(t, r)[0].(map[string]any)["start_line"] != float64(1) {
 			t.Fatal(r)
 		}
 	}
 	for mode, query := range map[string]string{"list": "", "find": "graph3d.lua", "grep": "Dpolyline3d"} {
-		args := map[string]any{"mode": mode, "query": query, "doc": "files"}
+		args := map[string]any{"mode": mode, "query": query, "doc": "vendor/luadraw-3.7/luadraw/files"}
 		if len(results(t, execute(t, d, args))) == 0 {
 			t.Fatalf("real %s returned no matches", mode)
 		}
 	}
-	byDoc := execute(t, d, map[string]any{"mode": "read", "doc": "doc/luadraw-doc-en.pdf#page=14"})
-	byQuery := execute(t, d, map[string]any{"mode": "read", "query": "doc/luadraw-doc-en.pdf", "page": 14})
+	byDoc := execute(t, d, map[string]any{"mode": "read", "doc": "vendor/luadraw-3.7/luadraw/doc/luadraw-doc-en.pdf#page=14"})
+	byQuery := execute(t, d, map[string]any{"mode": "read", "query": "vendor/luadraw-3.7/luadraw/doc/luadraw-doc-en.pdf", "page": 14})
 	if len(results(t, byDoc)) < 2 || len(results(t, byDoc)) != len(results(t, byQuery)) {
 		t.Fatal("PDF query/page aliases or paragraph blocks lost")
 	}
-	if _, _, err = d.Execute(context.Background(), map[string]any{"mode": "read", "doc": "doc/luadraw-doc-en.pdf#page=14", "page": 15}, ""); err == nil {
+	if _, _, err = d.Execute(context.Background(), map[string]any{"mode": "read", "doc": "vendor/luadraw-3.7/luadraw/doc/luadraw-doc-en.pdf#page=14", "page": 15}, ""); err == nil {
 		t.Fatal("conflicting PDF page accepted")
 	}
-	view := execute(t, d, map[string]any{"mode": "view", "doc": "doc/luadraw-doc-en.pdf#page=1", "left": 10, "top": 15, "right": 85, "bottom": 90, "zoom": 400})
+	view := execute(t, d, map[string]any{"mode": "view", "doc": "vendor/luadraw-3.7/luadraw/doc/luadraw-doc-en.pdf#page=1", "left": 10, "top": 15, "right": 85, "bottom": 90, "zoom": 400})
 	images := view["images"].([]any)
 	if len(images) != 1 {
 		t.Fatal(view)
@@ -500,7 +598,7 @@ func TestBundledLuaDrawRealQueriesReadViewNavigationAndWarmCache(t *testing.T) {
 	if _, err = os.Stat(images[0].(map[string]any)["path"].(string)); err != nil {
 		t.Fatal(err)
 	}
-	active := execute(t, d, map[string]any{"mode": "frequent", "source": "luadraw", "doc": "files/luadraw_graph3d.lua", "limit": 8})
+	active := execute(t, d, map[string]any{"mode": "frequent", "source": "luadraw", "doc": "vendor/luadraw-3.7/luadraw/files/luadraw_graph3d.lua", "limit": 8})
 	if len(results(t, active)) == 0 {
 		t.Fatal("read source omitted from active frequency")
 	}

@@ -29,7 +29,7 @@ d, err = documents.NewConfig(documents.Config{
 
 | 后端 | 默认附带文档源 | 说明 |
 | --- | --- | --- |
-| `luadraw`（默认） | `source=luadraw` | 固定 LuaDraw vendor 根全部可读资源；二进制文件不作为正文索引 |
+| `luadraw`（默认） | `source=luadraw` | 固定 LuaDraw vendor 资源与配置明确纳入的项目补充文档共用一个来源；返回项目相对路径，二进制文件不作为正文索引 |
 | `mixed` | `luadraw`、`asymptote` | 可跨源搜索；重名文档 read/view 必须指定 source |
 | `asymptote` | `source=asymptote` | 从 [上游资源清单](asymptote-upstream.json)的 `resource_root` 发现；没有声明时要求唯一 `vendor/asymptote-*` |
 | `latex` | 无默认专用库 | 返回成功响应及明确说明，不加载 LuaDraw 参考；调用方可用 NewConfig 配置自己的 LaTeX 文档 |

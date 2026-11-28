@@ -1,5 +1,11 @@
 # 开发记录
 
+## LuaDraw 官方与补充文档统一来源
+
+按用户要求撤销独立luadraw-notes来源，改为配置层同一luadraw索引：root设为包根，include仅vendor/luadraw-3.7/luadraw/**与docs/luadraw-surface-rendering.md，exclude跳过.git/build/runs/dist/.deps/dev/go/scripts目录遍历。无需修改doc-library核心或增加宿主source别名，Asymptote仍独立。source可省略；显式luadraw可查官方和经验，两者参与同来源缓存、高频累计和排序。结果doc统一真实包根相对路径，后续read/view使用返回值。由于root和文档身份变化，采用新缓存namespace/entryID并首次重建，不删除旧数据或把旧计数冒充已迁移。
+
+已更新SKILL/模型source描述/mixed策略/检索说明，官方与项目补充仍可通过文件路径辨别，未改vendor。配置fixture验证search/read/find/list/grep以及frequency重开同ID/命中/排序；白名单外docs/config/secret/runtime与同前缀vendor目录不可索引/导航/读取。旧notes来源报unknown，无配置fallback仍旧官方doc路径。documents完整21.880s、真实官方与补充241文件/暖240hits0miss、Asy/mixed与vet/build均通过。测试仅本地文档工具，无模型请求或旧会话改写。
+
 ## 模型文档工具恢复稀疏参数
 
 用户再次指出原需求仅精简输出，但新模型调用充满空字段。git/真实转录追溯：fea71ed（2026-11-25 12:09:30+08）从原手工20字段模型定义改用公共库完整request27+legacyflat4=31；31874cd（11-27 21:16:23）升级紧凑输出依赖后新增include_bbox/output_version成33；e68e63a仅移除flat变29，并未解决接口过宽。旧双环会话31字段schema却实际frequent仅4字段；新两图改Responses后首个document_search在11-28 01:33:35填33字段，删flat后仍填29。转录原始_response_items与tool_calls参数字符串相等，本地decode没有补字段。Responses wire从657d23f起重建函数工具而丢strict，缺省也未明确false；服务端内部归一化未直接观察，不能把全部填默认归咎网关。

@@ -12,17 +12,19 @@
 4. Agent 写 LuaDraw `.lua` 或内嵌 `luadraw` 环境的 `.tex`，调用 `compile`，查看 PDF 和预览，按用户要求修正。
 5. 交付可编辑源码和 PDF。没有参考图时不报告比对分数，也不需要进入参考图 `submit` 接受流程。
 
-曲面网格和相交场景的渲染选择、解析裁切示例与适用边界，见[LuaDraw 曲面渲染实践](luadraw-surface-rendering.md)。它同时以 `luadraw-notes` 来源接入工具：这份项目补充不是官方手册，不改动固定 vendor，也不索引整套项目文档或运行目录。
+曲面网格和相交场景的渲染选择、解析裁切示例与适用边界，见[LuaDraw 曲面渲染实践](luadraw-surface-rendering.md)。它通过配置与官方资源一起归入 `luadraw` 来源，统一参与索引、缓存和高频排序。这份项目补充仍不是官方手册，不改动固定 vendor，也不索引整套项目文档或运行目录。
 
 引用源由 [LuaDraw 配置](document-sources/luadraw.yaml)、[mixed 配置](document-sources/mixed.yaml) 和 [Asymptote 配置](document-sources/asymptote.yaml) 声明，都是标准 doc-library `Config` YAML；相对 `root` 按 YAML 所在目录解析。`documents.New` 按绘图模式加载配置并调用 `NewConfig`；源 YAML 未指定 `output.version` 时补宿主默认 2，显式配置的版本保留。没有写死经验文件名、来源别名或扩展筛选规则。后续补充资料只需改对应 YAML 的 `sources/include` 和增加实际文档；若使用导出包，也应将新增文档列入资源导出清单。
 
-不传 `source` 就搜索当前绘图模式配置的全部资料；`source:"luadraw"` **只查官方来源**。同时查询官方及补充可用 `sources:["luadraw","luadraw-notes"]`。返回结果保留真实来源，后续 `read/view` 使用该精确来源。显式 `NewConfig` 继续遵守调用方自己的核心配置，包括输出选择；未指定版本时保持 doc-library 核心默认 v1，不补宿主 v2；旧版或独立 LuaDraw 目录缺少 YAML 时退回原官方来源，无效的已选配置则报错而不静默回退。
+`source` 不是必填项：不传就搜索当前绘图模式配置的全部资料；`source:"luadraw"` 同时检索官方资源和纳入配置的补充文档。`mixed` 下可用 `source:"asymptote"` 只查 Asymptote，也可省略来源同时查询两套绘图库。`luadraw-notes` 不再是独立来源。LuaDraw 配置以包根为 `root`，用 `include` 仅开放 `vendor/luadraw-3.7/luadraw/**` 与 `docs/luadraw-surface-rendering.md`；其他项目文档、配置和 runs 不可读。返回的 `doc` 使用包根相对路径，`read/view` 按返回值填写。显式 `NewConfig` 仍遵守调用方的配置；旧版或独立 LuaDraw 目录缺少 YAML 时退回原官方根和旧相对路径。
 
 ```json
-{"mode":"search","query":"Dscene3d 网格 毛刺","limit":5}
-{"sources":["luadraw","luadraw-notes"],"mode":"search","query":"cutfacet2","limit":5}
-{"source":"luadraw-notes","mode":"read","doc":"luadraw-surface-rendering.md","start_line":1,"end_line":57}
+{"source":"luadraw","mode":"search","query":"Dscene3d 网格 毛刺","limit":5}
+{"source":"luadraw","mode":"search","query":"cutfacet2","limit":5}
+{"source":"luadraw","mode":"read","doc":"docs/luadraw-surface-rendering.md","start_line":1,"end_line":57}
 ```
+
+来源根与索引范围改变后，文档路径、缓存命名空间和高频条目 ID 会变化，首次需要重建该索引；之后官方与补充文档在新的统一来源下共同累计排序。不会删除旧缓存或伪造迁移旧频次。
 
 配置和参考原文一起随源码 Skill 导出，安装包也可检索、精读这些经验；不是只在仓库里的链接。
 
@@ -59,12 +61,12 @@ Asymptote 手册实际路径是 `doc/asymptote.texi`，不是根目录的 `asymp
 ```bash
 build/compare-figure luadraw-doc --mode frequent --cache-dir work/shared-doc-cache
 build/compare-figure luadraw-doc --query Dpolyline3d --snippet-chars 1200 --max-chars 6000 --cache-dir work/shared-doc-cache
-build/compare-figure luadraw-doc --mode list --doc doc/src/body-en --limit 20
+build/compare-figure luadraw-doc --mode list --doc vendor/luadraw-3.7/luadraw/doc/src/body-en --limit 20
 build/compare-figure luadraw-doc --mode find --query '*doc3d-en*'
 build/compare-figure luadraw-doc --mode grep --doc files --query Dpolyline3d --limit 5
-build/compare-figure luadraw-doc --mode read --query doc/luadraw-doc-en.pdf --page 14
-build/compare-figure luadraw-doc --mode read --doc files/luadraw_graph3d.lua --start-line 1 --end-line 80
-build/compare-figure luadraw-doc --mode view --doc doc/luadraw-doc-en.pdf --page 14 --left 5 --top 10 --right 95 --bottom 80 --out work/manual-view
+build/compare-figure luadraw-doc --mode read --query vendor/luadraw-3.7/luadraw/doc/luadraw-doc-en.pdf --page 14
+build/compare-figure luadraw-doc --mode read --doc vendor/luadraw-3.7/luadraw/files/luadraw_graph3d.lua --start-line 1 --end-line 80
+build/compare-figure luadraw-doc --mode view --doc vendor/luadraw-3.7/luadraw/doc/luadraw-doc-en.pdf --page 14 --left 5 --top 10 --right 95 --bottom 80 --out work/manual-view
 ```
 
 源码按行读取最多400行，PDF按页/段落块定位。模型文字使用 `source · doc · p.N` 或 `source · doc · Lstart-end` 定位，不显示缓存/哈希首行、PDF 点坐标或页面尺寸。`snippet_chars` 控制每个片段，`max_chars` 控制正文总预算（位置及 warning 另计）。默认不输出 bbox；需要区域定位时传 `include_bbox:true` 或 CLI `--include-bbox=true`，只补 `bbox_pct`（left/top/right/bottom 百分比），可直接用于 `view` 裁切。省略 `include_bbox` 沿用启动默认，显式 true/false 覆盖本次；`--include-bbox=false` 可关闭启动时已开启的 bbox。隐藏输出不改变 PDF 内部抽取、段落合并及裁图所需的几何计算。`include_image` 独立控制搜索附图，显式 `view` 仍渲染图片；与 bbox 是否输出无关。PDF图片默认作为路径返回；外部需要图片字节时使用 `--inline-images`。
@@ -90,7 +92,7 @@ CLI `--output-version 1|2` 选择启动默认输出版本，例如：
 
 ```bash
 build/compare-figure document-search --query Dpolyline3d --output-version 2 --include-bbox=false
-build/compare-figure document-search --mode read --doc doc/luadraw-doc-en.pdf --page 14 --include-bbox=true
+build/compare-figure document-search --mode read --doc vendor/luadraw-3.7/luadraw/doc/luadraw-doc-en.pdf --page 14 --include-bbox=true
 build/compare-figure document-search --query Dpolyline3d --output-version 1
 ```
 
